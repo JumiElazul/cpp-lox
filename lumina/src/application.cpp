@@ -2,11 +2,14 @@
 #include "typedefs.h"
 #include "console_io.h"
 #include "logger.h"
+#include "lexer.h"
+#include <vector>
 
 NAMESPACE_BEGIN(lumina)
 
 application::application()
     : _io(std::make_unique<console_io>())
+    , _lexer()
 {
 
 }
@@ -16,6 +19,7 @@ application::~application() = default;
 void application::run()
 {
     LUMINA_PRINT_LOG_LEVELS;
+    LUMINA_INFO("application::run() started");
 
     while (true)
     {
@@ -25,8 +29,7 @@ void application::run()
         if (input == "q" || input == "quit")
             break;
 
-        _io->write({ "input was ", input , "\n"});
-        LUMINA_TRACE("input was " + input);
+        std::vector<token> tokens = _lexer.tokenize(input);
     }
 }
 
