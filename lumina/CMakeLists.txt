@@ -10,10 +10,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
     "src/application.cpp"
+    "src/console_io.cpp"
 )
 
 set(HEADERS
     "include/application.h"
+
+    "include/console_io.h"
+    "include/i_io.h"
+    "include/typedefs.h"
 )
 
 # Setup the core library
