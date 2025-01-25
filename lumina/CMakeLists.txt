@@ -24,6 +24,7 @@ set(HEADERS
     "include/console_io.h"
     "include/logger.h"
     "include/typedefs.h"
+    "include/tokens.h"
 )
 
 # Setup the core library
