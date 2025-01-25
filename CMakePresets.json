@@ -51,7 +51,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_CXX_FLAGS_INIT": "-ggdb -g -Wall -Wextra -Wconversion -Wsign-conversion -pedantic-errors -fsanitize=address -fsanitize=undefined"
+                "CMAKE_CXX_FLAGS_INIT": "-ggdb -g -Wall -Wextra -Wconversion -Wsign-conversion -Wno-unused-parameter -pedantic-errors -fsanitize=address -fsanitize=undefined"
             },
             "condition": {
                 "type": "equals",
@@ -73,7 +73,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_CXX_FLAGS_INIT": "-O3 -Wall -Wextra -Wconversion -pedantic-errors"
+                "CMAKE_CXX_FLAGS_INIT": "-O3 -Wall -Wextra -Wconversion --Wno-unused-parameter pedantic-errors"
             },
             "condition": {
                 "type": "equals",

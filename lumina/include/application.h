@@ -6,6 +6,8 @@
 NAMESPACE_BEGIN(lumina)
 
 class i_io;
+class i_logger;
+
 class application
 {
 public:

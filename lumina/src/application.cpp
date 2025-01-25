@@ -1,8 +1,7 @@
 #include "application.h"
 #include "typedefs.h"
 #include "console_io.h"
-#include <memory>
-#include <string>
+#include "logger.h"
 
 NAMESPACE_BEGIN(lumina)
 
@@ -16,6 +15,8 @@ application::~application() = default;
 
 void application::run()
 {
+    LUMINA_PRINT_LOG_LEVELS;
+
     while (true)
     {
         _io->write("lumina > ");
@@ -25,6 +26,7 @@ void application::run()
             break;
 
         _io->write({ "input was ", input , "\n"});
+        LUMINA_TRACE("input was " + input);
     }
 }
 
