@@ -12,6 +12,7 @@ set(SOURCES
     "src/application.cpp"
 
     "src/console_io.cpp"
+    "src/lexer_exceptions.cpp"
     "src/lexer.cpp"
     "src/logger.cpp"
 )
@@ -23,6 +24,7 @@ set(HEADERS
     "include/i_logger.h"
 
     "include/console_io.h"
+    "include/lexer_exception.h"
     "include/lexer.h"
     "include/logger.h"
     "include/typedefs.h"
