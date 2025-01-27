@@ -1,4 +1,4 @@
-#include "application.h"
+#include "lumina_app.h"
 #include "typedefs.h"
 #include "console_io.h"
 #include "logger.h"
@@ -7,19 +7,19 @@
 
 NAMESPACE_BEGIN(lumina)
 
-application::application()
+lumina_app::lumina_app()
     : _io(std::make_unique<console_io>())
-    , _lexer()
+    , _lexer(_io.get())
 {
 
 }
 
-application::~application() = default;
+lumina_app::~lumina_app() = default;
 
-void application::run()
+void lumina_app::run()
 {
     LUMINA_PRINT_LOG_LEVELS;
-    LUMINA_INFO("application::run() started");
+    LUMINA_INFO("lumina_app::run() started");
 
     while (true)
     {
@@ -30,6 +30,12 @@ void application::run()
             break;
 
         std::vector<token> tokens = _lexer.tokenize(input);
+
+        for (const token& t : tokens)
+        {
+            *_io << t << '\n';
+            LUMINA_INFO(to_string(t));
+        }
     }
 }
 

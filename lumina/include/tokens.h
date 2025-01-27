@@ -1,7 +1,9 @@
 #ifndef JUMI_LUMINA_TOKENS_H
 #define JUMI_LUMINA_TOKENS_H
 #include "typedefs.h"
+#include <iosfwd>
 #include <string>
+#include <unordered_map>
 #include <variant>
 
 NAMESPACE_BEGIN(lumina)
@@ -11,9 +13,13 @@ enum class token_type
 {
     // single-character tokens
     left_paren_, right_paren_, left_brace_, right_brace_,
-    comma_, dot_, minus_, plus_, semicolon_, slash_, star_,
+    comma_, dot_, semicolon_,
 
     // one or two character tokens
+    minus_, minus_equal_,
+    plus_, plus_equal_,
+    slash_, slash_equal_,
+    star_, star_equal_,
     bang_, bang_equal_,
     equal_, equal_equal_,
     greater_, greater_equal_,
@@ -23,22 +29,31 @@ enum class token_type
     identifier_, string_, number_,
 
     // keywords
-    and_, or_, if_, else_, class__, false_, true_, fun_, nil_,
+    and_, or_, if_, else_, class__, false_, true_, func_, nil_,
     print_, return_, super_, this_, var_, for_, while_,
 
-    // end of file
+    // end of file/other
     bof_,
-    eof_
+    eof_,
+    invalid_,
+    newline_,
 };
 
+
+using coord = std::pair<uint32, uint32>;
 struct token
 {
     token_type type;
-    std::pair<uint32, uint32> position;
     std::string lexeme;
     literal_value literal;
+    coord position;
 };
 
+extern const std::unordered_map<token_type, std::string> token_type_tostr;
+extern std::string to_string(const token& t);
+
 NAMESPACE_END
+
+std::ostream& operator<<(std::ostream& os, const lumina::token& t);
 
 #endif

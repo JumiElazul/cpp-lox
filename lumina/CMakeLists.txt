@@ -9,22 +9,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
-    "src/application.cpp"
+    "src/lumina_app.cpp"
 
     "src/console_io.cpp"
     "src/lexer_exceptions.cpp"
     "src/lexer.cpp"
     "src/logger.cpp"
+    "src/tokens.cpp"
 )
 
 set(HEADERS
-    "include/application.h"
+    "include/lumina_app.h"
 
-    "include/i_io.h"
     "include/i_logger.h"
 
     "include/console_io.h"
-    "include/lexer_exception.h"
+    "include/lexer_exceptions.h"
     "include/lexer.h"
     "include/logger.h"
     "include/typedefs.h"
