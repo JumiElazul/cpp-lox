@@ -35,7 +35,6 @@ private:
     std::optional<char> peek_next();
     bool advance_if_next_matches(char c);
     token create_token(token_type type, const literal_value& literal, bool string = false);
-    void reset_lexer_state() noexcept;
 
     token left_paren();
     token right_paren();

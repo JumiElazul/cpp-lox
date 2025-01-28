@@ -41,7 +41,7 @@ lexer::lexer(console_io* io)
 
 std::vector<token> lexer::tokenize(const std::string& input)
 {
-    reset_lexer_state();
+    _lexer_state = lexer_state{};
     _lexer_state.input = std::move(input);
 
     std::vector<token> tokens;
@@ -132,15 +132,6 @@ token lexer::create_token(token_type type, const literal_value& literal, bool st
         std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr, len);
         return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
     }
-}
-
-void lexer::reset_lexer_state() noexcept
-{
-    _lexer_state.current_line = 1;
-    _lexer_state.current_pos = 0;
-    _lexer_state.left_ptr = 0;
-    _lexer_state.right_ptr = 0;
-    _lexer_state.input = "";
 }
 
 token lexer::left_paren()
@@ -265,6 +256,7 @@ token lexer::string()
         return create_token(token_type::string_, std::monostate{}, true);
     }
 
+    // Untermintated string
     return invalid_token();
 }
 
