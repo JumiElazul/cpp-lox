@@ -34,7 +34,7 @@ void lumina_app::run()
         for (const token& t : tokens)
         {
             *_io << t << '\n';
-            LUMINA_INFO(to_string(t));
+            // LUMINA_INFO(to_string(t));
         }
     }
 }

@@ -134,6 +134,11 @@ token lexer::create_token(token_type type, uint32 start, uint32 length, const li
     return token{ type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos } };
 }
 
+uint32 lexer::extract_lexeme_length() const noexcept
+{
+    return _lexer_state.right_ptr - _lexer_state.left_ptr;
+}
+
 token lexer::left_paren()
 {
     return create_token(token_type::left_paren_, _lexer_state.left_ptr, 1);
@@ -188,7 +193,19 @@ token lexer::semicolon()
 token lexer::slash()
 {
     if (advance_if_next_matches('='))
+    {
         return create_token(token_type::slash_equal_, _lexer_state.left_ptr, 2);
+    }
+    else if (advance_if_next_matches('/'))
+    {
+        while (peek_next().has_value() && peek_next() != '\n')
+        {
+            advance_lexer();
+        }
+
+        uint32 len = extract_lexeme_length();
+        return create_token(token_type::invalid_, _lexer_state.left_ptr, len);
+    }
 
     return create_token(token_type::slash_, _lexer_state.left_ptr, 1);
 }
@@ -253,9 +270,10 @@ token lexer::string()
     if (peek_next() == '"')
     {
         advance_lexer();
-        uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr - 2;
-        std::string str = _lexer_state.input.substr(_lexer_state.left_ptr + 1, len);
-        return create_token(token_type::string_, _lexer_state.left_ptr, _lexer_state.right_ptr - _lexer_state.left_ptr, str);
+        uint32 literal_len = extract_lexeme_length() - 2;
+        uint32 lexeme_len = extract_lexeme_length();
+        std::string str = _lexer_state.input.substr(_lexer_state.left_ptr + 1, literal_len);
+        return create_token(token_type::string_, _lexer_state.left_ptr, lexeme_len, str);
     }
 
     // Untermintated string
@@ -278,7 +296,7 @@ token lexer::number()
         }
     }
 
-    uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr;
+    uint32 len = extract_lexeme_length();
     double d = std::stod(_lexer_state.input.substr(_lexer_state.left_ptr, len));
     return create_token(token_type::number_, _lexer_state.left_ptr, len, d);
 }

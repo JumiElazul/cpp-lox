@@ -36,6 +36,7 @@ private:
     bool advance_if_next_matches(char c);
     token create_token(token_type type, uint32 start, uint32 length, const literal_value& literal = std::monostate{});
 
+    uint32 extract_lexeme_length() const noexcept;
     token left_paren();
     token right_paren();
     token left_brace();
