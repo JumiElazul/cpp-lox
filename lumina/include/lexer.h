@@ -34,7 +34,7 @@ private:
     std::optional<char> advance_lexer();
     std::optional<char> peek_next();
     bool advance_if_next_matches(char c);
-    token create_token(token_type type, uint32 start, uint32 length, const literal_value& literal = std::monostate{});
+    token create_token(token_type type, uint32 length, const literal_value& literal = std::monostate{});
 
     uint32 extract_lexeme_length() const noexcept;
     token left_paren();
