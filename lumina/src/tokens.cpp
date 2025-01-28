@@ -64,7 +64,6 @@ extern const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::bof_,           "bof"               },
     { token_type::eof_,           "eof"               },
     { token_type::invalid_,       "invalid"           },
-    { token_type::newline_,       "newline"           },
 };
 
 std::string to_string(const token& t)

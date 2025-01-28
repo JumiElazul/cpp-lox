@@ -13,7 +13,8 @@ public:
     lumina_app();
     ~lumina_app();
 
-    void run();
+    void run_file_mode(const char* filepath);
+    void run_interpreter_mode();
 
 private:
     std::unique_ptr<console_io> _io;

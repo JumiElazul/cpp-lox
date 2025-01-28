@@ -14,11 +14,11 @@ class lexer
 {
     struct lexer_state
     {
-        uint32 current_line;
-        uint32 current_pos;
-        uint32 left_ptr;
-        uint32 right_ptr;
-        std::string input;
+        uint32 current_line = 1;
+        uint32 current_pos = 1;
+        uint32 left_ptr = 0;
+        uint32 right_ptr = 0;
+        std::string input = "";
     };
 
 public:
@@ -30,11 +30,13 @@ private:
     std::unordered_map<char, token(lexer::*)(void)> _character_map;
     console_io* _io;
 
+    bool _block_comment;
+
     token fetch_token();
     std::optional<char> advance_lexer();
     std::optional<char> peek_next();
     bool advance_if_next_matches(char c);
-    token create_token(token_type type, uint32 length, const literal_value& literal = std::monostate{});
+    token create_token(token_type type, const literal_value& literal = std::monostate{});
 
     uint32 extract_lexeme_length() const noexcept;
     token left_paren();
@@ -52,8 +54,6 @@ private:
     token equal();
     token greater();
     token less();
-    token newline();
-    token whitespace();
     token string();
     token number();
     token invalid_token();

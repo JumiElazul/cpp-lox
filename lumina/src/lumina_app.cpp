@@ -4,6 +4,8 @@
 #include "logger.h"
 #include "lexer.h"
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 NAMESPACE_BEGIN(lumina)
 
@@ -16,10 +18,34 @@ lumina_app::lumina_app()
 
 lumina_app::~lumina_app() = default;
 
-void lumina_app::run()
+void lumina_app::run_file_mode(const char* filepath)
 {
     LUMINA_PRINT_LOG_LEVELS;
-    LUMINA_INFO("lumina_app::run() started");
+    LUMINA_INFO("lumina_app::run_file_mode() started");
+
+    std::ifstream file(filepath);
+    if (!file)
+    {
+        std::cerr << "File with path [" << filepath << "could not be read\n";
+        return;
+    }
+
+    std::stringstream ss;
+    ss << file.rdbuf();
+    std::string contents = ss.str();
+
+    std::vector<token> tokens = _lexer.tokenize(contents);
+
+    for (const token& t : tokens)
+    {
+        *_io << t << '\n';
+    }
+}
+
+void lumina_app::run_interpreter_mode()
+{
+    LUMINA_PRINT_LOG_LEVELS;
+    LUMINA_INFO("lumina_app::run_interpreter_mode() started");
 
     while (true)
     {

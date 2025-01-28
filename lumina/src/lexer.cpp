@@ -13,6 +13,7 @@ lexer::lexer(console_io* io)
     : _lexer_state()
     , _character_map()
     , _io(io)
+    , _block_comment(false)
 {
     _character_map =
     {
@@ -31,10 +32,6 @@ lexer::lexer(console_io* io)
         { '=',  &lexer::equal          },
         { '>',  &lexer::greater        },
         { '<',  &lexer::less           },
-        { '\n', &lexer::newline        },
-        { ' ',  &lexer::whitespace     },
-        { '\r', &lexer::whitespace     },
-        { '\t', &lexer::whitespace     },
         { '"',  &lexer::string         },
         { '1',  &lexer::number         },
         { '2',  &lexer::number         },
@@ -56,31 +53,18 @@ std::vector<token> lexer::tokenize(const std::string& input)
 
     std::vector<token> tokens;
     tokens.reserve(input.size() / 3);
-    tokens.push_back(create_token(token_type::bof_, 0));
+    tokens.push_back(create_token(token_type::bof_));
 
-    while (_lexer_state.right_ptr < _lexer_state.input.size())
+    size_t input_size = _lexer_state.input.size();
+    while (_lexer_state.right_ptr < input_size)
     {
         token next_token = fetch_token();
+        _lexer_state.current_pos += static_cast<uint32>(next_token.lexeme.size());
 
-        switch (next_token.type)
+        if (next_token.type != token_type::invalid_)
         {
-            case token_type::newline_:
-            {
-                _lexer_state.current_line += 1;
-                _lexer_state.current_pos = 0;
-            } break;
-            case token_type::invalid_:
-            {
-                ++_lexer_state.current_pos;
-            } break;
-            default:
-            {
-                size_t lexeme_len = next_token.lexeme.size();
-                _lexer_state.current_pos += static_cast<uint32>(lexeme_len);
-                tokens.push_back(next_token);
-            } break;
+            tokens.push_back(next_token);
         }
-
     }
 
     return tokens;
@@ -90,6 +74,7 @@ token lexer::fetch_token()
 {
     _lexer_state.left_ptr = _lexer_state.right_ptr;
     std::optional<char> current_char = advance_lexer();
+
     if (current_char.has_value())
     {
         auto char_map_find = _character_map.find(*current_char);
@@ -98,7 +83,7 @@ token lexer::fetch_token()
             return (this->*char_map_find->second)();
         }
     }
-    return create_token(token_type::invalid_, 0);
+    return create_token(token_type::invalid_);
 }
 
 std::optional<char> lexer::advance_lexer()
@@ -106,7 +91,19 @@ std::optional<char> lexer::advance_lexer()
     if (_lexer_state.right_ptr >= _lexer_state.input.size())
         return std::nullopt;
 
-    return _lexer_state.input[_lexer_state.right_ptr++];
+    char c = _lexer_state.input[_lexer_state.right_ptr];
+    ++_lexer_state.right_ptr;
+
+    if (c == '\n')
+    {
+        ++_lexer_state.current_line;
+
+        // We need to set the current_pos as one less than the default value of 1, because the tokenize method will
+        // increment the current_pos by the length of the token (in this case 1, putting the current_pos at the proper value)
+        _lexer_state.current_pos = 0;
+    }
+
+    return c;
 }
 
 std::optional<char> lexer::peek_next()
@@ -128,9 +125,10 @@ bool lexer::advance_if_next_matches(char c)
     return false;
 }
 
-token lexer::create_token(token_type type, uint32 length, const literal_value& literal)
+token lexer::create_token(token_type type, const literal_value& literal)
 {
-    std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr, length);
+    uint32 len = extract_lexeme_length();
+    std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr, len);
     return token{ type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos } };
 }
 
@@ -141,143 +139,171 @@ uint32 lexer::extract_lexeme_length() const noexcept
 
 token lexer::left_paren()
 {
-    return create_token(token_type::left_paren_, 1);
+    return create_token(token_type::left_paren_);
 }
 
 token lexer::right_paren()
 {
-    return create_token(token_type::right_paren_, 1);
+    return create_token(token_type::right_paren_);
 }
 
 token lexer::left_brace()
 {
-    return create_token(token_type::left_brace_, 1);
+    return create_token(token_type::left_brace_);
 }
 
 token lexer::right_brace()
 {
-    return create_token(token_type::right_brace_, 1);
+    return create_token(token_type::right_brace_);
 }
 
 token lexer::comma()
 {
-    return create_token(token_type::comma_, 1);
+    return create_token(token_type::comma_);
 }
 
 token lexer::dot()
 {
-    return create_token(token_type::dot_, 1);
+    return create_token(token_type::dot_);
 }
 
 token lexer::minus()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::minus_equal_, 2);
+        return create_token(token_type::minus_equal_);
 
-    return create_token(token_type::minus_, 1);
+    return create_token(token_type::minus_);
 }
 
 token lexer::plus()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::plus_equal_, 2);
+        return create_token(token_type::plus_equal_);
 
-    return create_token(token_type::plus_, 1);
+    return create_token(token_type::plus_);
 }
 
 token lexer::semicolon()
 {
-    return create_token(token_type::semicolon_, 1);
+    return create_token(token_type::semicolon_);
 }
 
 token lexer::slash()
 {
-    if (advance_if_next_matches('='))
+    if (!peek_next().has_value()) 
     {
-        return create_token(token_type::slash_equal_, 2);
+        return create_token(token_type::slash_);
     }
-    else if (advance_if_next_matches('/'))
+
+    char c = *peek_next();
+
+    switch (c)
     {
-        while (peek_next().has_value() && peek_next() != '\n')
+        case '=':
         {
             advance_lexer();
+            return create_token(token_type::slash_equal_);
         }
+        case '/':
+        {
+            advance_lexer();
 
-        uint32 len = extract_lexeme_length();
-        return create_token(token_type::invalid_, len);
+            while (peek_next().has_value() && *peek_next() != '\n')
+                advance_lexer();
+
+            return create_token(token_type::invalid_);
+        }
+        case '*':
+        {
+            advance_lexer();
+
+            while (true)
+            {
+                // Hit end of input
+                if (!peek_next().has_value())
+                    break;
+
+                // End of block comment
+                if (*peek_next() == '*')
+                {
+                    advance_lexer();
+
+                    if (peek_next().has_value() && *peek_next() == '/')
+                    {
+                        advance_lexer();
+                        break;
+                    }
+                }
+                else
+                {
+                    advance_lexer();
+                }
+            }
+
+            return create_token(token_type::invalid_);
+        }
     }
 
-    return create_token(token_type::slash_, 1);
+    return create_token(token_type::slash_);
 }
 
 token lexer::star()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::star_equal_, 2);
+        return create_token(token_type::star_equal_);
 
-    return create_token(token_type::star_, 1);
+    return create_token(token_type::star_);
 }
 
 token lexer::bang()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::bang_equal_, 2);
+        return create_token(token_type::bang_equal_);
 
-    return create_token(token_type::bang_, 1);
+    return create_token(token_type::bang_);
 }
 
 token lexer::equal()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::equal_equal_, 2);
+        return create_token(token_type::equal_equal_);
 
-    return create_token(token_type::equal_, 1);
+    return create_token(token_type::equal_);
 }
 
 token lexer::greater()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::greater_equal_, 2);
+        return create_token(token_type::greater_equal_);
 
-    return create_token(token_type::greater_, 1);
+    return create_token(token_type::greater_);
 }
 
 token lexer::less()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::less_equal_, 2);
+        return create_token(token_type::less_equal_);
 
-    return create_token(token_type::less_, 1);
-}
-
-token lexer::newline()
-{
-    return create_token(token_type::newline_, 1);
-}
-
-token lexer::whitespace()
-{
-    return invalid_token();
+    return create_token(token_type::less_);
 }
 
 token lexer::string()
 {
-    while (peek_next() != '"' && peek_next().has_value())
+    while (peek_next().has_value() && peek_next() != '"')
     {
         advance_lexer();
     }
 
-    if (peek_next() == '"')
+    if (peek_next().has_value() && peek_next() == '"')
     {
         advance_lexer();
         uint32 literal_len = extract_lexeme_length() - 2;
-        uint32 lexeme_len = extract_lexeme_length();
         std::string str = _lexer_state.input.substr(_lexer_state.left_ptr + 1, literal_len);
 
-        return create_token(token_type::string_, lexeme_len, str);
+        return create_token(token_type::string_, str);
     }
 
-    // Untermintated string
+    // Unterminated string
     return invalid_token();
 }
 
@@ -299,13 +325,12 @@ token lexer::number()
 
     uint32 len = extract_lexeme_length();
     double d = std::stod(_lexer_state.input.substr(_lexer_state.left_ptr, len));
-    return create_token(token_type::number_, len, d);
+    return create_token(token_type::number_, d);
 }
 
 token lexer::invalid_token()
 {
-    uint32 len = extract_lexeme_length();
-    return create_token(token_type::invalid_, len);
+    return create_token(token_type::invalid_);
 }
 
 NAMESPACE_END
