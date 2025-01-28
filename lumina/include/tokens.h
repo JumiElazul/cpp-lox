@@ -30,7 +30,7 @@ enum class token_type
     identifier_, string_, number_,
 
     // keywords
-    and_, or_, if_, else_, class__, false_, true_, func_, null_,
+    and_, or_, if_, else_, class_, false_, true_, func_, null_,
     print_, return_, super_, this_, var_, for_, while_,
 
     // end of file/other

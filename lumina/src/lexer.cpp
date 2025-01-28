@@ -2,6 +2,7 @@
 #include "console_io.h"
 #include "typedefs.h"
 #include "tokens.h"
+#include <cctype>
 #include <optional>
 #include <vector>
 #include <string>
@@ -12,8 +13,8 @@ NAMESPACE_BEGIN(lumina)
 lexer::lexer(console_io* io)
     : _lexer_state()
     , _character_map()
+    , _reserved_keyword_map()
     , _io(io)
-    , _block_comment(false)
 {
     _character_map =
     {
@@ -33,16 +34,26 @@ lexer::lexer(console_io* io)
         { '>',  &lexer::greater        },
         { '<',  &lexer::less           },
         { '"',  &lexer::string         },
-        { '1',  &lexer::number         },
-        { '2',  &lexer::number         },
-        { '3',  &lexer::number         },
-        { '4',  &lexer::number         },
-        { '5',  &lexer::number         },
-        { '6',  &lexer::number         },
-        { '7',  &lexer::number         },
-        { '8',  &lexer::number         },
-        { '9',  &lexer::number         },
-        { '0',  &lexer::number         },
+    };
+
+    _reserved_keyword_map = 
+    {
+        { "and",    token_type::and_    },
+        { "or",     token_type::or_     },
+        { "if",     token_type::if_     },
+        { "else",   token_type::else_   },
+        { "class",  token_type::class_  },
+        { "false",  token_type::false_  },
+        { "true",   token_type::true_   },
+        { "func",   token_type::func_   },
+        { "null",   token_type::null_   },
+        { "print",  token_type::print_  },
+        { "return", token_type::return_ },
+        { "super",  token_type::super_  },
+        { "this",   token_type::this_   },
+        { "var",    token_type::var_    },
+        { "for",    token_type::for_    },
+        { "while",  token_type::while_  },
     };
 }
 
@@ -77,6 +88,15 @@ token lexer::fetch_token()
 
     if (current_char.has_value())
     {
+        if (isalpha(*current_char) || *current_char == '_')
+        {
+            return identifier();
+        }
+        else if (isdigit(*current_char))
+        {
+            return number();
+        }
+
         auto char_map_find = _character_map.find(*current_char);
         if (char_map_find != _character_map.end())
         {
@@ -285,6 +305,23 @@ token lexer::less()
         return create_token(token_type::less_equal_);
 
     return create_token(token_type::less_);
+}
+
+token lexer::identifier()
+{
+    while (peek_next().has_value() && (isalnum(*peek_next()) || *peek_next() == '_'))
+    {
+        advance_lexer();
+    }
+
+    std::string substr = _lexer_state.input.substr(_lexer_state.left_ptr, extract_lexeme_length());
+    auto reserved_keyword = _reserved_keyword_map.find(substr);
+    if (reserved_keyword != _reserved_keyword_map.end())
+    {
+        return create_token(reserved_keyword->second);
+    }
+
+    return create_token(token_type::identifier_);
 }
 
 token lexer::string()

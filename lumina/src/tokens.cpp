@@ -49,7 +49,7 @@ extern const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::or_,            "or"                },
     { token_type::if_,            "if"                },
     { token_type::else_,          "else"              },
-    { token_type::class__,        "class"             },
+    { token_type::class_,        "class"             },
     { token_type::false_,         "false"             },
     { token_type::true_,          "true"              },
     { token_type::func_,          "func"              },

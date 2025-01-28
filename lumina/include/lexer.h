@@ -28,9 +28,9 @@ public:
 private:
     lexer_state _lexer_state;
     std::unordered_map<char, token(lexer::*)(void)> _character_map;
-    console_io* _io;
+    std::unordered_map<std::string, token_type> _reserved_keyword_map;
 
-    bool _block_comment;
+    console_io* _io;
 
     token fetch_token();
     std::optional<char> advance_lexer();
@@ -54,6 +54,7 @@ private:
     token equal();
     token greater();
     token less();
+    token identifier();
     token string();
     token number();
     token invalid_token();
