@@ -130,18 +130,17 @@ bool lexer::advance_if_next_matches(char c)
 
 token lexer::create_token(token_type type, const literal_value& literal, bool string)
 {
+    uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr;
+    uint32 left = _lexer_state.left_ptr;
+
     if (string)
     {
-        uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr - 2;
-        std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr + 1, len);
-        return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
+        len -= 2;
+        left += 1;
     }
-    else
-    {
-        uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr;
-        std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr, len);
-        return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
-    }
+
+    std::string lexeme = _lexer_state.input.substr(left, len);
+    return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
 }
 
 token lexer::left_paren()
