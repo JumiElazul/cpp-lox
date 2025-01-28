@@ -7,7 +7,8 @@
 #include <variant>
 
 NAMESPACE_BEGIN(lumina)
-using literal_value = std::variant<double, std::string, std::monostate>;
+
+struct token;
 
 enum class token_type
 {
@@ -29,7 +30,7 @@ enum class token_type
     identifier_, string_, number_,
 
     // keywords
-    and_, or_, if_, else_, class__, false_, true_, func_, nil_,
+    and_, or_, if_, else_, class__, false_, true_, func_, null_,
     print_, return_, super_, this_, var_, for_, while_,
 
     // end of file/other
@@ -39,8 +40,16 @@ enum class token_type
     newline_,
 };
 
-
 using coord = std::pair<uint32, uint32>;
+using literal_value = std::variant<double, std::string, std::monostate>;
+
+template<typename... Ts>
+struct literal_value_overload : Ts... { using Ts::operator()...; };
+template<typename... Ts>
+literal_value_overload(Ts...) -> literal_value_overload<Ts...>;
+
+extern std::string get_literal(const token& t);
+
 struct token
 {
     token_type type;

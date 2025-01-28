@@ -2,8 +2,20 @@
 #include "typedefs.h"
 #include <ostream>
 #include <sstream>
+#include <variant>
 
 NAMESPACE_BEGIN(lumina)
+
+std::string get_literal(const token& t)
+{
+    return std::visit(
+        literal_value_overload{
+            [](double d)             { return std::to_string(d); },
+            [](const std::string& s) { return s; },
+            [](std::monostate)       { return std::string("null"); }
+        }, t.literal
+    );
+}
 
 extern const std::unordered_map<token_type, std::string> token_type_tostr =
 {
@@ -41,7 +53,7 @@ extern const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::false_,         "false"             },
     { token_type::true_,          "true"              },
     { token_type::func_,          "func"              },
-    { token_type::nil_,           "nil"               },
+    { token_type::null_,          "null"              },
     { token_type::print_,         "print"             },
     { token_type::return_,        "return"            },
     { token_type::super_,         "super"             },
@@ -49,8 +61,8 @@ extern const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::var_,           "var"               },
     { token_type::for_,           "for"               },
     { token_type::while_,         "while"             },
-    { token_type::bof_,           "beginning of file" },
-    { token_type::eof_,           "end of file"       },
+    { token_type::bof_,           "bof"               },
+    { token_type::eof_,           "eof"               },
     { token_type::invalid_,       "invalid"           },
     { token_type::newline_,       "newline"           },
 };
@@ -66,8 +78,12 @@ NAMESPACE_END
 
 std::ostream& operator<<(std::ostream& os, const lumina::token& t)
 {
-    os << "token [type: " << lumina::token_type_tostr.at(t.type) << ", lexeme: " << t.lexeme
-        << ", line/col: " << t.position.first << ":" << t.position.second << "]";
+    os << "token [type: "
+       << lumina::token_type_tostr.at(t.type)
+       << ", lexeme: " << t.lexeme
+       << ", literal: " << lumina::get_literal(t)
+       << ", line/col: " << t.position.first << ":" << t.position.second
+       << "]";
     return os;
 }
 

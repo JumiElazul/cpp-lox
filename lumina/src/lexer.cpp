@@ -56,7 +56,7 @@ std::vector<token> lexer::tokenize(const std::string& input)
 
     std::vector<token> tokens;
     tokens.reserve(input.size() / 3);
-    tokens.push_back(create_token(token_type::bof_, std::monostate{}));
+    tokens.push_back(create_token(token_type::bof_, 0, 0));
 
     while (_lexer_state.right_ptr < _lexer_state.input.size())
     {
@@ -98,7 +98,7 @@ token lexer::fetch_token()
             return (this->*char_map_find->second)();
         }
     }
-    return create_token(token_type::invalid_, std::monostate{});
+    return create_token(token_type::invalid_, _lexer_state.left_ptr, 0);
 }
 
 std::optional<char> lexer::advance_lexer()
@@ -128,123 +128,114 @@ bool lexer::advance_if_next_matches(char c)
     return false;
 }
 
-token lexer::create_token(token_type type, const literal_value& literal, bool string)
+token lexer::create_token(token_type type, uint32 start, uint32 length, const literal_value& literal)
 {
-    uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr;
-    uint32 left = _lexer_state.left_ptr;
-
-    if (string)
-    {
-        len -= 2;
-        left += 1;
-    }
-
-    std::string lexeme = _lexer_state.input.substr(left, len);
-    return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
+    std::string lexeme = _lexer_state.input.substr(start, length);
+    return token{ type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos } };
 }
 
 token lexer::left_paren()
 {
-    return create_token(token_type::left_paren_,  std::monostate{});
+    return create_token(token_type::left_paren_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::right_paren()
 {
-    return create_token(token_type::right_paren_, std::monostate{});
+    return create_token(token_type::right_paren_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::left_brace()
 {
-    return create_token(token_type::left_brace_, std::monostate{});
+    return create_token(token_type::left_brace_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::right_brace()
 {
-    return create_token(token_type::right_brace_, std::monostate{});
+    return create_token(token_type::right_brace_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::comma()
 {
-    return create_token(token_type::comma_, std::monostate{});
+    return create_token(token_type::comma_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::dot()
 {
-    return create_token(token_type::dot_, std::monostate{});
+    return create_token(token_type::dot_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::minus()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::minus_equal_, std::monostate{});
+        return create_token(token_type::minus_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::minus_, std::monostate{});
+    return create_token(token_type::minus_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::plus()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::plus_equal_, std::monostate{});
+        return create_token(token_type::plus_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::plus_, std::monostate{});
+    return create_token(token_type::plus_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::semicolon()
 {
-    return create_token(token_type::semicolon_, std::monostate{});
+    return create_token(token_type::semicolon_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::slash()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::slash_equal_, std::monostate{});
+        return create_token(token_type::slash_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::slash_, std::monostate{});
+    return create_token(token_type::slash_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::star()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::star_equal_, std::monostate{});
+        return create_token(token_type::star_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::star_, std::monostate{});
+    return create_token(token_type::star_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::bang()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::bang_equal_, std::monostate{});
+        return create_token(token_type::bang_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::bang_, std::monostate{});
+    return create_token(token_type::bang_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::equal()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::equal_equal_, std::monostate{});
+        return create_token(token_type::equal_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::equal_, std::monostate{});
+    return create_token(token_type::equal_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::greater()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::greater_equal_, std::monostate{});
+        return create_token(token_type::greater_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::greater_, std::monostate{});
+    return create_token(token_type::greater_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::less()
 {
     if (advance_if_next_matches('='))
-        return create_token(token_type::less_equal_, std::monostate{});
+        return create_token(token_type::less_equal_, _lexer_state.left_ptr, 2);
 
-    return create_token(token_type::less_, std::monostate{});
+    return create_token(token_type::less_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::newline()
 {
-    return create_token(token_type::newline_, std::monostate{});
+    return create_token(token_type::newline_, _lexer_state.left_ptr, 1);
 }
 
 token lexer::whitespace()
@@ -262,7 +253,9 @@ token lexer::string()
     if (peek_next() == '"')
     {
         advance_lexer();
-        return create_token(token_type::string_, std::monostate{}, true);
+        uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr - 2;
+        std::string str = _lexer_state.input.substr(_lexer_state.left_ptr + 1, len);
+        return create_token(token_type::string_, _lexer_state.left_ptr, _lexer_state.right_ptr - _lexer_state.left_ptr, str);
     }
 
     // Untermintated string
@@ -285,12 +278,14 @@ token lexer::number()
         }
     }
 
-    return create_token(token_type::number_, std::monostate{});
+    uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr;
+    double d = std::stod(_lexer_state.input.substr(_lexer_state.left_ptr, len));
+    return create_token(token_type::number_, _lexer_state.left_ptr, len, d);
 }
 
 token lexer::invalid_token()
 {
-    return create_token(token_type::invalid_, std::monostate{});
+    return create_token(token_type::invalid_, _lexer_state.left_ptr, _lexer_state.right_ptr - _lexer_state.left_ptr);
 }
 
 NAMESPACE_END
