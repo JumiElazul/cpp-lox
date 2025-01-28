@@ -54,6 +54,7 @@ private:
     token newline();
     token whitespace();
     token string();
+    token number();
     token invalid_token();
 };
 

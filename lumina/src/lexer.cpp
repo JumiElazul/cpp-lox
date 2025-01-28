@@ -36,6 +36,16 @@ lexer::lexer(console_io* io)
         { '\r', &lexer::whitespace     },
         { '\t', &lexer::whitespace     },
         { '"',  &lexer::string         },
+        { '1',  &lexer::number         },
+        { '2',  &lexer::number         },
+        { '3',  &lexer::number         },
+        { '4',  &lexer::number         },
+        { '5',  &lexer::number         },
+        { '6',  &lexer::number         },
+        { '7',  &lexer::number         },
+        { '8',  &lexer::number         },
+        { '9',  &lexer::number         },
+        { '0',  &lexer::number         },
     };
 }
 
@@ -258,6 +268,25 @@ token lexer::string()
 
     // Untermintated string
     return invalid_token();
+}
+
+token lexer::number()
+{
+    while (peek_next().has_value() && isdigit(*peek_next()))
+    {
+        advance_lexer();
+    }
+
+    if (peek_next() == '.')
+    {
+        advance_lexer();
+        while (peek_next().has_value() && isdigit(*peek_next()))
+        {
+            advance_lexer();
+        }
+    }
+
+    return create_token(token_type::number_, std::monostate{});
 }
 
 token lexer::invalid_token()
