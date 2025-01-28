@@ -12,14 +12,14 @@ NAMESPACE_BEGIN(lumina)
 class console_io;
 class lexer
 {
-struct lexer_state
-{
-    uint32 current_line;
-    uint32 current_pos;
-    uint32 left_ptr;
-    uint32 right_ptr;
-    std::string input;
-};
+    struct lexer_state
+    {
+        uint32 current_line;
+        uint32 current_pos;
+        uint32 left_ptr;
+        uint32 right_ptr;
+        std::string input;
+    };
 
 public:
     lexer(console_io* io);
@@ -34,7 +34,7 @@ private:
     std::optional<char> advance_lexer();
     std::optional<char> peek_next();
     bool advance_if_next_matches(char c);
-    token create_token(token_type type, const literal_value& literal);
+    token create_token(token_type type, const literal_value& literal, bool string = false);
     void reset_lexer_state() noexcept;
 
     token left_paren();
@@ -54,6 +54,7 @@ private:
     token less();
     token newline();
     token whitespace();
+    token string();
     token invalid_token();
 };
 

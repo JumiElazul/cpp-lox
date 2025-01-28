@@ -35,6 +35,7 @@ lexer::lexer(console_io* io)
         { ' ',  &lexer::whitespace     },
         { '\r', &lexer::whitespace     },
         { '\t', &lexer::whitespace     },
+        { '"',  &lexer::string         },
     };
 }
 
@@ -117,10 +118,20 @@ bool lexer::advance_if_next_matches(char c)
     return false;
 }
 
-token lexer::create_token(token_type type, const literal_value& literal)
+token lexer::create_token(token_type type, const literal_value& literal, bool string)
 {
-    std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr, _lexer_state.right_ptr - _lexer_state.left_ptr);
-    return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
+    if (string)
+    {
+        uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr - 2;
+        std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr + 1, len);
+        return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
+    }
+    else
+    {
+        uint32 len = _lexer_state.right_ptr - _lexer_state.left_ptr;
+        std::string lexeme = _lexer_state.input.substr(_lexer_state.left_ptr, len);
+        return token(type, lexeme, literal, { _lexer_state.current_line, _lexer_state.current_pos });
+    }
 }
 
 void lexer::reset_lexer_state() noexcept
@@ -231,14 +242,30 @@ token lexer::less()
     return create_token(token_type::less_, std::monostate{});
 }
 
+token lexer::newline()
+{
+    return create_token(token_type::newline_, std::monostate{});
+}
+
 token lexer::whitespace()
 {
     return invalid_token();
 }
 
-token lexer::newline()
+token lexer::string()
 {
-    return create_token(token_type::newline_, std::monostate{});
+    while (peek_next() != '"' && peek_next().has_value())
+    {
+        advance_lexer();
+    }
+
+    if (peek_next() == '"')
+    {
+        advance_lexer();
+        return create_token(token_type::string_, std::monostate{}, true);
+    }
+
+    return invalid_token();
 }
 
 token lexer::invalid_token()
