@@ -27,6 +27,7 @@ lexer::lexer(console_io* io)
         { '-',  &lexer::minus          },
         { '+',  &lexer::plus           },
         { ';',  &lexer::semicolon      },
+        { ':',  &lexer::colon          },
         { '/',  &lexer::slash          },
         { '*',  &lexer::star           },
         { '!',  &lexer::bang           },
@@ -206,6 +207,16 @@ token lexer::plus()
 token lexer::semicolon()
 {
     return create_token(token_type::semicolon_);
+}
+
+token lexer::colon()
+{
+    return create_token(token_type::colon_);
+}
+
+token lexer::question()
+{
+    return create_token(token_type::question_);
 }
 
 token lexer::slash()

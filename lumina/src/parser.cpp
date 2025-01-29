@@ -41,7 +41,7 @@ std::unique_ptr<expression> recursive_descent_parser::parse()
     catch (const parser_exception& e)
     {
         _parser_error = true;
-        _io->write(e.what());
+        _io->err() << e.what() << '\n';
         return nullptr;
     }
 }
@@ -108,7 +108,35 @@ bool recursive_descent_parser::matches_token(const std::vector<token_type>& toke
 std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 {
     // expression -> equality;
-    return equality_precedence();
+    return comma_precedence();
+}
+
+std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
+{
+    std::unique_ptr<expression> expr = ternary_precedence();
+
+    while (matches_token({ token_type::comma_ }))
+    {
+        token oper = *previous_token();
+        std::unique_ptr<expression> rhs = equality_precedence();
+        expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
+    }
+
+    return expr;
+}
+
+std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
+{
+    std::unique_ptr<expression> expr = equality_precedence();
+
+    // while (matches_token({ token_type::question_ }))
+    // {
+    //     token oper = *previous_token();
+    //     std::unique_ptr<expression> rhs = equality_precedence();
+    //     expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
+    // }
+
+    return expr;
 }
 
 std::unique_ptr<expression> recursive_descent_parser::equality_precedence()
@@ -201,15 +229,15 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
         return std::make_unique<grouping_expression>(std::move(expr));
     }
 
-    throw error(*peek_next_token(), "Expected expression.");
+    throw error(*previous_token(), "Expected expression.");
 }
 
 parser_exception recursive_descent_parser::error(const token& t, const std::string& msg)
 {
     if (t.type == token_type::eof_)
-        return parser_exception(t.position.first, " at end of file " + msg);
+        return parser_exception(t.position.first, t.position.second, "end of file " + msg);
     else
-        return parser_exception(t.position.first, " at " + msg);
+        return parser_exception(t.position.first, t.position.second, msg);
 }
 
 void recursive_descent_parser::synchronize()

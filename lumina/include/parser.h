@@ -42,7 +42,10 @@ private:
     void consume_if_matches(token_type type, const std::string& msg);
     bool check_type(token_type type);
     bool matches_token(const std::vector<token_type>& token_types);
+
     std::unique_ptr<expression> expression_precedence();
+    std::unique_ptr<expression> comma_precedence();
+    std::unique_ptr<expression> ternary_precedence();
     std::unique_ptr<expression> equality_precedence();
     std::unique_ptr<expression> comparison_precedence();
     std::unique_ptr<expression> term_precedence();

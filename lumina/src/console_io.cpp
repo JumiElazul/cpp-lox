@@ -1,53 +1,42 @@
 #include "console_io.h"
 #include "typedefs.h"
-#include "tokens.h"
 #include <iostream>
-#include <initializer_list>
+#include <memory>
 #include <string>
 
 NAMESPACE_BEGIN(lumina)
 
-console_io::console_io(std::ostream& os) : _os(os) { }
-
-void console_io::write(char c) const
+struct console_io::console_io_impl
 {
-    _os << c;
-}
+public:
+    console_io_impl(std::ostream& os = std::cout, std::ostream& err_os = std::cerr)
+        : _os(os)
+        , _err_os(err_os) { }
 
-void console_io::write(const std::string& message) const
-{
-    _os << message;
-}
+    std::string readline() const
+    {
+        std::string input;
+        std::getline(std::cin, input);
+        return input;
+    }
 
-void console_io::write(const std::initializer_list<std::string>& messages) const
-{
-    for (const auto& m : messages)
-        _os << m;
-}
+    std::ostream& out() { return _os; }
+    std::ostream& err() { return _err_os; }
+
+private:
+    std::ostream& _os;
+    std::ostream& _err_os;
+};
+
+console_io::console_io() : _impl(std::make_unique<console_io_impl>()) {}
+console_io::~console_io() = default;
 
 std::string console_io::readline() const
 {
-    std::string input;
-    std::getline(std::cin, input);
-    return input;
+    return _impl->readline();
 }
 
-console_io& console_io::operator<<(const char c)
-{
-    _os << c;
-    return *this;
-}
-
-console_io& console_io::operator<<(const std::string& message)
-{
-    _os << message;
-    return *this;
-}
-
-console_io& console_io::operator<<(const token& t)
-{
-    _os << t;
-    return *this;
-}
+std::ostream& console_io::out() { return _impl->out(); }
+std::ostream& console_io::err() { return _impl->err(); }
 
 NAMESPACE_END

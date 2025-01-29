@@ -6,15 +6,15 @@
 
 NAMESPACE_BEGIN(lumina)
 
-parser_exception::parser_exception(uint32 line, const std::string& msg)
-    : std::runtime_error(create_msg(line, msg))
+parser_exception::parser_exception(uint32 line, uint32 pos, const std::string& msg)
+    : std::runtime_error(create_msg(line, pos, msg))
 {
 }
 
-std::string parser_exception::create_msg(uint32 line, const std::string& msg)
+std::string parser_exception::create_msg(uint32 line, uint32 pos, const std::string& msg)
 {
     std::ostringstream oss;
-    oss << "error at line " << line << ": " << msg;
+    oss << "error at line [" << line << ":" << pos << "]: "<< msg;
     return oss.str();
 }
 

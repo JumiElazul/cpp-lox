@@ -48,6 +48,8 @@ private:
     token minus();
     token plus();
     token semicolon();
+    token colon();
+    token question();
     token slash();
     token star();
     token bang();

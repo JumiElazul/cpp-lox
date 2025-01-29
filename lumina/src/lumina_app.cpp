@@ -30,7 +30,7 @@ void lumina_app::run_file_mode(const char* filepath)
     std::ifstream file(filepath);
     if (!file)
     {
-        std::cerr << "File with path [" << filepath << "could not be read\n";
+        _io->err() << "File with path [" << filepath << "could not be read\n";
         return;
     }
 
@@ -45,7 +45,7 @@ void lumina_app::run_file_mode(const char* filepath)
 
     for (const token& t : tokens)
     {
-        *_io << t << '\n';
+        _io->out() << t << '\n';
     }
 }
 
@@ -56,7 +56,7 @@ void lumina_app::run_interpreter_mode()
 
     while (true)
     {
-        _io->write("lumina > ");
+        _io->out() << "lumina > ";
         std::string input = _io->readline();
         
         if (input == "q" || input == "quit")
@@ -66,18 +66,20 @@ void lumina_app::run_interpreter_mode()
 
         for (const token& t : tokens)
         {
-            *_io << t << '\n';
+            _io->out() << t << '\n';
         }
 
         std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
         std::unique_ptr<expression> parse_tree = parser->parse();
 
+        if (parser->error_occurred())
+            continue;
+
         string_visitor visitor;
         std::string expr_str = parse_tree->accept_visitor(visitor);
-        *_io << "parser:\n";
-        *_io << "--------------------\n";
-        *_io << expr_str;
-        *_io << '\n';
+        _io->out() << "parser:\n";
+        _io->out() << "--------------------\n";
+        _io->out() << expr_str << '\n';
     }
 }
 

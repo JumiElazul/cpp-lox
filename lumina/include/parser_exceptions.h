@@ -9,10 +9,11 @@ class parser_exception : public std::runtime_error
 {
 public:
     uint32 line;
-    parser_exception(uint32 line, const std::string& msg);
+    uint32 pos;
+    parser_exception(uint32 line, uint32 pos, const std::string& msg);
 
 private:
-    static std::string create_msg(uint32 line, const std::string& msg);
+    static std::string create_msg(uint32 line, uint32 pos, const std::string& msg);
 };
 
 NAMESPACE_END
