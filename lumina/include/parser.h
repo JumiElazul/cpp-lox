@@ -8,16 +8,19 @@
 NAMESPACE_BEGIN(lumina)
 
 class expression;
-class i_parser
+class parser
 {
 public:
-    virtual ~i_parser() = default;
+    parser(const std::vector<token>& lexer_tokens);
+    virtual ~parser() = default;
     virtual void parse() = 0;
 
 protected:
+    const std::vector<token>& _lexer_tokens;
+    uint32 _position;
 };
 
-class recursive_descent_parser : public i_parser
+class recursive_descent_parser : public parser
 {
 public:
     recursive_descent_parser(const std::vector<token>& lexer_tokens);
@@ -33,10 +36,6 @@ public:
     std::unique_ptr<expression> factor_precedence();
     std::unique_ptr<expression> unary_precedence();
     std::unique_ptr<expression> primary_precedence();
-
-private:
-    const std::vector<token>& _lexer_tokens;
-    uint32 _position;
 };
 
 NAMESPACE_END

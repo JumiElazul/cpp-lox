@@ -6,9 +6,15 @@
 
 NAMESPACE_BEGIN(lumina)
 
-recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lexer_tokens)
+parser::parser(const std::vector<token>& lexer_tokens)
     : _lexer_tokens(lexer_tokens)
-    , _position()
+    , _position(0)
+{
+
+}
+
+recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lexer_tokens)
+    : parser(lexer_tokens)
 {
 
 }
@@ -43,9 +49,7 @@ std::unique_ptr<expression> recursive_descent_parser::equality_precedence()
 
     while (match({ token_type::bang_equal_, token_type::equal_equal_ }))
     {
-        token oper = previous();
-        std::unique_ptr<expression> rhs = comparison_precedence();
-        expr = std::make_unique<binary_expression>(expr, oper, rhs);
+
     }
 
     return expr;
