@@ -1,10 +1,12 @@
 #include "lumina_app.h"
-#include "typedefs.h"
 #include "console_io.h"
 #include "logger.h"
 #include "lexer.h"
+#include "parser.h"
+#include "typedefs.h"
 #include <vector>
 #include <fstream>
+#include <memory>
 #include <sstream>
 
 NAMESPACE_BEGIN(lumina)
@@ -36,10 +38,13 @@ void lumina_app::run_file_mode(const char* filepath)
 
     std::vector<token> tokens = _lexer.tokenize(contents);
 
-    for (const token& t : tokens)
-    {
-        *_io << t << '\n';
-    }
+    std::unique_ptr<i_parser> parser = std::make_unique<recursive_descent_parser>(tokens);
+    parser->parse();
+
+    // for (const token& t : tokens)
+    // {
+    //     *_io << t << '\n';
+    // }
 }
 
 void lumina_app::run_interpreter_mode()
@@ -62,6 +67,9 @@ void lumina_app::run_interpreter_mode()
             *_io << t << '\n';
             // LUMINA_INFO(to_string(t));
         }
+
+        std::unique_ptr<i_parser> parser = std::make_unique<recursive_descent_parser>(tokens);
+        parser->parse();
     }
 }
 

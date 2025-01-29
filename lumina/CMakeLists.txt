@@ -17,6 +17,7 @@ set(SOURCES
     "src/lexer_exceptions.cpp"
     "src/lexer.cpp"
     "src/logger.cpp"
+    "src/parser.cpp"
     "src/tokens.cpp"
 )
 
@@ -31,6 +32,7 @@ set(HEADERS
     "include/lexer_exceptions.h"
     "include/lexer.h"
     "include/logger.h"
+    "include/parser.h"
     "include/typedefs.h"
     "include/tokens.h"
 )
