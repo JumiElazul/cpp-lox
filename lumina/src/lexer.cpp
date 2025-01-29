@@ -28,6 +28,7 @@ lexer::lexer(console_io* io)
         { '+',  &lexer::plus           },
         { ';',  &lexer::semicolon      },
         { ':',  &lexer::colon          },
+        { '?',  &lexer::question       },
         { '/',  &lexer::slash          },
         { '*',  &lexer::star           },
         { '!',  &lexer::bang           },

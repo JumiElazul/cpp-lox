@@ -15,6 +15,17 @@ public:
     virtual std::string accept_visitor(const expression_visitor& v) const = 0;
 };
 
+class unary_expression : public expression
+{
+public:
+    token oper;
+    std::unique_ptr<expression> expr_rhs;
+
+    unary_expression(token oper, std::unique_ptr<expression> expr);
+
+    std::string accept_visitor(const expression_visitor& v) const override;
+};
+
 class binary_expression : public expression
 {
 public:
@@ -23,6 +34,19 @@ public:
     std::unique_ptr<expression> expr_rhs;
 
     binary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> rhs);
+
+    std::string accept_visitor(const expression_visitor& v) const override;
+};
+
+class ternary_expression : public expression
+{
+public:
+    std::unique_ptr<expression> expr_lhs;
+    token oper;
+    std::unique_ptr<expression> expr_then;
+    std::unique_ptr<expression> expr_else;
+
+    ternary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> expr_then, std::unique_ptr<expression> expr_else);
 
     std::string accept_visitor(const expression_visitor& v) const override;
 };
@@ -43,17 +67,6 @@ public:
     std::unique_ptr<expression> expr_lhs;
 
     grouping_expression(std::unique_ptr<expression> expr);
-
-    std::string accept_visitor(const expression_visitor& v) const override;
-};
-
-class unary_expression : public expression
-{
-public:
-    token oper;
-    std::unique_ptr<expression> expr_rhs;
-
-    unary_expression(token oper, std::unique_ptr<expression> expr);
 
     std::string accept_visitor(const expression_visitor& v) const override;
 };

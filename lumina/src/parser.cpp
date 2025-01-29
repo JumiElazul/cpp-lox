@@ -118,7 +118,7 @@ std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
     while (matches_token({ token_type::comma_ }))
     {
         token oper = *previous_token();
-        std::unique_ptr<expression> rhs = equality_precedence();
+        std::unique_ptr<expression> rhs = ternary_precedence();
         expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
     }
 
@@ -129,12 +129,14 @@ std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
 {
     std::unique_ptr<expression> expr = equality_precedence();
 
-    // while (matches_token({ token_type::question_ }))
-    // {
-    //     token oper = *previous_token();
-    //     std::unique_ptr<expression> rhs = equality_precedence();
-    //     expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
-    // }
+    if (matches_token({ token_type::question_ }))
+    {
+        token oper = *previous_token();
+        std::unique_ptr<expression> then_expr = expression_precedence();
+        consume_if_matches(token_type::colon_, "Expected ':' after ternary expression.");
+        std::unique_ptr<expression> else_expr = expression_precedence();
+        expr = std::make_unique<ternary_expression>(std::move(expr), oper, std::move(then_expr), std::move(else_expr));
+    }
 
     return expr;
 }
