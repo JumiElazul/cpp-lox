@@ -13,6 +13,7 @@ class console_io
 public:
     console_io(std::ostream& os = std::cout);
 
+    virtual void write(char c) const;
     virtual void write(const std::string& message) const;
     virtual void write(const std::initializer_list<std::string>& messages) const;
     virtual std::string readline() const;

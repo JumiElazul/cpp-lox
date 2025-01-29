@@ -1,5 +1,6 @@
 #include "lexer_exceptions.h"
 #include "typedefs.h"
+#include <stdexcept>
 
 NAMESPACE_BEGIN(lumina)
 

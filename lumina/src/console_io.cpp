@@ -9,15 +9,20 @@ NAMESPACE_BEGIN(lumina)
 
 console_io::console_io(std::ostream& os) : _os(os) { }
 
+void console_io::write(char c) const
+{
+    _os << c;
+}
+
 void console_io::write(const std::string& message) const
 {
-    std::cout << message;
+    _os << message;
 }
 
 void console_io::write(const std::initializer_list<std::string>& messages) const
 {
     for (const auto& m : messages)
-        std::cout << m;
+        _os << m;
 }
 
 std::string console_io::readline() const

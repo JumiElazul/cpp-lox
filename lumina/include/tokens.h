@@ -40,14 +40,15 @@ enum class token_type
 };
 
 using coord = std::pair<uint32, uint32>;
-using literal_value = std::variant<double, std::string, std::monostate>;
+using literal_value = std::variant<double, bool, std::string, std::monostate>;
 
 template<typename... Ts>
 struct literal_value_overload : Ts... { using Ts::operator()...; };
 template<typename... Ts>
 literal_value_overload(Ts...) -> literal_value_overload<Ts...>;
 
-extern std::string get_literal(const token& t);
+extern std::string literal_tostr(const token& t);
+extern std::string literal_tostr(const literal_value& l);
 
 struct token
 {

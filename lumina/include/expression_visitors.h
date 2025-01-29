@@ -7,6 +7,8 @@ NAMESPACE_BEGIN(lumina)
 
 class expression;
 class binary_expression;
+class literal_expression;
+class grouping_expression;
 class unary_expression;
 
 class expression_visitor
@@ -14,6 +16,8 @@ class expression_visitor
 public:
     virtual ~expression_visitor() = default;
     virtual std::string visit_binary(const binary_expression& expr) const = 0;
+    virtual std::string visit_literal(const literal_expression& expr) const = 0;
+    virtual std::string visit_grouping(const grouping_expression& expr) const = 0;
     virtual std::string visit_unary(const unary_expression& expr) const = 0;
 };
 
@@ -21,6 +25,8 @@ class string_visitor final : public expression_visitor
 {
 public:
     virtual std::string visit_binary(const binary_expression& expr) const override;
+    virtual std::string visit_literal(const literal_expression& expr) const override;
+    virtual std::string visit_grouping(const grouping_expression& expr) const override;
     virtual std::string visit_unary(const unary_expression& expr) const override;
 };
 

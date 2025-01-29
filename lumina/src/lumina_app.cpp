@@ -1,5 +1,7 @@
 #include "lumina_app.h"
 #include "console_io.h"
+#include "expressions.h"
+#include "expression_visitors.h"
 #include "logger.h"
 #include "lexer.h"
 #include "parser.h"
@@ -38,13 +40,13 @@ void lumina_app::run_file_mode(const char* filepath)
 
     std::vector<token> tokens = _lexer.tokenize(contents);
 
-    std::unique_ptr<i_parser> parser = std::make_unique<recursive_descent_parser>(tokens);
+    std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
     parser->parse();
 
-    // for (const token& t : tokens)
-    // {
-    //     *_io << t << '\n';
-    // }
+    for (const token& t : tokens)
+    {
+        *_io << t << '\n';
+    }
 }
 
 void lumina_app::run_interpreter_mode()
@@ -65,11 +67,17 @@ void lumina_app::run_interpreter_mode()
         for (const token& t : tokens)
         {
             *_io << t << '\n';
-            // LUMINA_INFO(to_string(t));
         }
 
-        std::unique_ptr<i_parser> parser = std::make_unique<recursive_descent_parser>(tokens);
-        parser->parse();
+        std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
+        std::unique_ptr<expression> parse_tree = parser->parse();
+
+        string_visitor visitor;
+        std::string expr_str = parse_tree->accept_visitor(visitor);
+        *_io << "parser:\n";
+        *_io << "--------------------\n";
+        *_io << expr_str;
+        *_io << '\n';
     }
 }
 

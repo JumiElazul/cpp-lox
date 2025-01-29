@@ -6,14 +6,27 @@
 
 NAMESPACE_BEGIN(lumina)
 
-std::string get_literal(const token& t)
+std::string literal_tostr(const token& t)
 {
     return std::visit(
         literal_value_overload{
-            [](double d)             { return std::to_string(d); },
-            [](const std::string& s) { return s; },
-            [](std::monostate)       { return std::string("null"); }
+            [](double d)             { return std::to_string(d);                              },
+            [](bool b)               { return b ? std::string("true") : std::string("false"); },
+            [](const std::string& s) { return s;                                              },
+            [](std::monostate)       { return std::string("null");                            },
         }, t.literal
+    );
+}
+
+std::string literal_tostr(const literal_value& l)
+{
+    return std::visit(
+        literal_value_overload{
+            [](double d)             { return std::to_string(d);                              },
+            [](bool b)               { return b ? std::string("true") : std::string("false"); },
+            [](const std::string& s) { return s;                                              },
+            [](std::monostate)       { return std::string("null");                            },
+        }, l
     );
 }
 
@@ -80,7 +93,7 @@ std::ostream& operator<<(std::ostream& os, const lumina::token& t)
     os << "token [type: "
        << lumina::token_type_tostr.at(t.type)
        << ", lexeme: " << t.lexeme
-       << ", literal: " << lumina::get_literal(t)
+       << ", literal: " << lumina::literal_tostr(t)
        << ", line/col: " << t.position.first << ":" << t.position.second
        << "]";
     return os;
