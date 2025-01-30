@@ -19,6 +19,7 @@ public:
     virtual std::unique_ptr<expression> parse() = 0;
 
     bool error_occurred() const noexcept;
+    void reset_error_flag() noexcept;
 
 protected:
     const std::vector<token>& _lexer_tokens;
@@ -52,6 +53,7 @@ private:
     std::unique_ptr<expression> factor_precedence();
     std::unique_ptr<expression> unary_precedence();
     std::unique_ptr<expression> primary_precedence();
+    void validate_binary_has_lhs(const std::vector<token_type>& types);
 
     parser_exception error(const token& t, const std::string& msg);
     void synchronize();

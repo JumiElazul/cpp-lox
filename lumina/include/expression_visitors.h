@@ -12,6 +12,7 @@ class binary_expression;
 class ternary_expression;
 class literal_expression;
 class grouping_expression;
+class error_expression;
 
 class expression_visitor
 {

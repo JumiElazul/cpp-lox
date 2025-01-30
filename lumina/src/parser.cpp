@@ -21,6 +21,7 @@ parser::parser(const std::vector<token>& lexer_tokens, console_io* io)
 }
 
 bool parser::error_occurred() const noexcept { return _parser_error; }
+void parser::reset_error_flag() noexcept { _parser_error = false; }
 
 recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lexer_tokens, console_io* io)
     : parser(lexer_tokens, io)
@@ -107,12 +108,15 @@ bool recursive_descent_parser::matches_token(const std::vector<token_type>& toke
 
 std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 {
-    // expression -> equality;
+    // expression -> comma;
     return comma_precedence();
 }
 
 std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
 {
+    // comma      -> ternary ( "," ternary )*;
+    validate_binary_has_lhs({ token_type::comma_ });
+
     std::unique_ptr<expression> expr = ternary_precedence();
 
     while (matches_token({ token_type::comma_ }))
@@ -127,6 +131,9 @@ std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
 {
+    // ternary    -> equality ( "?" equality )?
+    validate_binary_has_lhs({ token_type::question_ });
+
     std::unique_ptr<expression> expr = equality_precedence();
 
     if (matches_token({ token_type::question_ }))
@@ -144,6 +151,8 @@ std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
 std::unique_ptr<expression> recursive_descent_parser::equality_precedence()
 {
     // equality   -> comparison ( ( "!=" | "\==" ) comparison)\*;
+    validate_binary_has_lhs({ token_type::bang_equal_, token_type::equal_equal_ });
+
     std::unique_ptr<expression> expr = comparison_precedence();
 
     while (matches_token({ token_type::bang_equal_, token_type::equal_equal_ }))
@@ -159,6 +168,8 @@ std::unique_ptr<expression> recursive_descent_parser::equality_precedence()
 std::unique_ptr<expression> recursive_descent_parser::comparison_precedence()
 {
     // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )\*;
+    validate_binary_has_lhs({ token_type::greater_, token_type::greater_equal_, token_type::less_, token_type::less_equal_ });
+
     std::unique_ptr<expression> expr = term_precedence();
 
     while (matches_token({ token_type::greater_, token_type::greater_equal_, token_type::less_, token_type::less_equal_ }))
@@ -174,6 +185,8 @@ std::unique_ptr<expression> recursive_descent_parser::comparison_precedence()
 std::unique_ptr<expression> recursive_descent_parser::term_precedence()
 {
     // term       -> factor ( ( "-" | "+" ) factor )\*;
+    validate_binary_has_lhs({ token_type::minus_, token_type::plus_ });
+
     std::unique_ptr<expression> expr = factor_precedence();
 
     while (matches_token({ token_type::minus_, token_type::plus_ }))
@@ -189,6 +202,8 @@ std::unique_ptr<expression> recursive_descent_parser::term_precedence()
 std::unique_ptr<expression> recursive_descent_parser::factor_precedence()
 {
     // factor     -> unary ( ( "\*" | "/" ) unary )\*;
+    validate_binary_has_lhs({ token_type::star_, token_type::slash_ });
+
     std::unique_ptr<expression> expr = unary_precedence();
 
     while (matches_token({ token_type::star_, token_type::slash_ }))
@@ -232,6 +247,16 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
     }
 
     throw error(*previous_token(), "Expected expression.");
+}
+
+void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_type>& types)
+{
+    if (matches_token(types))
+    {
+        token oper = *previous_token();
+        throw error(oper, "Missing left-hand operand for '" + oper.lexeme + "' operator.");
+        _parser_error = true;
+    }
 }
 
 parser_exception recursive_descent_parser::error(const token& t, const std::string& msg)
