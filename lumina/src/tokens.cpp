@@ -18,18 +18,6 @@ std::string literal_tostr(const token& t)
     );
 }
 
-std::string literal_tostr(const literal_value& l)
-{
-    return std::visit(
-        literal_value_overload{
-            [](double d)             { return std::to_string(d);                              },
-            [](bool b)               { return b ? std::string("true") : std::string("false"); },
-            [](const std::string& s) { return s;                                              },
-            [](std::monostate)       { return std::string("null");                            },
-        }, l
-    );
-}
-
 extern const std::unordered_map<token_type, std::string> token_type_tostr =
 {
     { token_type::left_paren_,    "left_paren"        },

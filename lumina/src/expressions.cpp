@@ -1,5 +1,6 @@
 #include "expressions.h"
 #include "expression_visitors.h"
+#include "lumina_types.h"
 #include "typedefs.h"
 #include <memory>
 
@@ -11,7 +12,7 @@ unary_expression::unary_expression(token oper, std::unique_ptr<expression> expr)
     , expr_rhs(std::move(expr)) { }
 
 binary_expression::binary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> rhs)
-    : expr_lhs(std::move(lhs))
+   : expr_lhs(std::move(lhs))
     , oper(oper)
     , expr_rhs(std::move(rhs)) { }
 
@@ -28,27 +29,27 @@ literal_expression::literal_expression(const literal_value& literal)
 grouping_expression::grouping_expression(std::unique_ptr<expression> expr)
     : expr_lhs(std::move(expr)) { }
 
-std::string unary_expression::accept_visitor(const expression_visitor& v) const
+std::string unary_expression::accept_visitor(const expression_visitor<std::string>& v) const
 {
     return v.visit_unary(*this);
 }
 
-std::string binary_expression::accept_visitor(const expression_visitor& v) const
+std::string binary_expression::accept_visitor(const expression_visitor<std::string>& v) const
 {
     return v.visit_binary(*this);
 }
 
-std::string ternary_expression::accept_visitor(const expression_visitor& v) const
+std::string ternary_expression::accept_visitor(const expression_visitor<std::string>& v) const
 {
     return v.visit_ternary(*this);
 }
 
-std::string literal_expression::accept_visitor(const expression_visitor& v) const
+std::string literal_expression::accept_visitor(const expression_visitor<std::string>& v) const
 {
     return v.visit_literal(*this);
 }
 
-std::string grouping_expression::accept_visitor(const expression_visitor& v) const
+std::string grouping_expression::accept_visitor(const expression_visitor<std::string>& v) const
 {
     return v.visit_grouping(*this);
 }

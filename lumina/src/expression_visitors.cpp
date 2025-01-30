@@ -1,5 +1,6 @@
 #include "expression_visitors.h"
 #include "expressions.h"
+#include "lumina_types.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include <string>
