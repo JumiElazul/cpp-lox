@@ -6,6 +6,7 @@
 
 NAMESPACE_BEGIN(lumina)
 
+class expression;
 class unary_expression;
 class binary_expression;
 class ternary_expression;
@@ -42,6 +43,8 @@ public:
     virtual literal_value visit_ternary(const ternary_expression& expr) const override;
     virtual literal_value visit_literal(const literal_expression& expr) const override;
     virtual literal_value visit_grouping(const grouping_expression& expr) const override;
+
+    literal_value evaluate(expression& expr) const;
 };
 
 NAMESPACE_END
