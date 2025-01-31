@@ -34,6 +34,11 @@ literal_value binary_expression::accept_visitor(const expression_visitor<literal
 literal_value ternary_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_ternary(*this); }
 literal_value literal_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_literal(*this); }
 literal_value grouping_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_grouping(*this); }
+void unary_expression::accept_visitor(const expression_visitor<void>& v) const { v.visit_unary(*this); }
+void binary_expression::accept_visitor(const expression_visitor<void>& v) const { v.visit_binary(*this); }
+void ternary_expression::accept_visitor(const expression_visitor<void>& v) const { v.visit_ternary(*this); }
+void literal_expression::accept_visitor(const expression_visitor<void>& v) const { v.visit_literal(*this); }
+void grouping_expression::accept_visitor(const expression_visitor<void>& v) const { v.visit_grouping(*this); }
 std::string unary_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_unary(*this); }
 std::string binary_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_binary(*this); }
 std::string ternary_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_ternary(*this); }

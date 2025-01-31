@@ -2,6 +2,7 @@
 #include "console_io.h"
 #include "expressions.h"
 #include "expression_visitors.h"
+#include "interpreter.h"
 #include "logger.h"
 #include "lexer.h"
 #include "parser.h"
@@ -82,6 +83,10 @@ void lumina_app::run_interpreter_mode()
         _io->out() << "parser:\n";
         _io->out() << "--------------------\n";
         _io->out() << expr_str << '\n';
+
+        interpreter interpret;
+        literal_value val = parse_tree->accept_visitor(interpret);
+        _io->out() << literal_tostr(val);
     }
 }
 

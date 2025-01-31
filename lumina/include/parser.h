@@ -2,7 +2,7 @@
 #define JUMI_LUMINA_PARSER_H
 #include "typedefs.h"
 #include "tokens.h"
-#include "parser_exceptions.h"
+#include "exceptions.h"
 #include <memory>
 #include <optional>
 #include <vector>
