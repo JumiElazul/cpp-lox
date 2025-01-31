@@ -1,11 +1,18 @@
 #include "expression_visitors.h"
 #include "expressions.h"
 #include "lumina_types.h"
+#include "console_io.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include <string>
 
 NAMESPACE_BEGIN(lumina)
+
+tree_printer::tree_printer(console_io* io)
+    : _io(io)
+{
+
+}
 
 std::string string_visitor::visit_unary(const unary_expression& expr) const
 {
@@ -63,7 +70,7 @@ void tree_printer::visit_literal(const literal_expression& expr) const
 
 void tree_printer::visit_grouping(const grouping_expression& expr) const
 {
-
+    
 }
 
 literal_value interpreter::visit_unary(const unary_expression& expr) const

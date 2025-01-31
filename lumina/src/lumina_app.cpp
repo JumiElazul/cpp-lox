@@ -47,6 +47,8 @@ void lumina_app::run_file_mode(const char* filepath)
     {
         _io->out() << t << '\n';
     }
+
+    tree_printer printer(_io.get());
 }
 
 void lumina_app::run_interpreter_mode()

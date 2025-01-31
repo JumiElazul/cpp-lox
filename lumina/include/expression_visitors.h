@@ -12,6 +12,7 @@ class binary_expression;
 class ternary_expression;
 class literal_expression;
 class grouping_expression;
+class console_io;
 
 template<typename T>
 class expression_visitor
@@ -37,11 +38,17 @@ public:
 
 class tree_printer final : public expression_visitor<void>
 {
+public:
+    tree_printer(console_io* io);
+
     virtual void visit_unary(const unary_expression& expr) const override;
     virtual void visit_binary(const binary_expression& expr) const override;
     virtual void visit_ternary(const ternary_expression& expr) const override;
     virtual void visit_literal(const literal_expression& expr) const override;
     virtual void visit_grouping(const grouping_expression& expr) const override;
+
+private:
+    console_io* _io;
 };
 
 class interpreter final : public expression_visitor<literal_value>

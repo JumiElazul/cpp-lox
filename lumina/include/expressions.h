@@ -16,6 +16,7 @@ class expression
 public:
     virtual ~expression() = default;
     virtual std::string accept_visitor(const expression_visitor<std::string>& v) const = 0;
+    virtual void accept_visitor(const expression_visitor<void>& v) const = 0;
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const = 0;
 };
 
@@ -28,6 +29,7 @@ public:
     unary_expression(token oper, std::unique_ptr<expression> expr);
 
     virtual std::string accept_visitor(const expression_visitor<std::string>& v) const override;
+    virtual void accept_visitor(const expression_visitor<void>& v) const override;
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
 };
 
@@ -41,6 +43,7 @@ public:
     binary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> rhs);
 
     virtual std::string accept_visitor(const expression_visitor<std::string>& v) const override;
+    virtual void accept_visitor(const expression_visitor<void>& v) const override;
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
 };
 
@@ -55,6 +58,7 @@ public:
     ternary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> expr_then, std::unique_ptr<expression> expr_else);
 
     virtual std::string accept_visitor(const expression_visitor<std::string>& v) const override;
+    virtual void accept_visitor(const expression_visitor<void>& v) const override;
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
 };
 
@@ -66,6 +70,7 @@ public:
     literal_expression(const literal_value& literal);
 
     virtual std::string accept_visitor(const expression_visitor<std::string>& v) const override;
+    virtual void accept_visitor(const expression_visitor<void>& v) const override;
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
 };
 
@@ -77,6 +82,7 @@ public:
     grouping_expression(std::unique_ptr<expression> expr);
 
     virtual std::string accept_visitor(const expression_visitor<std::string>& v) const override;
+    virtual void accept_visitor(const expression_visitor<void>& v) const override;
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
 };
 
