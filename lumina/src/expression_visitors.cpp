@@ -41,19 +41,44 @@ std::string string_visitor::visit_grouping(const grouping_expression& expr) cons
     return "( " + lhs_str + " )";
 }
 
-literal_value interpreter::visit_unary(const unary_expression& expr) const
+void tree_printer::visit_unary(const unary_expression& expr) const
 {
 
+}
+
+void tree_printer::visit_binary(const binary_expression& expr) const
+{
+
+}
+
+void tree_printer::visit_ternary(const ternary_expression& expr) const
+{
+
+}
+
+void tree_printer::visit_literal(const literal_expression& expr) const
+{
+
+}
+
+void tree_printer::visit_grouping(const grouping_expression& expr) const
+{
+
+}
+
+literal_value interpreter::visit_unary(const unary_expression& expr) const
+{
+    return 1.0;
 }
 
 literal_value interpreter::visit_binary(const binary_expression& expr) const
 {
-
+    return 1.0;
 }
 
 literal_value interpreter::visit_ternary(const ternary_expression& expr) const
 {
-
+    return 1.0;
 }
 
 literal_value interpreter::visit_literal(const literal_expression& expr) const
@@ -66,7 +91,7 @@ literal_value interpreter::visit_grouping(const grouping_expression& expr) const
     return evaluate(*expr.expr_lhs);
 }
 
-literal_value interpreter::evaluate(expression& expr) const
+literal_value interpreter::evaluate(const expression& expr) const
 {
     return expr.accept_visitor(*this);
 }

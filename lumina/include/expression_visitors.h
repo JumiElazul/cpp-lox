@@ -35,6 +35,15 @@ public:
     virtual std::string visit_grouping(const grouping_expression& expr) const override;
 };
 
+class tree_printer final : public expression_visitor<void>
+{
+    virtual void visit_unary(const unary_expression& expr) const override;
+    virtual void visit_binary(const binary_expression& expr) const override;
+    virtual void visit_ternary(const ternary_expression& expr) const override;
+    virtual void visit_literal(const literal_expression& expr) const override;
+    virtual void visit_grouping(const grouping_expression& expr) const override;
+};
+
 class interpreter final : public expression_visitor<literal_value>
 {
 public:
@@ -44,7 +53,7 @@ public:
     virtual literal_value visit_literal(const literal_expression& expr) const override;
     virtual literal_value visit_grouping(const grouping_expression& expr) const override;
 
-    literal_value evaluate(expression& expr) const;
+    literal_value evaluate(const expression& expr) const;
 };
 
 NAMESPACE_END

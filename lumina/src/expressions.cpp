@@ -29,29 +29,15 @@ literal_expression::literal_expression(const literal_value& literal)
 grouping_expression::grouping_expression(std::unique_ptr<expression> expr)
     : expr_lhs(std::move(expr)) { }
 
-std::string unary_expression::accept_visitor(const expression_visitor<std::string>& v) const
-{
-    return v.visit_unary(*this);
-}
-
-std::string binary_expression::accept_visitor(const expression_visitor<std::string>& v) const
-{
-    return v.visit_binary(*this);
-}
-
-std::string ternary_expression::accept_visitor(const expression_visitor<std::string>& v) const
-{
-    return v.visit_ternary(*this);
-}
-
-std::string literal_expression::accept_visitor(const expression_visitor<std::string>& v) const
-{
-    return v.visit_literal(*this);
-}
-
-std::string grouping_expression::accept_visitor(const expression_visitor<std::string>& v) const
-{
-    return v.visit_grouping(*this);
-}
+literal_value unary_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_unary(*this); }
+literal_value binary_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_binary(*this); }
+literal_value ternary_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_ternary(*this); }
+literal_value literal_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_literal(*this); }
+literal_value grouping_expression::accept_visitor(const expression_visitor<literal_value>& v) const { return v.visit_grouping(*this); }
+std::string unary_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_unary(*this); }
+std::string binary_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_binary(*this); }
+std::string ternary_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_ternary(*this); }
+std::string literal_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_literal(*this); }
+std::string grouping_expression::accept_visitor(const expression_visitor<std::string>& v) const { return v.visit_grouping(*this); }
 
 NAMESPACE_END
