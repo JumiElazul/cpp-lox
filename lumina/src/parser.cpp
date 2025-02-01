@@ -185,7 +185,7 @@ std::unique_ptr<expression> recursive_descent_parser::comparison_precedence()
 std::unique_ptr<expression> recursive_descent_parser::term_precedence()
 {
     // term       -> factor ( ( "-" | "+" ) factor )\*;
-    validate_binary_has_lhs({ token_type::minus_, token_type::plus_ });
+    validate_binary_has_lhs({ token_type::plus_ });
 
     std::unique_ptr<expression> expr = factor_precedence();
 

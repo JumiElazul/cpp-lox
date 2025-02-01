@@ -18,6 +18,7 @@ enum class lumina_type
 };
 
 lumina_type literal_to_lumina_type(const literal_value& l);
+std::string lumina_type_tostr(lumina_type type);
 
 template<typename... Ts>
 struct literal_value_overload : Ts... { using Ts::operator()...; };

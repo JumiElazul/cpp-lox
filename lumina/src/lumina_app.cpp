@@ -48,8 +48,6 @@ void lumina_app::run_file_mode(const char* filepath)
     {
         _io->out() << t << '\n';
     }
-
-    tree_printer printer(_io.get());
 }
 
 void lumina_app::run_interpreter_mode()
@@ -67,6 +65,8 @@ void lumina_app::run_interpreter_mode()
 
         std::vector<token> tokens = _lexer.tokenize(input);
 
+        _io->out() << "--------------------\n";
+        _io->out() << "lexer:\n\n";
         for (const token& t : tokens)
         {
             _io->out() << t << '\n';
@@ -80,13 +80,15 @@ void lumina_app::run_interpreter_mode()
 
         string_visitor visitor;
         std::string expr_str = parse_tree->accept_visitor(visitor);
-        _io->out() << "parser:\n";
         _io->out() << "--------------------\n";
+        _io->out() << "parser:\n\n";
         _io->out() << expr_str << '\n';
 
         interpreter interpret;
         literal_value val = parse_tree->accept_visitor(interpret);
-        _io->out() << literal_tostr(val);
+        _io->out() << "--------------------\n";
+        _io->out() << "interpreter:\n\n";
+        _io->out() << literal_tostr(val) << '\n';
     }
 }
 
