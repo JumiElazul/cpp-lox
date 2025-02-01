@@ -5,6 +5,14 @@
 
 NAMESPACE_BEGIN(lumina)
 
+lumina_type literal_to_lumina_type(const literal_value& l)
+{
+    if (l.index() < static_cast<int>(lumina_type::invalid_))
+        return static_cast<lumina_type>(l.index());
+
+    return lumina_type::invalid_;
+}
+
 std::string literal_tostr(const literal_value& l)
 {
     return std::visit(

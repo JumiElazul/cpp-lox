@@ -9,7 +9,32 @@ NAMESPACE_BEGIN(lumina)
 
 literal_value interpreter::visit_unary(const unary_expression& expr) const
 {
-    return 1.0;
+    token_type oper_type = expr.oper.type;
+    literal_value literal = expr.expr_rhs->accept_visitor(*this);
+
+    lumina_type type = literal_to_lumina_type(literal);
+
+    switch (oper_type)
+    {
+        case token_type::minus_:
+        {
+            if (type == lumina_type::number_)
+            {
+                return -(std::get<double>(literal));
+            }
+        } break;
+        case token_type::bang_:
+        {
+            if (type == lumina_type::bool_)
+            {
+                return !(std::get<bool>(literal));
+            }
+        } break;
+        default:
+            throw interpreter_exception("Unknown operator in visit_unary()");
+            break;
+    }
+    return "interpreter::visit_unary() failed";
 }
 
 literal_value interpreter::visit_binary(const binary_expression& expr) const
@@ -27,7 +52,7 @@ literal_value interpreter::visit_binary(const binary_expression& expr) const
             throw interpreter_exception("Unknown operator in visit_binary()");
             break;
     }
-    throw std::runtime_error("Hit end in visit_binary");
+    return "interpreter::visit_binary() failed";
 }
 
 literal_value interpreter::visit_ternary(const ternary_expression& expr) const

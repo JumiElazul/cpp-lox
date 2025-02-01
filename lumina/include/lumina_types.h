@@ -8,6 +8,17 @@ NAMESPACE_BEGIN(lumina)
 
 using literal_value = std::variant<double, bool, std::string, std::monostate>;
 
+enum class lumina_type
+{
+    number_,
+    bool_,
+    string_,
+    null_,
+    invalid_,
+};
+
+lumina_type literal_to_lumina_type(const literal_value& l);
+
 template<typename... Ts>
 struct literal_value_overload : Ts... { using Ts::operator()...; };
 template<typename... Ts>
