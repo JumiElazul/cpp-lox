@@ -38,6 +38,7 @@ target_include_directories(lumina-core PUBLIC "include")
 
 set(LOG_LEVELS TRACE DEBUG INFO WARN ERROR CRITICAL OFF)
 set(LOG_LEVEL "TRACE" CACHE STRING "The log level to use. Options are: ${LOG_LEVELS}")
+set_property(CACHE LOG_LEVEL PROPERTY STRINGS ${LOG_LEVELS})
 
 list(FIND LOG_LEVELS ${LOG_LEVEL} LOG_LEVEL_INDEX)
 if(LOG_LEVEL_INDEX EQUAL -1)
