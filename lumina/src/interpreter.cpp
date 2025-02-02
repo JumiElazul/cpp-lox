@@ -4,6 +4,7 @@
 #include "lumina_types.h"
 #include "tokens.h"
 #include "typedefs.h"
+#include <iostream>
 
 NAMESPACE_BEGIN(lumina)
 
@@ -24,8 +25,8 @@ literal_value interpreter::visit_binary(const binary_expression& expr) const
 literal_value interpreter::visit_ternary(const ternary_expression& expr) const
 {
     literal_value if_expr = expr.expr_lhs->accept_visitor(*this);
-    literal_value then_expr = expr.expr_lhs->accept_visitor(*this);
-    literal_value else_expr = expr.expr_lhs->accept_visitor(*this);
+    literal_value then_expr = expr.expr_then->accept_visitor(*this);
+    literal_value else_expr = expr.expr_else->accept_visitor(*this);
 
     return handle_ternary(if_expr, expr.oper, then_expr, else_expr);
 }
@@ -115,6 +116,41 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
                 return std::get<double>(lhs) / std::get<double>(rhs);
             }
         } break;
+        case token_type::greater_:
+        {
+            if (lhs_type == lumina_type::number_)
+            {
+                return std::get<double>(lhs) > std::get<double>(rhs);
+            }
+        } break;
+        case token_type::greater_equal_:
+        {
+            if (lhs_type == lumina_type::number_)
+            {
+                return std::get<double>(lhs) >= std::get<double>(rhs);
+            }
+        } break;
+        case token_type::less_:
+        {
+            if (lhs_type == lumina_type::number_)
+            {
+                return std::get<double>(lhs) < std::get<double>(rhs);
+            }
+        } break;
+        case token_type::less_equal_:
+        {
+            if (lhs_type == lumina_type::number_)
+            {
+                return std::get<double>(lhs) <= std::get<double>(rhs);
+            }
+        } break;
+        case token_type::equal_equal_:
+        {
+            if (lhs_type == lumina_type::number_)
+            {
+                return std::get<double>(lhs) == std::get<double>(rhs);
+            }
+        } break;
         default:
         {
             throw interpreter_exception("Unknown operator in visit_binary()");
@@ -132,7 +168,13 @@ literal_value interpreter::handle_ternary(const literal_value& if_literal, const
         throw interpreter_exception("Cannot convert lhs of ternary expression to bool");
     }
 
-    return std::get<bool>(if_literal) ? then_literal : else_literal;
+    std::cout << "Evaluating ternaly expression" << std::endl;
+    bool if_branch = std::get<bool>(if_literal);
+
+    if (if_branch)
+        return then_literal;
+    else
+        return else_literal;
 }
 
 NAMESPACE_END
