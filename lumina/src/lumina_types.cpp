@@ -25,7 +25,7 @@ std::string lumina_type_tostr(lumina_type type)
             return "bool";
         case lumina_type::null_:
             return "null";
-        case lumina_type::invalid_:
+        default:
             return "invalid";
     }
 }

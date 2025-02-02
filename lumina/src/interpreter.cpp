@@ -168,7 +168,7 @@ literal_value interpreter::handle_ternary(const literal_value& if_literal, const
         throw interpreter_exception("Cannot convert lhs of ternary expression to bool");
     }
 
-    std::cout << "Evaluating ternaly expression" << std::endl;
+    std::cout << "Evaluating ternary expression" << std::endl;
     bool if_branch = std::get<bool>(if_literal);
 
     if (if_branch)
