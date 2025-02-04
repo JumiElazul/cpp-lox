@@ -16,7 +16,7 @@ NAMESPACE_BEGIN(lumina)
 
 lumina_app::lumina_app()
     : _io(std::make_unique<console_io>())
-    , _lexer(_io.get())
+    , _lexer()
 {
 
 }

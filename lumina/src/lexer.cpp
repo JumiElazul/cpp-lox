@@ -1,5 +1,4 @@
 #include "lexer.h"
-#include "console_io.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include <cctype>
@@ -10,11 +9,10 @@
 
 NAMESPACE_BEGIN(lumina)
 
-lexer::lexer(console_io* io)
+lexer::lexer()
     : _lexer_state()
     , _character_map()
     , _reserved_keyword_map()
-    , _io(io)
 {
     _character_map =
     {
@@ -80,6 +78,7 @@ std::vector<token> lexer::tokenize(const std::string& input)
         }
     }
 
+    tokens.push_back(create_token(token_type::eof_));
     return tokens;
 }
 

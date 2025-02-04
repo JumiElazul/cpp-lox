@@ -6,6 +6,8 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+option(LUMINA_ENABLE_TESTS "Enable building tests" ON)
+
 include(cmake/git_version.cmake)
 get_git_version(GIT_VERSION)
 
@@ -20,3 +22,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(lumina)
+
+if (LUMINA_ENABLE_TESTS)
+    message(STATUS "LUMINA_ENABLE_TESTS was ON, building test executables")
+    enable_testing()
+    add_subdirectory(tests)
+else()
+    message(STATUS "LUMINA_ENABLE_TESTS was OFF, test executables will not be built")
+endif()

@@ -19,7 +19,7 @@ endfunction()
 function(update_vcpkg_json FILE_PATH VERSION)
     file(READ ${FILE_PATH} VCPKG_JSON_CONTENT)
 
-    set(VCPKG_REGEX_MATCH "\"version-string\": \"[A-Za-z0-9]+\\.?[A-Za-z0-9]+\\.?[A-Za-z0-9]+.*\",\n")
+    set(VCPKG_REGEX_MATCH "\"version-string\": \"[A-Za-z0-9]+\\.?[A-Za-z0-9]+\\.?[A-Za-z0-9]+[A-Za-z0-9-]*\",\n")
     set(VCPKG_REPLACE_STRING "\"version-string\": \"${VERSION}\",\n")
 
     string(REGEX REPLACE ${VCPKG_REGEX_MATCH} ${VCPKG_REPLACE_STRING} VCPKG_JSON_UPDATED ${VCPKG_JSON_CONTENT})

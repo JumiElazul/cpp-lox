@@ -61,9 +61,10 @@ elseif (LOG_LEVEL STREQUAL "OFF")
 endif()
 
 find_package(spdlog CONFIG REQUIRED)
+find_package(Catch2 CONFIG REQUIRED)
+
 target_link_libraries(lumina-core PRIVATE spdlog::spdlog)
 
 # Setup the executable
 add_executable(lumina "main.cpp")
 target_link_libraries(lumina PRIVATE lumina-core)
-

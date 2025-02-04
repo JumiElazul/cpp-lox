@@ -9,7 +9,6 @@
 
 NAMESPACE_BEGIN(lumina)
 
-class console_io;
 class lexer
 {
     struct lexer_state
@@ -22,15 +21,13 @@ class lexer
     };
 
 public:
-    lexer(console_io* io);
+    lexer();
     std::vector<token> tokenize(const std::string& input);
 
 private:
     lexer_state _lexer_state;
     std::unordered_map<char, token(lexer::*)(void)> _character_map;
     std::unordered_map<std::string, token_type> _reserved_keyword_map;
-
-    console_io* _io;
 
     token fetch_token();
     std::optional<char> advance_lexer();
