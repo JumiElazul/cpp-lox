@@ -1,4 +1,5 @@
 #include "lumina_app.h"
+#include <iostream>
 
 namespace lumina
 {

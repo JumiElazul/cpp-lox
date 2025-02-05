@@ -64,6 +64,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
 target_link_libraries(lumina-core PRIVATE spdlog::spdlog)
+target_compile_definitions(lumina-core PUBLIC "LUMINA_VERSION=\"${PROJECT_VERSION}\"")
 
 # Setup the executable
 add_executable(lumina "main.cpp")

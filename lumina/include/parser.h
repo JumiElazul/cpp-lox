@@ -49,8 +49,8 @@ private:
     std::unique_ptr<expression> ternary_precedence();
     std::unique_ptr<expression> equality_precedence();
     std::unique_ptr<expression> comparison_precedence();
-    std::unique_ptr<expression> term_precedence();
-    std::unique_ptr<expression> factor_precedence();
+    std::unique_ptr<expression> addition_precedence();
+    std::unique_ptr<expression> multiplication_precedence();
     std::unique_ptr<expression> unary_precedence();
     std::unique_ptr<expression> primary_precedence();
     void validate_binary_has_lhs(const std::vector<token_type>& types);

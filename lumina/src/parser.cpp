@@ -170,36 +170,36 @@ std::unique_ptr<expression> recursive_descent_parser::comparison_precedence()
     // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )\*;
     validate_binary_has_lhs({ token_type::greater_, token_type::greater_equal_, token_type::less_, token_type::less_equal_ });
 
-    std::unique_ptr<expression> expr = term_precedence();
+    std::unique_ptr<expression> expr = addition_precedence();
 
     while (matches_token({ token_type::greater_, token_type::greater_equal_, token_type::less_, token_type::less_equal_ }))
     {
         token oper = *previous_token();
-        std::unique_ptr<expression> rhs = term_precedence();
+        std::unique_ptr<expression> rhs = addition_precedence();
         expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
     }
 
     return expr;
 }
 
-std::unique_ptr<expression> recursive_descent_parser::term_precedence()
+std::unique_ptr<expression> recursive_descent_parser::addition_precedence()
 {
     // term       -> factor ( ( "-" | "+" ) factor )\*;
     validate_binary_has_lhs({ token_type::plus_ });
 
-    std::unique_ptr<expression> expr = factor_precedence();
+    std::unique_ptr<expression> expr = multiplication_precedence();
 
     while (matches_token({ token_type::minus_, token_type::plus_ }))
     {
         token oper = *previous_token();
-        std::unique_ptr<expression> rhs = factor_precedence();
+        std::unique_ptr<expression> rhs = multiplication_precedence();
         expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
     }
 
     return expr;
 }
 
-std::unique_ptr<expression> recursive_descent_parser::factor_precedence()
+std::unique_ptr<expression> recursive_descent_parser::multiplication_precedence()
 {
     // factor     -> unary ( ( "\*" | "/" ) unary )\*;
     validate_binary_has_lhs({ token_type::star_, token_type::slash_ });
