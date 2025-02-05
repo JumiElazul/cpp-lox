@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/null_sink.h>
 #include <string>
 
 NAMESPACE_BEGIN(lumina)
@@ -19,13 +20,28 @@ NAMESPACE_BEGIN(lumina)
     #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::err)
 #elif defined(LUMINA_LOG_LEVEL_CRITICAL)
     #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::critical)
+#elif defined(LUMINA_LOG_LEVEL_OFF)
+    #define DETERMINE_LOG_LEVEL
 #endif
 
 logger::logger()
 {
+    std::vector<spdlog::sink_ptr> sinks;
+
+#if defined(LUMINA_ENABLE_CONSOLE_LOGGING)
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    sinks.push_back(console_sink);
+#endif
+
+#if defined(LUMINA_ENABLE_FILE_LOGGING)
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("lumina.log", false);
-    std::vector<spdlog::sink_ptr> sinks { console_sink, file_sink };
+    sinks.push_back(file_sink);
+#endif
+
+    if (sinks.empty())
+    {
+        sinks.push_back(std::make_shared<spdlog::sinks::null_sink_mt>());
+    }
 
     _logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
     _logger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%@] %v");
@@ -66,12 +82,12 @@ void logger::log_critical(const std::string& message) const
 
 void logger::print_log_levels() const
 {
-    log_trace("LUMINA_TRACE Enabled");
-    log_debug("LUMINA_DEBUG Enabled");
-    log_info("LUMINA_INFO Enabled");
-    log_warn("LUMINA_WARN Enabled");
-    log_error("LUMINA_ERROR Enabled");
-    log_critical("LUMINA_CRITICAL Enabled");
+    log_trace("LUMINA_TRACE level enabled");
+    log_debug("LUMINA_DEBUG level enabled");
+    log_info("LUMINA_INFO level enabled");
+    log_warn("LUMINA_WARN level enabled");
+    log_error("LUMINA_ERROR level enabled");
+    log_critical("LUMINA_CRITICAL level enabled");
 }
 
 NAMESPACE_END
