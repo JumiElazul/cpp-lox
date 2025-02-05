@@ -1,13 +1,12 @@
 #include "lumina_app.h"
 #include "console_io.h"
-#include "exceptions.h"
-#include "expressions.h"
 #include "expression_visitors.h"
 #include "interpreter.h"
 #include "logger.h"
 #include "lexer.h"
 #include "parser.h"
 #include "typedefs.h"
+#include "statements.h"
 #include <vector>
 #include <fstream>
 #include <memory>
@@ -69,7 +68,7 @@ void lumina_app::run_interpreter_mode()
         std::vector<token> tokens = _lexer.tokenize(input);
 
         std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
-        std::unique_ptr<expression> parse_tree = parser->parse();
+        std::vector<std::unique_ptr<statement>> statements = parser->parse();
 
         if (parser->error_occurred())
         {
@@ -77,25 +76,8 @@ void lumina_app::run_interpreter_mode()
             continue;
         }
 
-        string_visitor visitor;
-        std::string expr_str = parse_tree->accept_visitor(visitor);
-
-        interpreter interpret;
-        try
-        {
-            literal_value val = parse_tree->accept_visitor(interpret);
-            _io->out() << literal_tostr(val) << '\n';
-        }
-        catch (const lumina_type_error& e)
-        {
-            _had_runtime_error = true;
-            _io->err() << e.what() << '\n';
-        }
-        catch (const lumina_runtime_error& e)
-        {
-            _had_runtime_error = true;
-            _io->err() << e.what() << '\n';
-        }
+        interpreter i(_io.get());
+        i.interpret(statements);
     }
 }
 

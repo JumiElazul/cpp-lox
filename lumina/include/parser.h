@@ -3,6 +3,7 @@
 #include "typedefs.h"
 #include "tokens.h"
 #include "exceptions.h"
+#include "statements.h"
 #include <memory>
 #include <optional>
 #include <vector>
@@ -16,7 +17,7 @@ class parser
 public:
     parser(const std::vector<token>& lexer_tokens, console_io* io);
     virtual ~parser() = default;
-    virtual std::unique_ptr<expression> parse() = 0;
+    virtual std::vector<std::unique_ptr<statement>> parse() = 0;
 
     bool error_occurred() const noexcept;
     void reset_error_flag() noexcept;
@@ -34,15 +35,12 @@ public:
     recursive_descent_parser(const std::vector<token>& lexer_tokens, console_io* io);
     ~recursive_descent_parser() = default;
 
-    virtual std::unique_ptr<expression> parse() override;
+    virtual std::vector<std::unique_ptr<statement>> parse() override;
 
 private:
-    std::optional<token> advance_parser();
-    std::optional<token> previous_token() const;
-    std::optional<token> peek_next_token() const;
-    void consume_if_matches(token_type type, const std::string& msg);
-    bool check_type(token_type type);
-    bool matches_token(const std::vector<token_type>& token_types);
+    std::unique_ptr<statement> statement_precedence();
+    std::unique_ptr<print_statement> create_print_statement();
+    std::unique_ptr<expression_statement> create_expression_statement();
 
     std::unique_ptr<expression> expression_precedence();
     std::unique_ptr<expression> comma_precedence();
@@ -53,8 +51,14 @@ private:
     std::unique_ptr<expression> multiplication_precedence();
     std::unique_ptr<expression> unary_precedence();
     std::unique_ptr<expression> primary_precedence();
-    void validate_binary_has_lhs(const std::vector<token_type>& types);
 
+    std::optional<token> advance_parser();
+    std::optional<token> previous_token() const;
+    std::optional<token> peek_next_token() const;
+    void consume_if_matches(token_type type, const std::string& msg);
+    bool check_type(token_type type);
+    bool matches_token(const std::vector<token_type>& token_types);
+    void validate_binary_has_lhs(const std::vector<token_type>& types);
     parser_error error(const std::string& msg, const token& t);
     void synchronize();
 };

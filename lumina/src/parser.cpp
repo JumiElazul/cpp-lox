@@ -4,6 +4,7 @@
 #include "expressions.h"
 #include "tokens.h"
 #include "typedefs.h"
+#include "statements.h"
 #include <limits>
 #include <optional>
 #include <vector>
@@ -29,81 +30,60 @@ recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lex
 
 }
 
-std::unique_ptr<expression> recursive_descent_parser::parse()
+std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 {
-    try
+    std::vector<std::unique_ptr<statement>> statements;
+    statements.reserve(32);
+
+    while (peek_next_token().has_value())
     {
-        // Ignore the beginning of file token for now, until we decide if we want to use it for something
-        if (!_lexer_tokens.empty() && _lexer_tokens.front().type == token_type::bof_)
-            _position = 1;
+        if (peek_next_token()->type == token_type::eof_)
+            break;
 
-        return expression_precedence();
-    }
-    catch (const parser_error& e)
-    {
-        _parser_error = true;
-        _io->err() << e.what() << '\n';
-        return nullptr;
-    }
-}
-
-std::optional<token> recursive_descent_parser::advance_parser()
-{
-    const std::optional<token>& token = peek_next_token();
-    if (token.has_value() && token->type != token_type::eof_)
-        ++_position;
-
-    return previous_token();
-}
-
-std::optional<token> recursive_descent_parser::previous_token() const
-{
-    uint32 index = _position - 1;
-    if (index == std::numeric_limits<uint32>::max())
-        return std::nullopt;
-
-    return _lexer_tokens[index];
-}
-
-std::optional<token> recursive_descent_parser::peek_next_token() const
-{
-    if (_position >= _lexer_tokens.size())
-        return std::nullopt;
-
-    return _lexer_tokens[_position];
-}
-
-void recursive_descent_parser::consume_if_matches(token_type type, const std::string& msg)
-{
-    if (check_type(type))
-    {
-        advance_parser();
-    }
-    else
-    {
-        throw error(msg, *peek_next_token());
-    }
-}
-
-bool recursive_descent_parser::check_type(token_type type)
-{
-    if (!peek_next_token().has_value())
-        return false;
-
-    return peek_next_token()->type == type;
-}
-
-bool recursive_descent_parser::matches_token(const std::vector<token_type>& token_types)
-{
-    for (token_type type : token_types)
-    {
-        if (check_type(type))
+        try
         {
-            advance_parser();
-            return true;
+            std::unique_ptr<statement> stmt = statement_precedence();
+            if (stmt)
+            {
+                statements.push_back(std::move(stmt));
+            }
+        }
+        catch (const parser_error& e)
+        {
+            _io->err() << e.what() << '\n';
         }
     }
-    return false;
+
+    return statements;
+}
+
+std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
+{
+    if (matches_token({ token_type::bof_ }))
+    {
+        return nullptr;
+    }
+
+    if (matches_token({ token_type::print_ }))
+    {
+        return create_print_statement();
+    }
+
+    return create_expression_statement();
+}
+
+std::unique_ptr<print_statement> recursive_descent_parser::create_print_statement()
+{
+    std::unique_ptr<expression> expression = expression_precedence();
+    consume_if_matches(token_type::semicolon_, "Expected ';' after statement");
+    return std::make_unique<print_statement>(std::move(expression));
+}
+
+std::unique_ptr<expression_statement> recursive_descent_parser::create_expression_statement()
+{
+    std::unique_ptr<expression> expression = expression_precedence();
+    consume_if_matches(token_type::semicolon_, "Expected ';' after expression");
+    return std::make_unique<expression_statement>(std::move(expression));
 }
 
 std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
@@ -248,6 +228,66 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
 
     throw error("Expected expression.", *previous_token());
 }
+
+std::optional<token> recursive_descent_parser::advance_parser()
+{
+    const std::optional<token>& token = peek_next_token();
+    if (token.has_value() && token->type != token_type::eof_)
+        ++_position;
+
+    return previous_token();
+}
+
+std::optional<token> recursive_descent_parser::previous_token() const
+{
+    uint32 index = _position - 1;
+    if (index == std::numeric_limits<uint32>::max())
+        return std::nullopt;
+
+    return _lexer_tokens[index];
+}
+
+std::optional<token> recursive_descent_parser::peek_next_token() const
+{
+    if (_position >= _lexer_tokens.size())
+        return std::nullopt;
+
+    return _lexer_tokens[_position];
+}
+
+void recursive_descent_parser::consume_if_matches(token_type type, const std::string& msg)
+{
+    if (check_type(type))
+    {
+        advance_parser();
+    }
+    else
+    {
+        throw error(msg, *peek_next_token());
+    }
+}
+
+bool recursive_descent_parser::check_type(token_type type)
+{
+    if (!peek_next_token().has_value())
+        return false;
+
+    return peek_next_token()->type == type;
+}
+
+bool recursive_descent_parser::matches_token(const std::vector<token_type>& token_types)
+{
+    for (token_type type : token_types)
+    {
+        if (check_type(type))
+        {
+            advance_parser();
+            return true;
+        }
+    }
+    return false;
+}
+
 
 void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_type>& types)
 {

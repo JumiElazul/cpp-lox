@@ -1,12 +1,52 @@
 #include "interpreter.h"
+#include "console_io.h"
 #include "exceptions.h"
 #include "expressions.h"
 #include "lumina_types.h"
 #include "tokens.h"
 #include "typedefs.h"
-#include <iostream>
+#include "statements.h"
+#include <cassert>
+#include <memory>
+#include <vector>
 
 NAMESPACE_BEGIN(lumina)
+
+interpreter::interpreter(console_io* io)
+    : _io(io)
+{
+
+}
+
+void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
+{
+    try
+    {
+        for (const auto& stmt : statements)
+        {
+            stmt->accept_visitor(*this);
+        }
+    }
+    catch (const lumina_type_error& e)
+    {
+        assert(false);
+    }
+    catch (const lumina_runtime_error& e)
+    {
+        assert(false);
+    }
+}
+
+void interpreter::visit_print_statement(const print_statement& stmt) const
+{
+    literal_value literal = stmt.expr->accept_visitor(*this);
+    _io->out() << literal_tostr(literal) << '\n';
+}
+
+void interpreter::visit_expression_statement(const expression_statement& stmt) const
+{
+    literal_value literal = stmt.expr->accept_visitor(*this);
+}
 
 literal_value interpreter::visit_unary(const unary_expression& expr) const
 {
@@ -194,13 +234,7 @@ literal_value interpreter::handle_ternary(const literal_value& if_literal, const
         throw lumina_runtime_error("Cannot convert lhs of ternary expression to bool");
     }
 
-    std::cout << "Evaluating ternary expression" << std::endl;
-    bool if_branch = std::get<bool>(if_literal);
-
-    if (if_branch)
-        return then_literal;
-    else
-        return else_literal;
+    return std::get<bool>(if_literal) ? then_literal : else_literal;
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

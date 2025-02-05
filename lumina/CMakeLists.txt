@@ -10,6 +10,8 @@ set(SOURCES
     "src/logger.cpp"
     "src/lumina_types.cpp"
     "src/parser.cpp"
+    "src/statements.cpp"
+    "src/statement_visitors.cpp"
     "src/tokens.cpp"
 )
 
@@ -27,6 +29,8 @@ set(HEADERS
     "include/logger.h"
     "include/lumina_types.h"
     "include/parser.h"
+    "include/statements.h"
+    "include/statement_visitors.h"
     "include/tokens.h"
 
     "include/typedefs.h"
@@ -36,7 +40,7 @@ set(HEADERS
 add_library(lumina-core STATIC ${SOURCES} ${HEADERS})
 target_include_directories(lumina-core PUBLIC "include")
 
-include(cmake/lumina_logging.cmake)
+include(cmake/logging.cmake)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
