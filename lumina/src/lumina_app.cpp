@@ -1,5 +1,6 @@
 #include "lumina_app.h"
 #include "console_io.h"
+#include "exceptions.h"
 #include "expressions.h"
 #include "expression_visitors.h"
 #include "interpreter.h"
@@ -17,6 +18,7 @@ NAMESPACE_BEGIN(lumina)
 lumina_app::lumina_app()
     : _io(std::make_unique<console_io>())
     , _lexer()
+    , _had_runtime_error(false)
 {
 
 }
@@ -57,6 +59,8 @@ void lumina_app::run_interpreter_mode()
 
     while (true)
     {
+        _had_runtime_error = false;
+
         _io->out() << "lumina > ";
         std::string input = _io->readline();
         
@@ -76,7 +80,10 @@ void lumina_app::run_interpreter_mode()
         std::unique_ptr<expression> parse_tree = parser->parse();
 
         if (parser->error_occurred())
+        {
+            _had_runtime_error = true;
             continue;
+        }
 
         string_visitor visitor;
         std::string expr_str = parse_tree->accept_visitor(visitor);
@@ -85,10 +92,23 @@ void lumina_app::run_interpreter_mode()
         _io->out() << expr_str << '\n';
 
         interpreter interpret;
-        literal_value val = parse_tree->accept_visitor(interpret);
-        _io->out() << "--------------------\n";
-        _io->out() << "interpreter:\n\n";
-        _io->out() << literal_tostr(val) << '\n';
+        try
+        {
+            literal_value val = parse_tree->accept_visitor(interpret);
+            _io->out() << "--------------------\n";
+            _io->out() << "interpreter:\n\n";
+            _io->out() << literal_tostr(val) << '\n';
+        }
+        catch (const lumina_type_error& e)
+        {
+            _had_runtime_error = true;
+            _io->err() << e.what() << '\n';
+        }
+        catch (const lumina_runtime_error& e)
+        {
+            _had_runtime_error = true;
+            _io->err() << e.what() << '\n';
+        }
     }
 }
 

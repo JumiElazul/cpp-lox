@@ -1,34 +1,41 @@
 #ifndef JUMI_LUMINA_EXCEPTIONS_H
 #define JUMI_LUMINA_EXCEPTIONS_H
 #include "typedefs.h"
+#include "tokens.h"
 #include <stdexcept>
+#include <string>
 
 NAMESPACE_BEGIN(lumina)
 
-class lexer_exception : public std::runtime_error
+class lumina_runtime_error : public std::runtime_error
 {
 public:
-    lexer_exception(const std::string& message);
+    lumina_runtime_error(const std::string& msg);
     virtual const char* what() const noexcept override;
+
 };
 
-class parser_exception : public std::runtime_error
+class lexer_error : public lumina_runtime_error
 {
 public:
-    uint32 line;
-    uint32 pos;
-    parser_exception(uint32 line, uint32 pos, const std::string& msg);
-
-private:
-    static std::string create_msg(uint32 line, uint32 pos, const std::string& msg);
+    lexer_error(const std::string& msg);
 };
 
-class interpreter_exception : public std::runtime_error
+class parser_error : public lumina_runtime_error
 {
 public:
-    interpreter_exception(const std::string& message);
-    virtual const char* what() const noexcept override;
+    token tok;
+    parser_error(const std::string& msg, const token& t);
 };
+
+class lumina_type_error : public lumina_runtime_error
+{
+public:
+    token tok;
+    lumina_type_error(const std::string& msg, const token& t);
+};
+
+extern std::string get_token_position(const token& t);
 
 NAMESPACE_END
 

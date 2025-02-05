@@ -39,7 +39,7 @@ std::unique_ptr<expression> recursive_descent_parser::parse()
 
         return expression_precedence();
     }
-    catch (const parser_exception& e)
+    catch (const parser_error& e)
     {
         _parser_error = true;
         _io->err() << e.what() << '\n';
@@ -81,7 +81,7 @@ void recursive_descent_parser::consume_if_matches(token_type type, const std::st
     }
     else
     {
-        throw error(*peek_next_token(), msg);
+        throw error(msg, *peek_next_token());
     }
 }
 
@@ -246,7 +246,7 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
         return std::make_unique<grouping_expression>(std::move(expr));
     }
 
-    throw error(*previous_token(), "Expected expression.");
+    throw error("Expected expression.", *previous_token());
 }
 
 void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_type>& types)
@@ -254,17 +254,14 @@ void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_t
     if (matches_token(types))
     {
         token oper = *previous_token();
-        throw error(oper, "Missing left-hand operand for '" + oper.lexeme + "' operator.");
+        throw error("Missing left-hand operand for '" + oper.lexeme + "' operator.", oper);
         _parser_error = true;
     }
 }
 
-parser_exception recursive_descent_parser::error(const token& t, const std::string& msg)
+parser_error recursive_descent_parser::error(const std::string& msg, const token& t)
 {
-    if (t.type == token_type::eof_)
-        return parser_exception(t.position.first, t.position.second, "end of file " + msg);
-    else
-        return parser_exception(t.position.first, t.position.second, msg);
+    return parser_error(msg, t);
 }
 
 void recursive_descent_parser::synchronize()

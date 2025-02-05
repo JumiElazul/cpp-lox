@@ -19,7 +19,10 @@ public:
 private:
     std::unique_ptr<console_io> _io;
     lexer _lexer;
+
+    bool _had_runtime_error;
 };
 
 NAMESPACE_END
+
 #endif

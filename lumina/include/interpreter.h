@@ -19,6 +19,9 @@ public:
     literal_value handle_unary(const token& oper, const literal_value& literal) const;
     literal_value handle_binary(const literal_value& lhs, const token& oper, const literal_value& rhs) const;
     literal_value handle_ternary(const literal_value& if_literal, const token& oper, const literal_value& then_literal, const literal_value& else_literal) const;
+
+    bool is_truthy(const literal_value& literal) const;
+    bool is_equal(const literal_value& lhs, const literal_value& rhs) const;
 };
 
 NAMESPACE_END

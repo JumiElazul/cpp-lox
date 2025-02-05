@@ -6,36 +6,38 @@
 
 NAMESPACE_BEGIN(lumina)
 
-lexer_exception::lexer_exception(const std::string& message)
-    : std::runtime_error(message)
+lumina_runtime_error::lumina_runtime_error(const std::string& msg)
+    : std::runtime_error(msg)
 {
 }
 
-const char* lexer_exception::what() const noexcept
+const char* lumina_runtime_error::what() const noexcept
 {
     return std::runtime_error::what();
 }
 
-parser_exception::parser_exception(uint32 line, uint32 pos, const std::string& msg)
-    : std::runtime_error(create_msg(line, pos, msg))
+lexer_error::lexer_error(const std::string& msg)
+    : lumina_runtime_error(msg)
 {
 }
 
-std::string parser_exception::create_msg(uint32 line, uint32 pos, const std::string& msg)
+parser_error::parser_error(const std::string& msg, const token& t)
+    : lumina_runtime_error(msg)
+    , tok(std::move(t))
 {
-    std::ostringstream oss;
-    oss << "error at line [" << line << ":" << pos << "]: "<< msg;
-    return oss.str();
+
 }
 
-interpreter_exception::interpreter_exception(const std::string& message)
-    : std::runtime_error(message)
-{
-}
+lumina_type_error::lumina_type_error(const std::string& msg, const token& t)
+    : lumina_runtime_error(msg + get_token_position(t))
+    , tok(std::move(t))
+{ }
 
-const char* interpreter_exception::what() const noexcept
+std::string get_token_position(const token& t)
 {
-    return std::runtime_error::what();
+    std::stringstream ss;
+    ss << " at position [" << t.position.first << ":" << t.position.second << "] (" << t.lexeme << ")";
+    return ss.str();
 }
 
 NAMESPACE_END

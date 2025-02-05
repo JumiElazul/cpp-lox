@@ -45,28 +45,21 @@ literal_value interpreter::handle_unary(const token& oper, const literal_value& 
 {
     lumina_type literal_type = literal_to_lumina_type(literal);
 
-    switch (oper.type)
+    if (oper.type == token_type::bang_)
     {
-        case token_type::bang_:
-        {
-            if (literal_type == lumina_type::bool_)
-            {
-                return !(std::get<bool>(literal));
-            }
-        } break;
-        case token_type::minus_:
-        {
-            if (literal_type == lumina_type::number_)
-            {
-                return -(std::get<double>(literal));
-            }
-        } break;
-        default:
-        {
-            throw interpreter_exception("Got to end in handle_unary()");
-        } break;
+        if (literal_type != lumina_type::bool_)
+            throw lumina_type_error("Cannot use unary operator ('!') on non-bool type", oper);
+
+        return !is_truthy(literal);
     }
-    throw interpreter_exception("Got to end in handle_unary()");
+    else if (oper.type == token_type::minus_)
+    {
+        if (literal_type != lumina_type::number_)
+            throw lumina_type_error("Cannot use unary operator ('-') on non-number type", oper);
+
+        return -(std::get<double>(literal));
+    }
+    throw lumina_runtime_error("Unknown operator in visit_unary()");
 }
 
 literal_value interpreter::handle_binary(const literal_value& lhs, const token& oper, const literal_value& rhs) const
@@ -79,7 +72,7 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
         std::string msg = std::string("Cannot use binary operator '" + oper.lexeme + "' on types " +
                 lumina_type_tostr(lhs_type) + " and " + lumina_type_tostr(rhs_type));
 
-        throw interpreter_exception(msg);
+        throw lumina_type_error(msg, oper);
     }
 
     switch (oper.type)
@@ -94,12 +87,20 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
             {
                 return std::get<double>(lhs) + std::get<double>(rhs);
             }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '+'", oper);
+            }
         } break;
         case token_type::minus_:
         {
             if (lhs_type == lumina_type::number_)
             {
                 return std::get<double>(lhs) - std::get<double>(rhs);
+            }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '-'", oper);
             }
         } break;
         case token_type::star_:
@@ -108,12 +109,20 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
             {
                 return std::get<double>(lhs) * std::get<double>(rhs);
             }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '*'", oper);
+            }
         } break;
         case token_type::slash_:
         {
             if (lhs_type == lumina_type::number_)
             {
                 return std::get<double>(lhs) / std::get<double>(rhs);
+            }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '/'", oper);
             }
         } break;
         case token_type::greater_:
@@ -122,12 +131,20 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
             {
                 return std::get<double>(lhs) > std::get<double>(rhs);
             }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '>'", oper);
+            }
         } break;
         case token_type::greater_equal_:
         {
             if (lhs_type == lumina_type::number_)
             {
                 return std::get<double>(lhs) >= std::get<double>(rhs);
+            }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '>='", oper);
             }
         } break;
         case token_type::less_:
@@ -136,6 +153,10 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
             {
                 return std::get<double>(lhs) < std::get<double>(rhs);
             }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '<'", oper);
+            }
         } break;
         case token_type::less_equal_:
         {
@@ -143,20 +164,25 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
             {
                 return std::get<double>(lhs) <= std::get<double>(rhs);
             }
+            else
+            {
+                throw lumina_type_error("Unsupported type for binary operator '<='", oper);
+            }
+        } break;
+        case token_type::bang_equal_:
+        {
+            return !is_equal(lhs, rhs);
         } break;
         case token_type::equal_equal_:
         {
-            if (lhs_type == lumina_type::number_)
-            {
-                return std::get<double>(lhs) == std::get<double>(rhs);
-            }
+            return is_equal(lhs, rhs);
         } break;
         default:
         {
-            throw interpreter_exception("Unknown operator in visit_binary()");
-        } break;
+            throw lumina_runtime_error("Unknown operator in handle_binary()");
+        };
     }
-    throw interpreter_exception("Got to end in handle_binary()");
+    throw lumina_runtime_error("Unknown operator in handle_binary()");
 }
 
 literal_value interpreter::handle_ternary(const literal_value& if_literal, const token& oper, const literal_value& then_literal, const literal_value& else_literal) const
@@ -165,7 +191,7 @@ literal_value interpreter::handle_ternary(const literal_value& if_literal, const
 
     if (if_type != lumina_type::bool_)
     {
-        throw interpreter_exception("Cannot convert lhs of ternary expression to bool");
+        throw lumina_runtime_error("Cannot convert lhs of ternary expression to bool");
     }
 
     std::cout << "Evaluating ternary expression" << std::endl;
@@ -175,6 +201,52 @@ literal_value interpreter::handle_ternary(const literal_value& if_literal, const
         return then_literal;
     else
         return else_literal;
+}
+
+bool interpreter::is_truthy(const literal_value& literal) const
+{
+    lumina_type type = literal_to_lumina_type(literal);
+
+    switch (type)
+    {
+        case lumina_type::bool_:
+        {
+            return std::get<bool>(literal);
+        } break;
+        case lumina_type::number_:
+        {
+            return std::get<double>(literal) != 0;
+        } break;
+        case lumina_type::string_:
+        {
+            return !std::get<std::string>(literal).empty();
+        } break;
+        case lumina_type::null_:
+        {
+            return false;
+        } break;
+    }
+    throw lumina_runtime_error("Unknown type in is_truthy()");
+}
+
+bool interpreter::is_equal(const literal_value& lhs, const literal_value& rhs) const
+{
+    lumina_type lhs_type = literal_to_lumina_type(lhs);
+    lumina_type rhs_type = literal_to_lumina_type(rhs);
+
+    // Disallow different types from being compared for now
+    if (lhs_type != rhs_type)
+    {
+        return false;
+    }
+
+    if ((lhs_type == lumina_type::null_) && (rhs_type == lumina_type::null_))
+        return true;
+    if (lhs_type == lumina_type::null_)
+        return false;
+
+    // TODO: Figure out if this is correct
+    return lhs == rhs;
 }
 
 NAMESPACE_END
