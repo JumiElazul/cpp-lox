@@ -86,6 +86,18 @@ public:
     virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
 };
 
+class variable_expression : public expression
+{
+public:
+    token ident_name;
+
+    variable_expression(const token& t);
+
+    virtual std::string accept_visitor(const expression_visitor<std::string>& v) const override;
+    virtual void accept_visitor(const expression_visitor<void>& v) const override;
+    virtual literal_value accept_visitor(const expression_visitor<literal_value>& v) const override;
+};
+
 NAMESPACE_END
 
 #endif

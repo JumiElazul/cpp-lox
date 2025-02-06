@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "console_io.h"
+#include "environment.h"
 #include "exceptions.h"
 #include "expressions.h"
 #include "lumina_types.h"
@@ -8,12 +9,14 @@
 #include "statements.h"
 #include <cassert>
 #include <memory>
+#include <string>
 #include <vector>
 
 NAMESPACE_BEGIN(lumina)
 
-interpreter::interpreter(console_io* io)
-    : _io(io)
+interpreter::interpreter(environment& env, console_io* io)
+    : _env(env)
+    , _io(io)
 {
 
 }
@@ -48,6 +51,19 @@ void interpreter::visit_expression_statement(const expression_statement& stmt) c
     literal_value literal = stmt.expr->accept_visitor(*this);
 }
 
+void interpreter::visit_variable_declaration_statement(const variable_declaration_statement& stmt) const
+{
+    if (stmt.expr)
+    {
+        literal_value literal = stmt.expr->accept_visitor(*this);
+        _env.define(stmt.ident_name.lexeme, literal);
+    }
+    else
+    {
+        _env.define(stmt.ident_name.lexeme, std::monostate{});
+    }
+}
+
 literal_value interpreter::visit_unary(const unary_expression& expr) const
 {
     literal_value literal = expr.expr_rhs->accept_visitor(*this);
@@ -79,6 +95,11 @@ literal_value interpreter::visit_literal(const literal_expression& expr) const
 literal_value interpreter::visit_grouping(const grouping_expression& expr) const
 {
     return expr.expr_lhs->accept_visitor(*this);
+}
+
+literal_value interpreter::visit_variable(const variable_expression& expr) const
+{
+    return _env.get(expr.ident_name);
 }
 
 literal_value interpreter::handle_unary(const token& oper, const literal_value& literal) const

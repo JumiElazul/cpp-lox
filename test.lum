@@ -1,11 +1,3 @@
->=   "string"
-   !   15.5
- 
-"15." // comment
-
-/* block
-    style
- comment */
-
-" this is a multi
-   line string"
+var first = 10;
+print("First is: ");
+print(first);

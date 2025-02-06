@@ -2,6 +2,7 @@ set(SOURCES
     "src/lumina_app.cpp"
 
     "src/console_io.cpp"
+    "src/environment.cpp"
     "src/exceptions.cpp"
     "src/expressions.cpp"
     "src/expression_visitors.cpp"
@@ -11,7 +12,6 @@ set(SOURCES
     "src/lumina_types.cpp"
     "src/parser.cpp"
     "src/statements.cpp"
-    "src/statement_visitors.cpp"
     "src/tokens.cpp"
 )
 
@@ -21,6 +21,7 @@ set(HEADERS
     "include/i_logger.h"
 
     "include/console_io.h"
+    "include/environment.h"
     "include/exceptions.h"
     "include/expressions.h"
     "include/expression_visitors.h"

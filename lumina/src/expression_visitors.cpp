@@ -8,12 +8,6 @@
 
 NAMESPACE_BEGIN(lumina)
 
-tree_printer::tree_printer(console_io* io)
-    : _io(io)
-{
-
-}
-
 std::string string_visitor::visit_unary(const unary_expression& expr) const
 {
     std::string expr_str = expr.expr_rhs->accept_visitor(*this);
@@ -48,29 +42,9 @@ std::string string_visitor::visit_grouping(const grouping_expression& expr) cons
     return "( " + lhs_str + " )";
 }
 
-void tree_printer::visit_unary(const unary_expression& expr) const
+std::string string_visitor::visit_variable(const variable_expression& expr) const
 {
-
-}
-
-void tree_printer::visit_binary(const binary_expression& expr) const
-{
-
-}
-
-void tree_printer::visit_ternary(const ternary_expression& expr) const
-{
-
-}
-
-void tree_printer::visit_literal(const literal_expression& expr) const
-{
-
-}
-
-void tree_printer::visit_grouping(const grouping_expression& expr) const
-{
-    
+    return expr.ident_name.lexeme;
 }
 
 NAMESPACE_END

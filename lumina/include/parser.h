@@ -38,7 +38,9 @@ public:
     virtual std::vector<std::unique_ptr<statement>> parse() override;
 
 private:
+    std::unique_ptr<statement> declaration_precedence();
     std::unique_ptr<statement> statement_precedence();
+    std::unique_ptr<variable_declaration_statement> create_variable_declaration_statement();
     std::unique_ptr<print_statement> create_print_statement();
     std::unique_ptr<expression_statement> create_expression_statement();
 
@@ -55,7 +57,7 @@ private:
     std::optional<token> advance_parser();
     std::optional<token> previous_token() const;
     std::optional<token> peek_next_token() const;
-    void consume_if_matches(token_type type, const std::string& msg);
+    token consume_if_matches(token_type type, const std::string& msg);
     bool check_type(token_type type);
     bool matches_token(const std::vector<token_type>& token_types);
     void validate_binary_has_lhs(const std::vector<token_type>& types);

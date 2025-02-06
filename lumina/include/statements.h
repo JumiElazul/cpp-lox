@@ -37,6 +37,17 @@ public:
     virtual void accept_visitor(const statement_visitor& v) const override;
 };
 
+class variable_declaration_statement final : public statement
+{
+public:
+    token ident_name;
+
+    variable_declaration_statement(const token& ident_name_, std::unique_ptr<expression> initializer_expr_);
+    ~variable_declaration_statement() = default;
+
+    virtual void accept_visitor(const statement_visitor& v) const override;
+};
+
 NAMESPACE_END
 
 #endif
