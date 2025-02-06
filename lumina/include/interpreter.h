@@ -1,6 +1,7 @@
 #ifndef JUMI_LUMINA_INTERPRETER_H
 #define JUMI_LUMINA_INTERPRETER_H
 #include "console_io.h"
+#include "environment.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include "expression_visitors.h"
@@ -17,24 +18,25 @@ class environment;
 class interpreter final : public statement_visitor, public expression_visitor<literal_value>
 {
 public:
-    interpreter(environment& env, console_io* io);
+    interpreter(console_io* io);
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
 
 private:
-    environment& _env;
+    environment _env;
     console_io* _io;
 
-    virtual void visit_print_statement(const print_statement& stmt) const override;
-    virtual void visit_expression_statement(const expression_statement& stmt) const override;
-    virtual void visit_variable_declaration_statement(const variable_declaration_statement& stmt) const override;
+    virtual void visit_print_statement(print_statement& stmt) override;
+    virtual void visit_expression_statement(expression_statement& stmt) override;
+    virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
 
-    virtual literal_value visit_unary(const unary_expression& expr) const override;
-    virtual literal_value visit_binary(const binary_expression& expr) const override;
-    virtual literal_value visit_ternary(const ternary_expression& expr) const override;
-    virtual literal_value visit_literal(const literal_expression& expr) const override;
-    virtual literal_value visit_grouping(const grouping_expression& expr) const override;
-    virtual literal_value visit_variable(const variable_expression& expr) const override;
+    virtual literal_value visit_unary(unary_expression& expr) override;
+    virtual literal_value visit_binary(binary_expression& expr) override;
+    virtual literal_value visit_ternary(ternary_expression& expr) override;
+    virtual literal_value visit_literal(literal_expression& expr) override;
+    virtual literal_value visit_grouping(grouping_expression& expr) override;
+    virtual literal_value visit_variable(variable_expression& expr) override;
+    virtual literal_value visit_assignment(assignment_expression& expr) override;
 
     literal_value handle_unary(const token& oper, const literal_value& literal) const;
     literal_value handle_binary(const literal_value& lhs, const token& oper, const literal_value& rhs) const;

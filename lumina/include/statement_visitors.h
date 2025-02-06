@@ -12,9 +12,9 @@ class statement_visitor
 {
 public:
     virtual ~statement_visitor() = default;
-    virtual void visit_print_statement(const print_statement& stmt) const = 0;
-    virtual void visit_expression_statement(const expression_statement& stmt) const = 0;
-    virtual void visit_variable_declaration_statement(const variable_declaration_statement& stmt) const = 0;
+    virtual void visit_print_statement(print_statement& stmt) = 0;
+    virtual void visit_expression_statement(expression_statement& stmt) = 0;
+    virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) = 0;
 };
 
 NAMESPACE_END

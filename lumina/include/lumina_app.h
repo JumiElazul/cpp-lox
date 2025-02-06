@@ -1,7 +1,7 @@
 #ifndef JUMI_LUMINA_LUMINA_APP_H
 #define JUMI_LUMINA_LUMINA_APP_H
 #include "typedefs.h"
-#include "environment.h"
+#include "interpreter.h"
 #include "lexer.h"
 #include <memory>
 
@@ -20,7 +20,7 @@ public:
 private:
     std::unique_ptr<console_io> _io;
     lexer _lexer;
-    environment _env;
+    interpreter _interpreter;
 
     bool _had_runtime_error;
 };

@@ -121,7 +121,23 @@ std::unique_ptr<expression_statement> recursive_descent_parser::create_expressio
 
 std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 {
-    // expression -> comma;
+    // expression -> assignment;
+    return assignment_precedence();
+}
+
+std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
+{
+    // assignment -> IDENTIFIER "=" assignment | comma;
+    if (matches_token({ token_type::identifier_ }))
+    {
+        token ident_name = *previous_token();
+        if (matches_token({ token_type::equal_ }))
+        {
+            std::unique_ptr<expression> initializer_expr = assignment_precedence();
+            return std::make_unique<assignment_expression>(ident_name, std::move(initializer_expr));
+        }
+    }
+
     return comma_precedence();
 }
 

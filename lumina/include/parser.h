@@ -45,6 +45,7 @@ private:
     std::unique_ptr<expression_statement> create_expression_statement();
 
     std::unique_ptr<expression> expression_precedence();
+    std::unique_ptr<expression> assignment_precedence();
     std::unique_ptr<expression> comma_precedence();
     std::unique_ptr<expression> ternary_precedence();
     std::unique_ptr<expression> equality_precedence();

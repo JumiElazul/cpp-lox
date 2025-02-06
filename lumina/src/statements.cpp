@@ -16,7 +16,7 @@ expression_statement::expression_statement(std::unique_ptr<expression> expr_)
 {
 }
 
-void expression_statement::accept_visitor(const statement_visitor& v) const
+void expression_statement::accept_visitor(statement_visitor& v)
 {
     v.visit_expression_statement(*this);
 }
@@ -26,7 +26,7 @@ print_statement::print_statement(std::unique_ptr<expression> expr_)
 {
 }
 
-void print_statement::accept_visitor(const statement_visitor& v) const
+void print_statement::accept_visitor(statement_visitor& v)
 {
     v.visit_print_statement(*this);
 }
@@ -37,7 +37,7 @@ variable_declaration_statement::variable_declaration_statement(const token& iden
 {
 }
 
-void variable_declaration_statement::accept_visitor(const statement_visitor& v) const
+void variable_declaration_statement::accept_visitor(statement_visitor& v)
 {
     v.visit_variable_declaration_statement(*this);
 }

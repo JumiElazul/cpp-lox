@@ -1,3 +1,2 @@
-var first = 10;
-print("First is: ");
-print(first);
+var i = 1;
+print(i);

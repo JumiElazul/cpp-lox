@@ -12,6 +12,16 @@ environment::environment()
 
 void environment::define(const std::string& name, const literal_value& value)
 {
+    auto find = _variables.find(name);
+    if (find != _variables.end())
+    {
+        throw lumina_runtime_error("Variable '" + name + "' already defined, did you mean to reassign it?");
+    }
+    _variables[name] = value;
+}
+
+void environment::overwrite(const std::string& name, const literal_value& value)
+{
     _variables[name] = value;
 }
 

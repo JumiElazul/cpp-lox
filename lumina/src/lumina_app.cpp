@@ -17,7 +17,7 @@ NAMESPACE_BEGIN(lumina)
 lumina_app::lumina_app()
     : _io(std::make_unique<console_io>())
     , _lexer()
-    , _env()
+    , _interpreter(_io.get())
     , _had_runtime_error(false)
 {
 
@@ -54,8 +54,7 @@ void lumina_app::run_file_mode(const char* filepath)
         return;
     }
 
-    interpreter i(_env, _io.get());
-    i.interpret(statements);
+    _interpreter.interpret(statements);
 }
 
 void lumina_app::run_interpreter_mode()
@@ -86,8 +85,7 @@ void lumina_app::run_interpreter_mode()
             continue;
         }
 
-        interpreter i(_env, _io.get());
-        i.interpret(statements);
+        _interpreter.interpret(statements);
     }
 }
 

@@ -14,8 +14,8 @@
 
 NAMESPACE_BEGIN(lumina)
 
-interpreter::interpreter(environment& env, console_io* io)
-    : _env(env)
+interpreter::interpreter(console_io* io)
+    : _env()
     , _io(io)
 {
 
@@ -40,18 +40,18 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     }
 }
 
-void interpreter::visit_print_statement(const print_statement& stmt) const
+void interpreter::visit_print_statement(print_statement& stmt)
 {
     literal_value literal = stmt.expr->accept_visitor(*this);
     _io->out() << literal_tostr(literal) << '\n';
 }
 
-void interpreter::visit_expression_statement(const expression_statement& stmt) const
+void interpreter::visit_expression_statement(expression_statement& stmt)
 {
     literal_value literal = stmt.expr->accept_visitor(*this);
 }
 
-void interpreter::visit_variable_declaration_statement(const variable_declaration_statement& stmt) const
+void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
 {
     if (stmt.expr)
     {
@@ -64,13 +64,13 @@ void interpreter::visit_variable_declaration_statement(const variable_declaratio
     }
 }
 
-literal_value interpreter::visit_unary(const unary_expression& expr) const
+literal_value interpreter::visit_unary(unary_expression& expr)
 {
     literal_value literal = expr.expr_rhs->accept_visitor(*this);
     return handle_unary(expr.oper, literal);
 }
 
-literal_value interpreter::visit_binary(const binary_expression& expr) const
+literal_value interpreter::visit_binary(binary_expression& expr)
 {
     literal_value lhs = expr.expr_lhs->accept_visitor(*this);
     literal_value rhs = expr.expr_rhs->accept_visitor(*this);
@@ -78,7 +78,7 @@ literal_value interpreter::visit_binary(const binary_expression& expr) const
     return handle_binary(lhs, expr.oper, rhs);
 }
 
-literal_value interpreter::visit_ternary(const ternary_expression& expr) const
+literal_value interpreter::visit_ternary(ternary_expression& expr)
 {
     literal_value if_expr = expr.expr_lhs->accept_visitor(*this);
     literal_value then_expr = expr.expr_then->accept_visitor(*this);
@@ -87,19 +87,26 @@ literal_value interpreter::visit_ternary(const ternary_expression& expr) const
     return handle_ternary(if_expr, expr.oper, then_expr, else_expr);
 }
 
-literal_value interpreter::visit_literal(const literal_expression& expr) const
+literal_value interpreter::visit_literal(literal_expression& expr)
 {
     return expr.literal_val;
 }
 
-literal_value interpreter::visit_grouping(const grouping_expression& expr) const
+literal_value interpreter::visit_grouping(grouping_expression& expr)
 {
     return expr.expr_lhs->accept_visitor(*this);
 }
 
-literal_value interpreter::visit_variable(const variable_expression& expr) const
+literal_value interpreter::visit_variable(variable_expression& expr)
 {
     return _env.get(expr.ident_name);
+}
+
+literal_value interpreter::visit_assignment(assignment_expression& expr)
+{
+    literal_value literal = expr.initializer_expr->accept_visitor(*this);
+    _env.overwrite(expr.ident_name.lexeme, literal);
+    return literal;
 }
 
 literal_value interpreter::handle_unary(const token& oper, const literal_value& literal) const
