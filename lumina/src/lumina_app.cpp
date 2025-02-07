@@ -45,10 +45,10 @@ void lumina_app::run_file_mode(const char* filepath)
     lexer l(contents);
     const std::vector<token>& tokens = l.get_tokens();
 
-    std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
-    std::vector<std::unique_ptr<statement>> statements = parser->parse();
+    recursive_descent_parser parser(tokens, _io.get());
+    std::vector<std::unique_ptr<statement>> statements = parser.parse();
 
-    if (parser->error_occurred())
+    if (parser.error_occurred())
     {
         _had_runtime_error = true;
         return;
@@ -77,10 +77,10 @@ void lumina_app::run_interpreter_mode()
         lexer l(input);
         const std::vector<token>& tokens = l.get_tokens();
 
-        std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
-        std::vector<std::unique_ptr<statement>> statements = parser->parse();
+        recursive_descent_parser parser(tokens, _io.get());
+        std::vector<std::unique_ptr<statement>> statements = parser.parse();
 
-        if (parser->error_occurred())
+        if (parser.error_occurred())
         {
             _had_runtime_error = true;
             continue;
