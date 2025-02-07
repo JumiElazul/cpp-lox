@@ -2,7 +2,6 @@
 #define JUMI_LUMINA_LUMINA_APP_H
 #include "typedefs.h"
 #include "interpreter.h"
-#include "lexer.h"
 #include <memory>
 
 NAMESPACE_BEGIN(lumina)
@@ -19,7 +18,6 @@ public:
 
 private:
     std::unique_ptr<console_io> _io;
-    lexer _lexer;
     interpreter _interpreter;
 
     bool _had_runtime_error;

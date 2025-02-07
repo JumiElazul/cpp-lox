@@ -21,13 +21,17 @@ class lexer
     };
 
 public:
-    lexer();
-    std::vector<token> tokenize(const std::string& input);
+    lexer(const std::string& input);
+
+    const std::vector<token>& get_tokens() const noexcept;
 
 private:
     lexer_state _lexer_state;
     std::unordered_map<char, token(lexer::*)(void)> _character_map;
     std::unordered_map<std::string, token_type> _reserved_keyword_map;
+    std::vector<token> _tokens;
+
+    void tokenize();
 
     token fetch_token();
     std::optional<char> advance_lexer();

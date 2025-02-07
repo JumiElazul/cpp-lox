@@ -16,7 +16,6 @@ NAMESPACE_BEGIN(lumina)
 
 lumina_app::lumina_app()
     : _io(std::make_unique<console_io>())
-    , _lexer()
     , _interpreter(_io.get())
     , _had_runtime_error(false)
 {
@@ -43,7 +42,8 @@ void lumina_app::run_file_mode(const char* filepath)
     ss << file.rdbuf();
     std::string contents = ss.str();
 
-    std::vector<token> tokens = _lexer.tokenize(contents);
+    lexer l(contents);
+    const std::vector<token>& tokens = l.get_tokens();
 
     std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
     std::vector<std::unique_ptr<statement>> statements = parser->parse();
@@ -74,7 +74,8 @@ void lumina_app::run_interpreter_mode()
         if (input == "q" || input == "quit")
             break;
 
-        std::vector<token> tokens = _lexer.tokenize(input);
+        lexer l(input);
+        const std::vector<token>& tokens = l.get_tokens();
 
         std::unique_ptr<parser> parser = std::make_unique<recursive_descent_parser>(tokens, _io.get());
         std::vector<std::unique_ptr<statement>> statements = parser->parse();

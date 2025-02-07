@@ -9,11 +9,14 @@
 
 NAMESPACE_BEGIN(lumina)
 
-lexer::lexer()
+lexer::lexer(const std::string& input)
     : _lexer_state()
     , _character_map()
     , _reserved_keyword_map()
+    , _tokens()
 {
+    _lexer_state.input = std::move(input);
+
     _character_map =
     {
         { '(',  &lexer::left_paren     },
@@ -55,18 +58,22 @@ lexer::lexer()
         { "for",    token_type::for_    },
         { "while",  token_type::while_  },
     };
+
+    tokenize();
 }
 
-std::vector<token> lexer::tokenize(const std::string& input)
+const std::vector<token>& lexer::get_tokens() const noexcept
 {
-    _lexer_state = lexer_state{};
-    _lexer_state.input = std::move(input);
+    return _tokens;
+}
 
-    std::vector<token> tokens;
-    tokens.reserve(input.size() / 3);
-    tokens.push_back(create_token(token_type::bof_));
+void lexer::tokenize()
+{
+    _tokens.reserve(_lexer_state.input.size() / 3);
+    _tokens.push_back(create_token(token_type::bof_));
 
     size_t input_size = _lexer_state.input.size();
+
     while (_lexer_state.right_ptr < input_size)
     {
         token next_token = fetch_token();
@@ -74,12 +81,11 @@ std::vector<token> lexer::tokenize(const std::string& input)
 
         if (next_token.type != token_type::invalid_)
         {
-            tokens.push_back(next_token);
+            _tokens.push_back(next_token);
         }
     }
 
-    tokens.push_back(create_token(token_type::eof_));
-    return tokens;
+    _tokens.push_back(create_token(token_type::eof_));
 }
 
 token lexer::fetch_token()
