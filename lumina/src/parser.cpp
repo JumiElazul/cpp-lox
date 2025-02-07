@@ -58,7 +58,7 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
         catch (const parser_error& e)
         {
             _io->err() << e.what() << '\n';
-            // synchronize();
+            synchronize();
         }
     }
 
@@ -127,22 +127,24 @@ std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 {
-    // assignment -> IDENTIFIER "=" assignment | comma;
-    if (matches_token({ token_type::identifier_ }))
+    // assignment -> ( IDENTIFIER "=" assignment ) | comma;
+    std::unique_ptr<expression> expr = comma_precedence();
+
+    if (matches_token({ token_type::equal_ }))
     {
-        token ident_name = *previous_token();
-        if (matches_token({ token_type::equal_ }))
+        token equals = *previous_token();
+        std::unique_ptr<expression> value = assignment_precedence();
+
+        if (auto* var_expr = dynamic_cast<variable_expression*>(expr.get()))
         {
-            std::unique_ptr<expression> initializer_expr = assignment_precedence();
-            return std::make_unique<assignment_expression>(ident_name, std::move(initializer_expr));
+            token ident_name = var_expr->ident_name;
+            return std::make_unique<assignment_expression>(ident_name, std::move(value));
         }
-        else
-        {
-            regress_parser();
-        }
+
+        throw error("Invalid assignment target", equals);
     }
 
-    return comma_precedence();
+    return expr;
 }
 
 std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
@@ -291,17 +293,10 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
 std::optional<token> recursive_descent_parser::advance_parser()
 {
     const std::optional<token>& token = peek_next_token();
-    if (token.has_value() && token->type != token_type::eof_)
+    if (token.has_value())
         ++_position;
 
     return previous_token();
-}
-
-void recursive_descent_parser::regress_parser()
-{
-    const std::optional<token>& token = previous_token();
-    if (token.has_value() && token->type != token_type::bof_)
-        --_position;
 }
 
 std::optional<token> recursive_descent_parser::previous_token() const
@@ -390,7 +385,7 @@ void recursive_descent_parser::synchronize()
             case token_type::while_:
             case token_type::print_:
             case token_type::return_:
-                return;
+                break;
             default:
                 break;
         }

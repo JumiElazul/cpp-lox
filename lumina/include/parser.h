@@ -56,7 +56,6 @@ private:
     std::unique_ptr<expression> primary_precedence();
 
     std::optional<token> advance_parser();
-    void regress_parser();
     std::optional<token> previous_token() const;
     std::optional<token> peek_next_token() const;
     token consume_if_matches(token_type type, const std::string& msg);
