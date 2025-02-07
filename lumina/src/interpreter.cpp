@@ -101,7 +101,7 @@ literal_value interpreter::visit_variable(variable_expression& expr)
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = expr.initializer_expr->accept_visitor(*this);
-    _env.overwrite(expr.ident_name.lexeme, literal);
+    _env.assign(expr.ident_name.lexeme, literal);
     return literal;
 }
 

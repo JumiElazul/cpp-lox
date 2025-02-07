@@ -135,12 +135,17 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
         token equals = *previous_token();
         std::unique_ptr<expression> value = assignment_precedence();
 
-        if (auto* var_expr = dynamic_cast<variable_expression*>(expr.get()))
+        // We check the lhs for validity, by making sure its actually a variable expression.
+        // If it is, we create an assignment expression, otherwise we throw an error.
+        // This will prevent things like "1 = 2" from being valid.
+        if (variable_expression* var_expr = dynamic_cast<variable_expression*>(expr.get()))
         {
+            // L-value, valid to assign
             token ident_name = var_expr->ident_name;
             return std::make_unique<assignment_expression>(ident_name, std::move(value));
         }
 
+        // R-value, invalid
         throw error("Invalid assignment target", equals);
     }
 

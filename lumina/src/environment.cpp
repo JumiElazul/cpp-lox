@@ -20,7 +20,7 @@ void environment::define(const std::string& name, const literal_value& value)
     _variables[name] = value;
 }
 
-void environment::overwrite(const std::string& name, const literal_value& value)
+void environment::assign(const std::string& name, const literal_value& value)
 {
     _variables[name] = value;
 }
