@@ -32,12 +32,21 @@ std::string lumina_type_tostr(lumina_type type)
 
 std::string literal_tostr(const literal_value& l)
 {
+    auto format_number = [](double d) -> std::string {
+        std::string s = std::to_string(d);
+        size_t i = s.find_last_not_of('0');
+        if (s[i] == '.')
+            return s.substr(0, i);
+
+        return s.substr(0, i + 1);
+    };
+
     return std::visit(
         literal_value_overload{
-            [](double d)             { return std::to_string(d);                              },
-            [](bool b)               { return b ? std::string("true") : std::string("false"); },
-            [](const std::string& s) { return s;                                              },
-            [](std::monostate)       { return std::string("null");                            },
+            [&](double d)             { return format_number(d);                              },
+            [&](bool b)               { return b ? std::string("true") : std::string("false"); },
+            [&](const std::string& s) { return s;                                              },
+            [&](std::monostate)       { return std::string("null");                            },
         }, l
     );
 }

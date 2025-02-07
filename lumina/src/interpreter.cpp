@@ -30,13 +30,9 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
             stmt->accept_visitor(*this);
         }
     }
-    catch (const lumina_type_error& e)
-    {
-        assert(false);
-    }
     catch (const lumina_runtime_error& e)
     {
-        assert(false);
+        _io->err() << e.what() << '\n';
     }
 }
 

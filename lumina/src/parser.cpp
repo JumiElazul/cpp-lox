@@ -58,7 +58,7 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
         catch (const parser_error& e)
         {
             _io->err() << e.what() << '\n';
-            synchronize();
+            // synchronize();
         }
     }
 
@@ -135,6 +135,10 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
         {
             std::unique_ptr<expression> initializer_expr = assignment_precedence();
             return std::make_unique<assignment_expression>(ident_name, std::move(initializer_expr));
+        }
+        else
+        {
+            regress_parser();
         }
     }
 
@@ -291,6 +295,13 @@ std::optional<token> recursive_descent_parser::advance_parser()
         ++_position;
 
     return previous_token();
+}
+
+void recursive_descent_parser::regress_parser()
+{
+    const std::optional<token>& token = previous_token();
+    if (token.has_value() && token->type != token_type::bof_)
+        --_position;
 }
 
 std::optional<token> recursive_descent_parser::previous_token() const

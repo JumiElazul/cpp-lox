@@ -26,7 +26,6 @@ template<typename... Ts>
 literal_value_overload(Ts...) -> literal_value_overload<Ts...>;
 
 extern std::string literal_tostr(const literal_value& l);
-extern std::string literal_tostr(const literal_value& l);
 
 NAMESPACE_END
 
