@@ -78,12 +78,17 @@ std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 {
-    // statement -> expression_statement | print_statement;
+    // statement -> expression_statement | print_statement | block;
     if (matches_token({ token_type::print_ }))
     {
         return create_print_statement();
     }
  
+    if (matches_token({ token_type::left_brace_ }))
+    {
+        return create_block_statement();
+    }
+
     return create_expression_statement();
 }
 
@@ -109,6 +114,23 @@ std::unique_ptr<print_statement> recursive_descent_parser::create_print_statemen
     consume_if_matches(token_type::right_paren_, "Expected ')' after 'expression'");
     consume_if_matches(token_type::semicolon_, "Expected ';' after statement");
     return std::make_unique<print_statement>(std::move(expr));
+}
+
+std::unique_ptr<block_statement> recursive_descent_parser::create_block_statement()
+{
+    // block -> "{" declaration* "}";
+    std::vector<std::unique_ptr<statement>> statements;
+    while (!check_type(token_type::right_brace_) && peek_next_token().has_value())
+    {
+        std::unique_ptr<statement> stmt = declaration_precedence();
+        if (stmt)
+        {
+            statements.push_back(std::move(stmt));
+        }
+    }
+
+    consume_if_matches(token_type::right_brace_, "Expected '}' after block statement");
+    return std::make_unique<block_statement>(std::move(statements));
 }
 
 std::unique_ptr<expression_statement> recursive_descent_parser::create_expression_statement()
@@ -355,7 +377,6 @@ bool recursive_descent_parser::matches_token(const std::vector<token_type>& toke
     return false;
 }
 
-
 void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_type>& types)
 {
     if (matches_token(types))
@@ -390,7 +411,7 @@ void recursive_descent_parser::synchronize()
             case token_type::while_:
             case token_type::print_:
             case token_type::return_:
-                break;
+                return;
             default:
                 break;
         }

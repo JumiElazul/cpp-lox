@@ -29,8 +29,6 @@ void lumina_app::run_file_mode(const char* filepath)
     LUMINA_PRINT_LOG_LEVELS;
     LUMINA_INFO("lumina_app::run_file_mode() started");
 
-    _io->out() << "Lumina v" << LUMINA_VERSION << " (type 'q' or 'quit' to exit)\n";
-
     std::ifstream file(filepath);
     if (!file)
     {
@@ -40,21 +38,8 @@ void lumina_app::run_file_mode(const char* filepath)
 
     std::stringstream ss;
     ss << file.rdbuf();
-    std::string contents = ss.str();
-
-    lexer l(contents);
-    const std::vector<token>& tokens = l.get_tokens();
-
-    recursive_descent_parser parser(tokens, _io.get());
-    std::vector<std::unique_ptr<statement>> statements = parser.parse();
-
-    if (parser.error_occurred())
-    {
-        _had_runtime_error = true;
-        return;
-    }
-
-    _interpreter.interpret(statements);
+    std::string source = ss.str();
+    run(source);
 }
 
 void lumina_app::run_interpreter_mode()
@@ -69,25 +54,30 @@ void lumina_app::run_interpreter_mode()
         _had_runtime_error = false;
 
         _io->out() << "lumina >> ";
-        std::string input = _io->readline();
+        std::string source = _io->readline();
         
-        if (input == "q" || input == "quit")
+        if (source == "q" || source == "quit")
             break;
 
-        lexer l(input);
-        const std::vector<token>& tokens = l.get_tokens();
-
-        recursive_descent_parser parser(tokens, _io.get());
-        std::vector<std::unique_ptr<statement>> statements = parser.parse();
-
-        if (parser.error_occurred())
-        {
-            _had_runtime_error = true;
-            continue;
-        }
-
-        _interpreter.interpret(statements);
+        run(source);
     }
+}
+
+void lumina_app::run(const std::string& source)
+{
+    lexer l(source);
+    const std::vector<token>& tokens = l.get_tokens();
+
+    recursive_descent_parser parser(tokens, _io.get());
+    std::vector<std::unique_ptr<statement>> statements = parser.parse();
+
+    if (parser.error_occurred())
+    {
+        _had_runtime_error = true;
+        return;
+    }
+
+    _interpreter.interpret(statements);
 }
 
 NAMESPACE_END

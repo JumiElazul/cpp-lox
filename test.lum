@@ -1,2 +1,12 @@
 var i = 1;
+print("global scope:");
+print(i);
+
+{
+    var i = 10;
+    print("block scope:");
+    print(i);
+}
+
+print("global scope:");
 print(i);

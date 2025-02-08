@@ -19,14 +19,16 @@ class interpreter final : public statement_visitor, public expression_visitor<li
 {
 public:
     interpreter(console_io* io);
+    ~interpreter();
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
 
 private:
-    environment _env;
+    environment* _env;
     console_io* _io;
 
     virtual void visit_print_statement(print_statement& stmt) override;
+    virtual void visit_block_statement(block_statement& stmt) override;
     virtual void visit_expression_statement(expression_statement& stmt) override;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
 

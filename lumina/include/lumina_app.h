@@ -21,6 +21,8 @@ private:
     interpreter _interpreter;
 
     bool _had_runtime_error;
+
+    void run(const std::string& source);
 };
 
 NAMESPACE_END

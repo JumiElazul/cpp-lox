@@ -12,6 +12,7 @@ class environment
 {
 public:
     environment();
+    environment(environment* enclosing_scope);
 
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
@@ -19,6 +20,7 @@ public:
 
 private:
     std::unordered_map<std::string, literal_value> _variables;
+    environment* _enclosing_scope;
 };
 
 NAMESPACE_END

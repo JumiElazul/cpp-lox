@@ -15,10 +15,15 @@
 NAMESPACE_BEGIN(lumina)
 
 interpreter::interpreter(console_io* io)
-    : _env()
+    : _env(new environment())
     , _io(io)
 {
 
+}
+
+interpreter::~interpreter()
+{
+    delete _env;
 }
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
@@ -42,6 +47,29 @@ void interpreter::visit_print_statement(print_statement& stmt)
     _io->out() << literal_tostr(literal) << '\n';
 }
 
+void interpreter::visit_block_statement(block_statement& stmt)
+{
+    environment* previous_env = _env;
+
+    try
+    {
+        _env = new environment(previous_env);
+
+        for (const auto& s : stmt.statements)
+        {
+            s->accept_visitor(*this);
+        }
+    }
+    catch (const lumina_runtime_error& e)
+    {
+        _io->err() << e.what() << '\n';
+    }
+
+    environment* block_env = _env;
+    _env = previous_env;
+    delete block_env;
+}
+
 void interpreter::visit_expression_statement(expression_statement& stmt)
 {
     literal_value literal = stmt.expr->accept_visitor(*this);
@@ -49,14 +77,14 @@ void interpreter::visit_expression_statement(expression_statement& stmt)
 
 void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
 {
-    if (stmt.expr)
+    if (stmt.initializer_expr)
     {
-        literal_value literal = stmt.expr->accept_visitor(*this);
-        _env.define(stmt.ident_name.lexeme, literal);
+        literal_value literal = stmt.initializer_expr->accept_visitor(*this);
+        _env->define(stmt.ident_name.lexeme, literal);
     }
     else
     {
-        _env.define(stmt.ident_name.lexeme, std::monostate{});
+        _env->define(stmt.ident_name.lexeme, std::monostate{});
     }
 }
 
@@ -95,13 +123,13 @@ literal_value interpreter::visit_grouping(grouping_expression& expr)
 
 literal_value interpreter::visit_variable(variable_expression& expr)
 {
-    return _env.get(expr.ident_name);
+    return _env->get(expr.ident_name);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = expr.initializer_expr->accept_visitor(*this);
-    _env.assign(expr.ident_name.lexeme, literal);
+    _env->assign(expr.ident_name.lexeme, literal);
     return literal;
 }
 

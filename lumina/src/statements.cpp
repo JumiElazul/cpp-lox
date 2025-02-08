@@ -3,18 +3,12 @@
 #include "expressions.h"
 #include "typedefs.h"
 #include <memory>
+#include <vector>
 
 NAMESPACE_BEGIN(lumina)
 
-statement::statement(std::unique_ptr<expression> expr_)
-    : expr(std::move(expr_))
-{
-}
-
 expression_statement::expression_statement(std::unique_ptr<expression> expr_)
-    : statement(std::move(expr_))
-{
-}
+    : expr(std::move(expr_)) { }
 
 void expression_statement::accept_visitor(statement_visitor& v)
 {
@@ -22,20 +16,25 @@ void expression_statement::accept_visitor(statement_visitor& v)
 }
 
 print_statement::print_statement(std::unique_ptr<expression> expr_)
-    : statement(std::move(expr_))
-{
-}
+    : expr(std::move(expr_)) { }
 
 void print_statement::accept_visitor(statement_visitor& v)
 {
     v.visit_print_statement(*this);
 }
 
-variable_declaration_statement::variable_declaration_statement(const token& ident_name_, std::unique_ptr<expression> initializer_expr_)
-    : statement(std::move(initializer_expr_))
-    , ident_name(ident_name_)
+block_statement::block_statement(std::vector<std::unique_ptr<statement>>&& statements_)
+    : statements(std::move(statements_))
+{ }
+
+void block_statement::accept_visitor(statement_visitor& v)
 {
+    v.visit_block_statement(*this);
 }
+
+variable_declaration_statement::variable_declaration_statement(const token& ident_name_, std::unique_ptr<expression> initializer_expr_)
+    : ident_name(ident_name_)
+    , initializer_expr(std::move(initializer_expr_)) { }
 
 void variable_declaration_statement::accept_visitor(statement_visitor& v)
 {

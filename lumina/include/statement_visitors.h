@@ -13,6 +13,7 @@ class statement_visitor
 public:
     virtual ~statement_visitor() = default;
     virtual void visit_print_statement(print_statement& stmt) = 0;
+    virtual void visit_block_statement(block_statement& stmt) = 0;
     virtual void visit_expression_statement(expression_statement& stmt) = 0;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) = 0;
 };
