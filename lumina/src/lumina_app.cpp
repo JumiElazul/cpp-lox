@@ -53,17 +53,16 @@ void lumina_app::run_interpreter_mode()
     {
         _had_runtime_error = false;
 
-        _io->out() << "lumina >> ";
-        std::string source = _io->readline();
+        std::string source = _io->readline("lumina >> ");
         
         if (source == "q" || source == "quit")
             break;
 
-        run(source);
+        run(source, true);
     }
 }
 
-void lumina_app::run(const std::string& source)
+void lumina_app::run(const std::string& source, bool print_expr)
 {
     lexer l(source);
     const std::vector<token>& tokens = l.get_tokens();
@@ -77,7 +76,7 @@ void lumina_app::run(const std::string& source)
         return;
     }
 
-    _interpreter.interpret(statements, true);
+    _interpreter.interpret(statements, print_expr);
 }
 
 NAMESPACE_END

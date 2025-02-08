@@ -14,7 +14,7 @@ get_git_version(GIT_VERSION)
 update_version_file(version.txt ${GIT_VERSION})
 update_vcpkg_json(vcpkg.json ${GIT_VERSION})
 
-project(lumina VERSION ${GIT_VERSION} LANGUAGES CXX)
+project(lumina VERSION ${GIT_VERSION} LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)

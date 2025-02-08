@@ -64,7 +64,7 @@ literal_value environment::get(const token& name) const
     }
 
     // When no scopes have the variable, we found a runtime error
-    throw lumina_runtime_error("Undefined variable '" + name.lexeme + "' at position [" + std::to_string(name.position.first) + ":" + std::to_string(name.position.second) + "]");
+    throw lumina_type_error("Undefined variable '" + name.lexeme + "'", name);
 }
 
 NAMESPACE_END

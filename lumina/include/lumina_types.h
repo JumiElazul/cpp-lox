@@ -14,6 +14,7 @@ enum class lumina_type
     bool_,
     string_,
     null_,
+    undefined_,
     invalid_,
 };
 
