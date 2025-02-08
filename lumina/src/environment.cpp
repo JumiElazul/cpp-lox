@@ -4,16 +4,9 @@
 
 NAMESPACE_BEGIN(lumina)
 
-environment::environment()
-    : _variables()
-    , _enclosing_scope(nullptr)
-{
-
-}
-
 environment::environment(environment* enclosing_scope)
     : _variables()
-    , _enclosing_scope(std::move(enclosing_scope))
+    , _enclosing_scope(enclosing_scope)
 {
 
 }

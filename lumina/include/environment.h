@@ -11,8 +11,7 @@ NAMESPACE_BEGIN(lumina)
 class environment
 {
 public:
-    environment();
-    environment(environment* enclosing_scope);
+    environment(environment* enclosing_scope = nullptr);
 
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);

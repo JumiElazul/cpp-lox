@@ -22,11 +22,6 @@ interpreter::interpreter(console_io* io)
 
 }
 
-interpreter::~interpreter()
-{
-    delete _env;
-}
-
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements, bool print_expr)
 {
     _print_expr = print_expr;
@@ -52,12 +47,11 @@ void interpreter::visit_print_statement(print_statement& stmt)
 
 void interpreter::visit_block_statement(block_statement& stmt)
 {
-    environment* previous_env = _env;
+    std::unique_ptr<environment> previous_env = std::move(_env);
+    _env = std::make_unique<environment>(previous_env.get());
 
     try
     {
-        _env = new environment(previous_env);
-
         for (const auto& s : stmt.statements)
         {
             s->accept_visitor(*this);
@@ -68,9 +62,7 @@ void interpreter::visit_block_statement(block_statement& stmt)
         _io->err() << e.what() << '\n';
     }
 
-    environment* block_env = _env;
-    _env = previous_env;
-    delete block_env;
+    _env = std::move(previous_env);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)

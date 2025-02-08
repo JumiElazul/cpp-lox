@@ -20,12 +20,11 @@ class interpreter final : public statement_visitor, public expression_visitor<li
 {
 public:
     interpreter(console_io* io);
-    ~interpreter();
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements, bool print_expr = false);
 
 private:
-    environment* _env;
+    std::unique_ptr<environment> _env;
     console_io* _io;
     bool _print_expr;
 
