@@ -9,34 +9,41 @@ NAMESPACE_BEGIN(lumina)
 lumina_runtime_error::lumina_runtime_error(const std::string& msg)
     : std::runtime_error(msg)
 {
+    std::stringstream ss;
+    ss << std::runtime_error::what();
+    _msg = ss.str();
 }
 
 const char* lumina_runtime_error::what() const noexcept
 {
-    return std::runtime_error::what();
+    return _msg.c_str();
 }
 
-lexer_error::lexer_error(const std::string& msg)
+lumina_parse_error::lumina_parse_error(const std::string& msg, const token& t)
     : lumina_runtime_error(msg)
-{
-}
-
-parser_error::parser_error(const std::string& msg, const token& t)
-    : lumina_runtime_error(msg)
-    , tok(std::move(t))
-{
-
+    , tok(t)
+{ 
+    _msg += get_token_position(t);
 }
 
 lumina_type_error::lumina_type_error(const std::string& msg, const token& t)
-    : lumina_runtime_error(msg + get_token_position(t))
-    , tok(std::move(t))
-{ }
+    : lumina_runtime_error(msg)
+    , tok(t)
+{ 
+    _msg += get_token_position(t);
+}
 
 std::string get_token_position(const token& t)
 {
     std::stringstream ss;
-    ss << " at position [" << t.position.first << ":" << t.position.second << "] (" << t.lexeme << ")";
+
+    if (t.type == token_type::eof_)
+    {
+        ss << " at 'end of file'";
+        return ss.str();
+    }
+
+    ss << " on line/col [" << t.position.first << ":" << t.position.second << "] on token '" << t.lexeme << "'";
     return ss.str();
 }
 

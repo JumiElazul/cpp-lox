@@ -1,6 +1,6 @@
 {
   "name": "lumina",
-  "version-string": "0.0.7",
+  "version-string": "0.0.8",
   "dependencies": [
       "spdlog",
       "catch2"

@@ -25,10 +25,7 @@ bool parser::error_occurred() const noexcept { return _parser_error; }
 void parser::reset_error_flag() noexcept { _parser_error = false; }
 
 recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lexer_tokens, console_io* io)
-    : parser(lexer_tokens, io)
-{
-
-}
+    : parser(lexer_tokens, io) { }
 
 std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 {
@@ -55,7 +52,7 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
                 statements.push_back(std::move(stmt));
             }
         }
-        catch (const parser_error& e)
+        catch (const lumina_parse_error& e)
         {
             _io->err() << e.what() << '\n';
             synchronize();
@@ -120,7 +117,7 @@ std::unique_ptr<block_statement> recursive_descent_parser::create_block_statemen
 {
     // block -> "{" declaration* "}";
     std::vector<std::unique_ptr<statement>> statements;
-    while (!check_type(token_type::right_brace_) && peek_next_token().has_value())
+    while (!check_type(token_type::right_brace_) && peek_next_token()->type != token_type::eof_)
     {
         std::unique_ptr<statement> stmt = declaration_precedence();
         if (stmt)
@@ -382,14 +379,14 @@ void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_t
     if (matches_token(types))
     {
         token oper = *previous_token();
-        throw error("Missing left-hand operand for '" + oper.lexeme + "' operator.", oper);
+        throw error("Missing left-hand operand for binary operator", oper);
         _parser_error = true;
     }
 }
 
-parser_error recursive_descent_parser::error(const std::string& msg, const token& t)
+lumina_parse_error recursive_descent_parser::error(const std::string& msg, const token& t)
 {
-    return parser_error(msg, t);
+    return lumina_parse_error(msg, t);
 }
 
 void recursive_descent_parser::synchronize()

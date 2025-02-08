@@ -2,6 +2,7 @@
 #define JUMI_LUMINA_INTERPRETER_H
 #include "console_io.h"
 #include "environment.h"
+#include "exceptions.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include "expression_visitors.h"
@@ -46,6 +47,8 @@ private:
 
     bool is_truthy(const literal_value& literal) const;
     bool is_equal(const literal_value& lhs, const literal_value& rhs) const;
+
+    lumina_type_error type_error(const std::string& msg, const token& t) const;
 };
 
 NAMESPACE_END

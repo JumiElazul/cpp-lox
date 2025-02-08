@@ -13,19 +13,15 @@ public:
     lumina_runtime_error(const std::string& msg);
     virtual const char* what() const noexcept override;
 
+protected:
+    std::string _msg;
 };
 
-class lexer_error : public lumina_runtime_error
-{
-public:
-    lexer_error(const std::string& msg);
-};
-
-class parser_error : public lumina_runtime_error
+class lumina_parse_error : public lumina_runtime_error
 {
 public:
     token tok;
-    parser_error(const std::string& msg, const token& t);
+    lumina_parse_error(const std::string& msg, const token& t);
 };
 
 class lumina_type_error : public lumina_runtime_error
