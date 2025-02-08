@@ -77,7 +77,7 @@ void lumina_app::run(const std::string& source)
         return;
     }
 
-    _interpreter.interpret(statements);
+    _interpreter.interpret(statements, true);
 }
 
 NAMESPACE_END

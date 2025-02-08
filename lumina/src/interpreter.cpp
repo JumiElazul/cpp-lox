@@ -17,6 +17,7 @@ NAMESPACE_BEGIN(lumina)
 interpreter::interpreter(console_io* io)
     : _env(new environment())
     , _io(io)
+    , _print_expr(false)
 {
 
 }
@@ -26,8 +27,10 @@ interpreter::~interpreter()
     delete _env;
 }
 
-void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
+void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements, bool print_expr)
 {
+    _print_expr = print_expr;
+
     try
     {
         for (const auto& stmt : statements)
@@ -73,6 +76,10 @@ void interpreter::visit_block_statement(block_statement& stmt)
 void interpreter::visit_expression_statement(expression_statement& stmt)
 {
     literal_value literal = stmt.expr->accept_visitor(*this);
+    if (_print_expr)
+    {
+        _io->out() << literal_tostr(literal) << '\n';
+    }
 }
 
 void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)

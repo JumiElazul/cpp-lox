@@ -22,11 +22,12 @@ public:
     interpreter(console_io* io);
     ~interpreter();
 
-    void interpret(const std::vector<std::unique_ptr<statement>>& statements);
+    void interpret(const std::vector<std::unique_ptr<statement>>& statements, bool print_expr = false);
 
 private:
     environment* _env;
     console_io* _io;
+    bool _print_expr;
 
     virtual void visit_print_statement(print_statement& stmt) override;
     virtual void visit_block_statement(block_statement& stmt) override;
