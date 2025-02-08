@@ -25,6 +25,8 @@ std::string lumina_type_tostr(lumina_type type)
             return "bool";
         case lumina_type::null_:
             return "null";
+        case lumina_type::undefined_:
+            return "undefined";
         default:
             return "invalid";
     }
@@ -47,6 +49,7 @@ std::string literal_tostr(const literal_value& l)
             [&](bool b)               { return b ? std::string("true") : std::string("false"); },
             [&](const std::string& s) { return s;                                              },
             [&](std::monostate)       { return std::string("null");                            },
+            [&](const undefined& u)   { return std::string("undefined");                       },
         }, l);
 }
 

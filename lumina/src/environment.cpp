@@ -54,6 +54,10 @@ literal_value environment::get(const token& name) const
     auto it = _variables.find(name.lexeme);
     if (it != _variables.end())
     {
+        lumina_type type = literal_to_lumina_type(it->second);
+        if (type == lumina_type::undefined_)
+            throw lumina_type_error("Variable '" + name.lexeme + "' is undefined", name);
+
         return it->second;
     }
     else

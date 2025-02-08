@@ -91,7 +91,7 @@ void interpreter::visit_variable_declaration_statement(variable_declaration_stat
     }
     else
     {
-        _env->define(stmt.ident_name.lexeme, std::monostate{});
+        _env->define(stmt.ident_name.lexeme, undefined{});
     }
 }
 

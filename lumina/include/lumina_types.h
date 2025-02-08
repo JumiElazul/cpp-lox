@@ -6,7 +6,13 @@
 
 NAMESPACE_BEGIN(lumina)
 
-using literal_value = std::variant<double, bool, std::string, std::monostate>;
+struct undefined
+{
+    bool operator==(const undefined&) const { return true; }
+    bool operator!=(const undefined&) const { return false; }
+};
+
+using literal_value = std::variant<double, bool, std::string, std::monostate, undefined>;
 
 enum class lumina_type
 {

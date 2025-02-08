@@ -2,21 +2,8 @@
 #include "typedefs.h"
 #include <ostream>
 #include <sstream>
-#include <variant>
 
 NAMESPACE_BEGIN(lumina)
-
-std::string literal_tostr(const token& t)
-{
-    return std::visit(
-        literal_value_overload{
-            [](double d)             { return std::to_string(d);                              },
-            [](bool b)               { return b ? std::string("true") : std::string("false"); },
-            [](const std::string& s) { return s;                                              },
-            [](std::monostate)       { return std::string("null");                            },
-        }, t.literal
-    );
-}
 
 extern const std::unordered_map<token_type, std::string> token_type_tostr =
 {
@@ -83,7 +70,7 @@ std::ostream& operator<<(std::ostream& os, const lumina::token& t)
     os << "token [type: "
        << lumina::token_type_tostr.at(t.type)
        << ", lexeme: " << t.lexeme
-       << ", literal: " << lumina::literal_tostr(t)
+       << ", literal: " << lumina::literal_tostr(t.literal)
        << ", line/col: " << t.position.first << ":" << t.position.second
        << "]";
     return os;
