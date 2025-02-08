@@ -63,7 +63,7 @@ private:
     bool check_type(token_type type);
     bool matches_token(const std::vector<token_type>& token_types);
     void validate_binary_has_lhs(const std::vector<token_type>& types);
-    lumina_parse_error error(const std::string& msg, const token& t);
+    lumina_runtime_error error(const std::string& msg, const token& t);
     void synchronize();
 };
 

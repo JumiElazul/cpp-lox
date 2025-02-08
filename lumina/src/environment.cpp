@@ -56,7 +56,7 @@ literal_value environment::get(const token& name) const
     {
         lumina_type type = literal_to_lumina_type(it->second);
         if (type == lumina_type::undefined_)
-            throw lumina_type_error("Variable '" + name.lexeme + "' is undefined", name);
+            throw lumina_runtime_error("Variable '" + name.lexeme + "' is undefined", name);
 
         return it->second;
     }
@@ -68,7 +68,7 @@ literal_value environment::get(const token& name) const
     }
 
     // When no scopes have the variable, we found a runtime error
-    throw lumina_type_error("Undefined variable '" + name.lexeme + "'", name);
+    throw lumina_runtime_error("Undefined variable '" + name.lexeme + "'", name);
 }
 
 NAMESPACE_END

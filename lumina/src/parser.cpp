@@ -52,7 +52,7 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
                 statements.push_back(std::move(stmt));
             }
         }
-        catch (const lumina_parse_error& e)
+        catch (const lumina_runtime_error& e)
         {
             _io->err() << e.what() << '\n';
             synchronize();
@@ -384,9 +384,9 @@ void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_t
     }
 }
 
-lumina_parse_error recursive_descent_parser::error(const std::string& msg, const token& t)
+lumina_runtime_error recursive_descent_parser::error(const std::string& msg, const token& t)
 {
-    return lumina_parse_error(msg, t);
+    return lumina_runtime_error(msg, t);
 }
 
 void recursive_descent_parser::synchronize()

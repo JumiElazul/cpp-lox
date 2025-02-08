@@ -11,23 +11,16 @@ class lumina_runtime_error : public std::runtime_error
 {
 public:
     lumina_runtime_error(const std::string& msg);
+    lumina_runtime_error(const std::string& msg, const token& t);
     virtual const char* what() const noexcept override;
 
 protected:
     std::string _msg;
 };
 
-class lumina_parse_error : public lumina_runtime_error
-{
-public:
-    token tok;
-    lumina_parse_error(const std::string& msg, const token& t);
-};
-
 class lumina_type_error : public lumina_runtime_error
 {
 public:
-    token tok;
     lumina_type_error(const std::string& msg, const token& t);
 };
 
