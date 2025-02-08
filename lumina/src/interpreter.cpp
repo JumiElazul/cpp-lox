@@ -98,51 +98,9 @@ void interpreter::visit_variable_declaration_statement(variable_declaration_stat
 literal_value interpreter::visit_unary(unary_expression& expr)
 {
     literal_value literal = expr.expr_rhs->accept_visitor(*this);
-    return handle_unary(expr.oper, literal);
-}
-
-literal_value interpreter::visit_binary(binary_expression& expr)
-{
-    literal_value lhs = expr.expr_lhs->accept_visitor(*this);
-    literal_value rhs = expr.expr_rhs->accept_visitor(*this);
-
-    return handle_binary(lhs, expr.oper, rhs);
-}
-
-literal_value interpreter::visit_ternary(ternary_expression& expr)
-{
-    literal_value if_expr = expr.expr_lhs->accept_visitor(*this);
-    literal_value then_expr = expr.expr_then->accept_visitor(*this);
-    literal_value else_expr = expr.expr_else->accept_visitor(*this);
-
-    return handle_ternary(if_expr, expr.oper, then_expr, else_expr);
-}
-
-literal_value interpreter::visit_literal(literal_expression& expr)
-{
-    return expr.literal_val;
-}
-
-literal_value interpreter::visit_grouping(grouping_expression& expr)
-{
-    return expr.expr_lhs->accept_visitor(*this);
-}
-
-literal_value interpreter::visit_variable(variable_expression& expr)
-{
-    return _env->get(expr.ident_name);
-}
-
-literal_value interpreter::visit_assignment(assignment_expression& expr)
-{
-    literal_value literal = expr.initializer_expr->accept_visitor(*this);
-    _env->assign(expr.ident_name.lexeme, literal);
-    return literal;
-}
-
-literal_value interpreter::handle_unary(const token& oper, const literal_value& literal) const
-{
     lumina_type literal_type = literal_to_lumina_type(literal);
+
+    const token& oper = expr.oper;
 
     if (oper.type == token_type::bang_)
     {
@@ -162,10 +120,15 @@ literal_value interpreter::handle_unary(const token& oper, const literal_value& 
     throw lumina_type_error("Unknown unary operator", oper);
 }
 
-literal_value interpreter::handle_binary(const literal_value& lhs, const token& oper, const literal_value& rhs) const
+literal_value interpreter::visit_binary(binary_expression& expr)
 {
+    literal_value lhs = expr.expr_lhs->accept_visitor(*this);
+    literal_value rhs = expr.expr_rhs->accept_visitor(*this);
+
     lumina_type lhs_type = literal_to_lumina_type(lhs);
     lumina_type rhs_type = literal_to_lumina_type(rhs);
+
+    const token& oper = expr.oper;
 
     if (lhs_type != rhs_type)
     {
@@ -285,16 +248,43 @@ literal_value interpreter::handle_binary(const literal_value& lhs, const token& 
     throw type_error("Unknown operator in handle_binary()", oper);
 }
 
-literal_value interpreter::handle_ternary(const literal_value& if_literal, const token& oper, const literal_value& then_literal, const literal_value& else_literal) const
+literal_value interpreter::visit_ternary(ternary_expression& expr)
 {
+    literal_value if_literal = expr.expr_lhs->accept_visitor(*this);
+    literal_value then_literal = expr.expr_then->accept_visitor(*this);
+    literal_value else_literal = expr.expr_else->accept_visitor(*this);
+
     lumina_type if_type = literal_to_lumina_type(if_literal);
+    const token& oper = expr.oper;
 
     if (if_type != lumina_type::bool_)
     {
-        throw lumina_runtime_error("Cannot convert lhs of ternary expression to bool");
+        throw lumina_runtime_error("Cannot convert lhs of ternary expression to bool", oper);
     }
 
     return std::get<bool>(if_literal) ? then_literal : else_literal;
+}
+
+literal_value interpreter::visit_literal(literal_expression& expr)
+{
+    return expr.literal_val;
+}
+
+literal_value interpreter::visit_grouping(grouping_expression& expr)
+{
+    return expr.expr_lhs->accept_visitor(*this);
+}
+
+literal_value interpreter::visit_variable(variable_expression& expr)
+{
+    return _env->get(expr.ident_name);
+}
+
+literal_value interpreter::visit_assignment(assignment_expression& expr)
+{
+    literal_value literal = expr.initializer_expr->accept_visitor(*this);
+    _env->assign(expr.ident_name.lexeme, literal);
+    return literal;
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

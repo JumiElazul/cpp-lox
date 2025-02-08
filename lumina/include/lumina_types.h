@@ -21,6 +21,7 @@ enum class lumina_type
     string_,
     null_,
     undefined_,
+
     invalid_,
 };
 
