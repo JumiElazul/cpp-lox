@@ -9,56 +9,53 @@
 
 NAMESPACE_BEGIN(lumina)
 
+const std::unordered_map<char, token(lexer::*)(void)> lexer::char_to_lexer_func_map =
+{
+    { '(',  &lexer::left_paren     },
+    { ')',  &lexer::right_paren    },
+    { '{',  &lexer::left_brace     },
+    { '}',  &lexer::right_brace    },
+    { ',',  &lexer::comma          },
+    { '.',  &lexer::dot            },
+    { '-',  &lexer::minus          },
+    { '+',  &lexer::plus           },
+    { ';',  &lexer::semicolon      },
+    { ':',  &lexer::colon          },
+    { '?',  &lexer::question       },
+    { '/',  &lexer::slash          },
+    { '*',  &lexer::star           },
+    { '!',  &lexer::bang           },
+    { '=',  &lexer::equal          },
+    { '>',  &lexer::greater        },
+    { '<',  &lexer::less           },
+    { '"',  &lexer::string         },
+};
+
+const std::unordered_map<std::string, token_type> lexer::reserved_keyword_lookup =
+{
+    { "and",    token_type::and_    },
+    { "or",     token_type::or_     },
+    { "if",     token_type::if_     },
+    { "else",   token_type::else_   },
+    { "class",  token_type::class_  },
+    { "false",  token_type::false_  },
+    { "true",   token_type::true_   },
+    { "func",   token_type::func_   },
+    { "null",   token_type::null_   },
+    { "print",  token_type::print_  },
+    { "return", token_type::return_ },
+    { "super",  token_type::super_  },
+    { "this",   token_type::this_   },
+    { "var",    token_type::var_    },
+    { "for",    token_type::for_    },
+    { "while",  token_type::while_  },
+};
+
 lexer::lexer(const std::string& input)
     : _lexer_state()
-    , _character_map()
-    , _reserved_keyword_map()
     , _tokens()
 {
     _lexer_state.input = std::move(input);
-
-    _character_map =
-    {
-        { '(',  &lexer::left_paren     },
-        { ')',  &lexer::right_paren    },
-        { '{',  &lexer::left_brace     },
-        { '}',  &lexer::right_brace    },
-        { ',',  &lexer::comma          },
-        { '.',  &lexer::dot            },
-        { '-',  &lexer::minus          },
-        { '+',  &lexer::plus           },
-        { ';',  &lexer::semicolon      },
-        { ':',  &lexer::colon          },
-        { '?',  &lexer::question       },
-        { '/',  &lexer::slash          },
-        { '*',  &lexer::star           },
-        { '!',  &lexer::bang           },
-        { '=',  &lexer::equal          },
-        { '>',  &lexer::greater        },
-        { '<',  &lexer::less           },
-        { '"',  &lexer::string         },
-    };
-
-    _reserved_keyword_map = 
-    {
-        { "and",    token_type::and_    },
-        { "or",     token_type::or_     },
-        { "if",     token_type::if_     },
-        { "else",   token_type::else_   },
-        { "class",  token_type::class_  },
-        { "false",  token_type::false_  },
-        { "true",   token_type::true_   },
-        { "func",   token_type::func_   },
-        { "null",   token_type::null_   },
-        { "print",  token_type::print_  },
-        { "return", token_type::return_ },
-        { "super",  token_type::super_  },
-        { "this",   token_type::this_   },
-        { "var",    token_type::var_    },
-        { "for",    token_type::for_    },
-        { "while",  token_type::while_  },
-    };
-
     tokenize();
 }
 
@@ -104,8 +101,8 @@ token lexer::fetch_token()
             return number();
         }
 
-        auto char_map_find = _character_map.find(*current_char);
-        if (char_map_find != _character_map.end())
+        auto char_map_find = char_to_lexer_func_map.find(*current_char);
+        if (char_map_find != char_to_lexer_func_map.end())
         {
             return (this->*char_map_find->second)();
         }
@@ -332,8 +329,8 @@ token lexer::identifier()
     }
 
     std::string substr = _lexer_state.input.substr(_lexer_state.left_ptr, extract_lexeme_length());
-    auto reserved_keyword = _reserved_keyword_map.find(substr);
-    if (reserved_keyword != _reserved_keyword_map.end())
+    auto reserved_keyword = reserved_keyword_lookup.find(substr);
+    if (reserved_keyword != reserved_keyword_lookup.end())
     {
         return create_token(reserved_keyword->second);
     }

@@ -27,9 +27,10 @@ public:
 
 private:
     lexer_state _lexer_state;
-    std::unordered_map<char, token(lexer::*)(void)> _character_map;
-    std::unordered_map<std::string, token_type> _reserved_keyword_map;
     std::vector<token> _tokens;
+
+    static const std::unordered_map<char, token(lexer::*)(void)> char_to_lexer_func_map;
+    static const std::unordered_map<std::string, token_type> reserved_keyword_lookup;
 
     void tokenize();
 
