@@ -41,4 +41,17 @@ void variable_declaration_statement::accept_visitor(statement_visitor& v)
     v.visit_variable_declaration_statement(*this);
 }
 
+if_statement::if_statement(std::unique_ptr<expression> condition_, std::unique_ptr<statement> if_branch_, std::unique_ptr<statement> else_branch_)
+    : condition(std::move(condition_))
+    , if_branch(std::move(if_branch_))
+    , else_branch(std::move(else_branch_))
+{
+
+}
+
+void if_statement::accept_visitor(statement_visitor& v)
+{
+    v.visit_if_statement(*this);
+}
+
 NAMESPACE_END

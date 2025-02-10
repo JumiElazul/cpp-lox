@@ -45,6 +45,18 @@ void interpreter::visit_print_statement(print_statement& stmt)
     _io->out() << literal_tostr(literal) << '\n';
 }
 
+void interpreter::visit_if_statement(if_statement& stmt)
+{
+    if (is_truthy(stmt.condition->accept_visitor(*this)))
+    {
+        stmt.if_branch->accept_visitor(*this);
+    }
+    else
+    {
+        stmt.else_branch->accept_visitor(*this);
+    }
+}
+
 void interpreter::visit_block_statement(block_statement& stmt)
 {
     std::unique_ptr<environment> previous_env = std::move(_env);

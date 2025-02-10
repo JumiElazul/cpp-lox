@@ -61,6 +61,19 @@ public:
     virtual void accept_visitor(statement_visitor& v) override;
 };
 
+class if_statement final : public statement
+{
+public:
+    std::unique_ptr<expression> condition;
+    std::unique_ptr<statement> if_branch;
+    std::unique_ptr<statement> else_branch;
+
+    if_statement(std::unique_ptr<expression> condition_, std::unique_ptr<statement> if_branch_, std::unique_ptr<statement> else_branch_);
+    ~if_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
 NAMESPACE_END
 
 #endif

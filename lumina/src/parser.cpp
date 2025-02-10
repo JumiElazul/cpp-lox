@@ -75,12 +75,17 @@ std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 {
-    // statement -> expression_statement | print_statement | block;
+    // statement -> expression_statement | if_statement | print_statement | block;
     if (matches_token({ token_type::print_ }))
     {
         return create_print_statement();
     }
- 
+
+    if (matches_token({ token_type::if_ }))
+    {
+        return create_if_statement();
+    }
+
     if (matches_token({ token_type::left_brace_ }))
     {
         return create_block_statement();
@@ -111,6 +116,21 @@ std::unique_ptr<print_statement> recursive_descent_parser::create_print_statemen
     consume_if_matches(token_type::right_paren_, "Expected ')' after 'expression'");
     consume_if_matches(token_type::semicolon_, "Expected ';' after statement");
     return std::make_unique<print_statement>(std::move(expr));
+}
+
+std::unique_ptr<if_statement> recursive_descent_parser::create_if_statement()
+{
+    consume_if_matches(token_type::left_paren_, "Expected '(' after 'if'");
+    std::unique_ptr<expression> cond = expression_precedence();
+    consume_if_matches(token_type::right_paren_, "Expected ')' after if condition");
+
+    std::unique_ptr<statement> then_branch = statement_precedence();
+    std::unique_ptr<statement> else_branch = nullptr;
+
+    if (matches_token({ token_type::else_ }))
+        else_branch = statement_precedence();
+
+    return std::make_unique<if_statement>(std::move(cond), std::move(then_branch), std::move(else_branch));
 }
 
 std::unique_ptr<block_statement> recursive_descent_parser::create_block_statement()

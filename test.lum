@@ -1,7 +1,7 @@
-var a;
-a = 1;
-print(a);
+var i = 9;
+print(i);
 
-var b = 1 # 4;
-#       @                  %   ;
-print(b);
+if (i >= 10)
+    print("i is greater than 10");
+else
+    print("i is less than 10");
