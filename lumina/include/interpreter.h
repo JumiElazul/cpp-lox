@@ -28,9 +28,13 @@ private:
     console_io* _io;
     bool _print_expr;
 
+    literal_value evaluate(const std::unique_ptr<expression>& expr);
+    void evaluate(const std::unique_ptr<statement>& stmt);
+
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
     virtual void visit_print_statement(print_statement& stmt) override;
     virtual void visit_if_statement(if_statement& stmt) override;
+    virtual void visit_while_statement(while_statement& stmt) override;
     virtual void visit_block_statement(block_statement& stmt) override;
     virtual void visit_expression_statement(expression_statement& stmt) override;
 

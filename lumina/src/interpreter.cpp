@@ -30,7 +30,7 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     {
         for (const auto& stmt : statements)
         {
-            stmt->accept_visitor(*this);
+            evaluate(stmt);
         }
     }
     catch (const lumina_runtime_error& e)
@@ -39,21 +39,56 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     }
 }
 
+literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
+{
+    return expr->accept_visitor(*this);
+}
+
+void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
+{
+    stmt->accept_visitor(*this);
+}
+
+void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
+{
+    if (stmt.initializer_expr)
+    {
+        literal_value literal = evaluate(stmt.initializer_expr);
+        _env->define(stmt.ident_name.lexeme, literal);
+    }
+    else
+    {
+        _env->define(stmt.ident_name.lexeme, undefined{});
+    }
+}
+
 void interpreter::visit_print_statement(print_statement& stmt)
 {
-    literal_value literal = stmt.expr->accept_visitor(*this);
+    literal_value literal = evaluate(stmt.expr);
     _io->out() << literal_tostr(literal) << '\n';
 }
 
 void interpreter::visit_if_statement(if_statement& stmt)
 {
-    if (is_truthy(stmt.condition->accept_visitor(*this)))
+    if (is_truthy(evaluate(stmt.condition)))
     {
-        stmt.if_branch->accept_visitor(*this);
+        evaluate(stmt.if_branch);
     }
     else
     {
-        stmt.else_branch->accept_visitor(*this);
+        // Can be null
+        if (stmt.else_branch)
+        {
+            evaluate(stmt.else_branch);
+        }
+    }
+}
+
+void interpreter::visit_while_statement(while_statement& stmt)
+{
+    while (is_truthy(evaluate(stmt.condition)))
+    {
+        evaluate(stmt.stmt_body);
     }
 }
 
@@ -66,7 +101,7 @@ void interpreter::visit_block_statement(block_statement& stmt)
     {
         for (const auto& s : stmt.statements)
         {
-            s->accept_visitor(*this);
+            evaluate(s);
         }
     }
     catch (const lumina_runtime_error& e)
@@ -79,29 +114,16 @@ void interpreter::visit_block_statement(block_statement& stmt)
 
 void interpreter::visit_expression_statement(expression_statement& stmt)
 {
-    literal_value literal = stmt.expr->accept_visitor(*this);
+    literal_value literal = evaluate(stmt.expr);
     if (_print_expr)
     {
         _io->out() << literal_tostr(literal) << '\n';
     }
 }
 
-void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
-{
-    if (stmt.initializer_expr)
-    {
-        literal_value literal = stmt.initializer_expr->accept_visitor(*this);
-        _env->define(stmt.ident_name.lexeme, literal);
-    }
-    else
-    {
-        _env->define(stmt.ident_name.lexeme, undefined{});
-    }
-}
-
 literal_value interpreter::visit_unary(unary_expression& expr)
 {
-    literal_value literal = expr.expr_rhs->accept_visitor(*this);
+    literal_value literal = evaluate(expr.expr_rhs);
     lumina_type literal_type = literal_to_lumina_type(literal);
 
     const token& oper = expr.oper;
@@ -126,8 +148,8 @@ literal_value interpreter::visit_unary(unary_expression& expr)
 
 literal_value interpreter::visit_binary(binary_expression& expr)
 {
-    literal_value lhs = expr.expr_lhs->accept_visitor(*this);
-    literal_value rhs = expr.expr_rhs->accept_visitor(*this);
+    literal_value lhs = evaluate(expr.expr_lhs);
+    literal_value rhs = evaluate(expr.expr_rhs);
 
     lumina_type lhs_type = literal_to_lumina_type(lhs);
     lumina_type rhs_type = literal_to_lumina_type(rhs);
@@ -186,6 +208,19 @@ literal_value interpreter::visit_binary(binary_expression& expr)
             if (lhs_type == lumina_type::number_)
             {
                 return std::get<double>(lhs) / std::get<double>(rhs);
+            }
+            else
+            {
+                throw type_error("Unsupported type for binary operator '/'", oper);
+            }
+        } break;
+        case token_type::modulo_:
+        {
+            if (lhs_type == lumina_type::number_)
+            {
+                int64 lhs_long = static_cast<int64>(std::get<double>(lhs));
+                int64 rhs_long = static_cast<int64>(std::get<double>(rhs));
+                return static_cast<double>(lhs_long % rhs_long);
             }
             else
             {
@@ -254,9 +289,9 @@ literal_value interpreter::visit_binary(binary_expression& expr)
 
 literal_value interpreter::visit_ternary(ternary_expression& expr)
 {
-    literal_value if_literal = expr.expr_lhs->accept_visitor(*this);
-    literal_value then_literal = expr.expr_then->accept_visitor(*this);
-    literal_value else_literal = expr.expr_else->accept_visitor(*this);
+    literal_value if_literal = evaluate(expr.expr_lhs);
+    literal_value then_literal = evaluate(expr.expr_then);
+    literal_value else_literal = evaluate(expr.expr_else);
 
     lumina_type if_type = literal_to_lumina_type(if_literal);
     const token& oper = expr.oper;
@@ -276,7 +311,7 @@ literal_value interpreter::visit_literal(literal_expression& expr)
 
 literal_value interpreter::visit_grouping(grouping_expression& expr)
 {
-    return expr.expr_lhs->accept_visitor(*this);
+    return evaluate(expr.expr_lhs);
 }
 
 literal_value interpreter::visit_variable(variable_expression& expr)
@@ -286,27 +321,23 @@ literal_value interpreter::visit_variable(variable_expression& expr)
 
 literal_value interpreter::visit_logical(logical_expression& expr)
 {
-    if (expr.oper.type == token_type::or_)
-    {
-        if (is_truthy(expr.expr_lhs->accept_visitor(*this)))
-            return true;
+    literal_value lhs = evaluate(expr.expr_lhs);
 
-        return is_truthy(expr.expr_rhs->accept_visitor(*this));
+    if (expr.oper.type == token_type::or_) 
+    {
+        if (is_truthy(lhs)) return lhs;
     }
-    else if (expr.oper.type == token_type::and_)
+    else 
     {
-        if (!is_truthy(expr.expr_lhs->accept_visitor(*this)))
-            return false;
-
-        return is_truthy(expr.expr_rhs->accept_visitor(*this));
+        if (!is_truthy(lhs)) return lhs;
     }
 
-    throw lumina_runtime_error("Unknown logical operator", expr.oper);
+    return evaluate(expr.expr_rhs);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
-    literal_value literal = expr.initializer_expr->accept_visitor(*this);
+    literal_value literal = evaluate(expr.initializer_expr);
     _env->assign(expr.ident_name.lexeme, literal);
     return literal;
 }

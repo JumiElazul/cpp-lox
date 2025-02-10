@@ -16,6 +16,7 @@ extern const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::semicolon_,     "semicolon"         },
     { token_type::colon_,         "colon"             },
     { token_type::question_,      "question"          },
+    { token_type::modulo_,        "modulo"            },
     { token_type::minus_,         "minus"             },
     { token_type::minus_equal_,   "minus_equal"       },
     { token_type::plus_,          "plus"              },

@@ -24,6 +24,7 @@ const std::unordered_map<char, token(lexer::*)(void)> lexer::char_to_lexer_func_
     { ';',  &lexer::semicolon      },
     { ':',  &lexer::colon          },
     { '?',  &lexer::question       },
+    { '%',  &lexer::modulo         },
     { '/',  &lexer::slash          },
     { '*',  &lexer::star           },
     { '!',  &lexer::bang           },
@@ -287,6 +288,11 @@ token lexer::colon()
 token lexer::question()
 {
     return create_token(token_type::question_);
+}
+
+token lexer::modulo()
+{
+    return create_token(token_type::modulo_);
 }
 
 token lexer::slash()

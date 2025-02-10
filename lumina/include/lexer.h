@@ -62,6 +62,7 @@ private:
     token semicolon();
     token colon();
     token question();
+    token modulo();
     token slash();
     token star();
     token bang();

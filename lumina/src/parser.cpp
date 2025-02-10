@@ -86,6 +86,11 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
         return create_if_statement();
     }
 
+    if (matches_token({ token_type::while_ }))
+    {
+        return create_while_statement();
+    }
+
     if (matches_token({ token_type::left_brace_ }))
     {
         return create_block_statement();
@@ -131,6 +136,16 @@ std::unique_ptr<if_statement> recursive_descent_parser::create_if_statement()
         else_branch = statement_precedence();
 
     return std::make_unique<if_statement>(std::move(cond), std::move(then_branch), std::move(else_branch));
+}
+
+std::unique_ptr<while_statement> recursive_descent_parser::create_while_statement()
+{
+    consume_if_matches(token_type::left_paren_, "Expected '(' after 'while'");
+    std::unique_ptr<expression> cond = expression_precedence();
+    consume_if_matches(token_type::right_paren_, "Expected ')' after while condition");
+
+    std::unique_ptr<statement> stmt_body = statement_precedence();
+    return std::make_unique<while_statement>(std::move(cond), std::move(stmt_body));
 }
 
 std::unique_ptr<block_statement> recursive_descent_parser::create_block_statement()
@@ -320,7 +335,7 @@ std::unique_ptr<expression> recursive_descent_parser::multiplication_precedence(
 
     std::unique_ptr<expression> expr = unary_precedence();
 
-    while (matches_token({ token_type::star_, token_type::slash_ }))
+    while (matches_token({ token_type::star_, token_type::slash_, token_type::modulo_ }))
     {
         token oper = *previous_token();
         std::unique_ptr<expression> rhs = unary_precedence();

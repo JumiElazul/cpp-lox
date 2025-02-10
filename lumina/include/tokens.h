@@ -15,7 +15,7 @@ enum class token_type
 {
     // single-character tokens
     left_paren_, right_paren_, left_brace_, right_brace_,
-    comma_, dot_, semicolon_, colon_, question_,
+    comma_, dot_, semicolon_, colon_, question_, modulo_,
 
     // one or two character tokens
     minus_, minus_equal_,
