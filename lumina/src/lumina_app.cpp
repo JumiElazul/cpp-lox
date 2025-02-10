@@ -64,7 +64,11 @@ void lumina_app::run_interpreter_mode()
 
 void lumina_app::run(const std::string& source, bool print_expr)
 {
-    lexer l(source);
+    lexer l(source, _io.get());
+
+    if (l.error_occurred())
+        return;
+
     const std::vector<token>& tokens = l.get_tokens();
 
     recursive_descent_parser parser(tokens, _io.get());

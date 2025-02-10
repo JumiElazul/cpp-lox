@@ -4,6 +4,7 @@
 #include "lumina_types.h"
 #include <iosfwd>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 NAMESPACE_BEGIN(lumina)
@@ -36,6 +37,7 @@ enum class token_type
     // end of file/other
     bof_,
     eof_,
+    ignore_,
     invalid_,
 };
 
@@ -47,10 +49,11 @@ struct token
     std::string lexeme;
     literal_value literal;
     coord position;
+    std::string_view source_line;
 };
 
 extern const std::unordered_map<token_type, std::string> token_type_tostr;
-extern std::string to_string(const token& t);
+extern std::string debug_to_string(const token& t);
 
 NAMESPACE_END
 
