@@ -234,6 +234,14 @@ std::unique_ptr<expression> recursive_descent_parser::logic_or_precedence()
 
     std::unique_ptr<expression> expr = logic_and_precedence();
 
+    while (matches_token({ token_type::or_ }))
+    {
+        token oper = *previous_token();
+        std::unique_ptr<expression> rhs = logic_and_precedence();
+        expr = std::make_unique<logical_expression>(std::move(expr), oper, std::move(rhs));
+    }
+
+    return expr;
 }
 
 std::unique_ptr<expression> recursive_descent_parser::logic_and_precedence()
@@ -242,6 +250,15 @@ std::unique_ptr<expression> recursive_descent_parser::logic_and_precedence()
     validate_binary_has_lhs({ token_type::and_ });
 
     std::unique_ptr<expression> expr = equality_precedence();
+
+    while (matches_token({ token_type::and_ }))
+    {
+        token oper = *previous_token();
+        std::unique_ptr<expression> rhs = equality_precedence();
+        expr = std::make_unique<logical_expression>(std::move(expr), oper, std::move(rhs));
+    }
+
+    return expr;
 }
 
 std::unique_ptr<expression> recursive_descent_parser::equality_precedence()

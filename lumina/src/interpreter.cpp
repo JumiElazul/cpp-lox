@@ -288,12 +288,20 @@ literal_value interpreter::visit_logical(logical_expression& expr)
 {
     if (expr.oper.type == token_type::or_)
     {
+        if (is_truthy(expr.expr_lhs->accept_visitor(*this)))
+            return true;
 
+        return is_truthy(expr.expr_rhs->accept_visitor(*this));
     }
     else if (expr.oper.type == token_type::and_)
     {
+        if (!is_truthy(expr.expr_lhs->accept_visitor(*this)))
+            return false;
 
+        return is_truthy(expr.expr_rhs->accept_visitor(*this));
     }
+
+    throw lumina_runtime_error("Unknown logical operator", expr.oper);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
