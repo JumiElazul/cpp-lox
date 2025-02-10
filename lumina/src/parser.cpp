@@ -210,10 +210,10 @@ std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
 {
-    // ternary -> equality ( "?" equality )?
+    // ternary -> logic_or ( "?" expression ":" ternary )?;
     validate_binary_has_lhs({ token_type::question_ });
 
-    std::unique_ptr<expression> expr = equality_precedence();
+    std::unique_ptr<expression> expr = logic_or_precedence();
 
     if (matches_token({ token_type::question_ }))
     {
@@ -225,6 +225,23 @@ std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
     }
 
     return expr;
+}
+
+std::unique_ptr<expression> recursive_descent_parser::logic_or_precedence()
+{
+    // logic_or -> logic_and ( "or" logic_and )*;
+    validate_binary_has_lhs({ token_type::or_ });
+
+    std::unique_ptr<expression> expr = logic_and_precedence();
+
+}
+
+std::unique_ptr<expression> recursive_descent_parser::logic_and_precedence()
+{
+    // logic_and -> equality ( "and" equality )*;
+    validate_binary_has_lhs({ token_type::and_ });
+
+    std::unique_ptr<expression> expr = equality_precedence();
 }
 
 std::unique_ptr<expression> recursive_descent_parser::equality_precedence()

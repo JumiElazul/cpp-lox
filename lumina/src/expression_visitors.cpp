@@ -55,4 +55,12 @@ std::string string_visitor::visit_assignment(assignment_expression& expr)
     return lhs_str + " = " + rhs_str;
 }
 
+std::string string_visitor::visit_logical(logical_expression& expr)
+{
+    std::string lhs_str = expr.expr_lhs->accept_visitor(*this);
+    std::string rhs_str = expr.expr_rhs->accept_visitor(*this);
+
+    return lhs_str + " " + expr.oper.lexeme + " " + rhs_str;
+}
+
 NAMESPACE_END

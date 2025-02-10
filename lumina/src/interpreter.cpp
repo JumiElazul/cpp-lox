@@ -284,6 +284,18 @@ literal_value interpreter::visit_variable(variable_expression& expr)
     return _env->get(expr.ident_name);
 }
 
+literal_value interpreter::visit_logical(logical_expression& expr)
+{
+    if (expr.oper.type == token_type::or_)
+    {
+
+    }
+    else if (expr.oper.type == token_type::and_)
+    {
+
+    }
+}
+
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = expr.initializer_expr->accept_visitor(*this);
