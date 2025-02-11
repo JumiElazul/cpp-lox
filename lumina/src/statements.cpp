@@ -49,7 +49,7 @@ void while_statement::accept_visitor(statement_visitor& v)
     v.visit_while_statement(*this);
 }
 
-for_statement::for_statement(std::unique_ptr<variable_declaration_statement> initializer_, std::unique_ptr<expression> condition_,
+for_statement::for_statement(std::unique_ptr<statement> initializer_, std::unique_ptr<expression> condition_,
         std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_)
     : initializer(std::move(initializer_))
     , condition(std::move(condition_))

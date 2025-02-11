@@ -151,16 +151,6 @@ std::unique_ptr<statement> recursive_descent_parser::create_while_statement()
 
 std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
 {
-    // Example of how this is transformed:
-    // for (var i = 0; i < 2; i = i + 1) { *body* }
-    // {
-    //     var i = 0;
-    //     while (i < 2)
-    //     {
-    //         *body*;
-    //         i = i + 1;
-    //     }
-    // }
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'for'");
 
     std::unique_ptr<statement> initializer = nullptr;
@@ -174,41 +164,21 @@ std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
     std::unique_ptr<expression> condition = nullptr;
     if (!check_type(token_type::semicolon_))
         condition = expression_precedence();
-    consume_if_matches(token_type::semicolon_, "Expected ';' after for loop condition");
+    else
+        condition = std::make_unique<literal_expression>(true);
+
+    consume_if_matches(token_type::semicolon_, "Expected ';' after for clauses");
 
     std::unique_ptr<expression> increment = nullptr;
     if (!check_type(token_type::right_paren_))
         increment = expression_precedence();
-    consume_if_matches(token_type::right_paren_, "Expected ')' after for loop clauses");
+
+    consume_if_matches(token_type::right_paren_, "Expected ')' after for clauses");
 
     std::unique_ptr<statement> stmt_body = statement_precedence();
 
-    if (increment != nullptr)
-    {
-        std::vector<std::unique_ptr<statement>> stmts;
-        stmts.reserve(2);
-        stmts.push_back(std::move(stmt_body));
-        stmts.push_back(std::make_unique<expression_statement>(std::move(increment)));
-
-        stmt_body = std::make_unique<block_statement>(std::move(stmts));
-    }
-
-    if (condition == nullptr)
-        condition = std::make_unique<literal_expression>(true);
-
-    stmt_body = std::make_unique<while_statement>(std::move(condition), std::move(stmt_body));
-
-    if (initializer != nullptr)
-    {
-        std::vector<std::unique_ptr<statement>> stmts;
-        stmts.reserve(2);
-        stmts.push_back(std::move(initializer));
-        stmts.push_back(std::move(stmt_body));
-
-        stmt_body = std::make_unique<block_statement>(std::move(stmts));
-    }
-
-    return stmt_body;
+    return std::make_unique<for_statement>(std::move(initializer), std::move(condition),
+            std::move(increment), std::move(stmt_body));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_break_statement()

@@ -68,12 +68,12 @@ public:
 class for_statement final : public statement
 {
 public:
-    std::unique_ptr<variable_declaration_statement> initializer;
+    std::unique_ptr<statement> initializer;
     std::unique_ptr<expression> condition;
     std::unique_ptr<expression> increment;
     std::unique_ptr<statement> stmt_body;
 
-    for_statement(std::unique_ptr<variable_declaration_statement> initializer_, std::unique_ptr<expression> condition_,
+    for_statement(std::unique_ptr<statement> initializer_, std::unique_ptr<expression> condition_,
             std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_);
     ~for_statement() = default;
 

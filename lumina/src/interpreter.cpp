@@ -105,8 +105,32 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    // Currently unused, as the parser breaks down a for loop into a while loop anyway.
-    // This is just here for future use if we decide on another implementation.
+    if (stmt.initializer)
+    {
+        evaluate(stmt.initializer);
+    }
+
+    while (is_truthy(evaluate(stmt.condition)))
+    {
+        try
+        {
+            evaluate(stmt.stmt_body);
+        }
+        catch (const lumina_loop_break&)
+        {
+            break;
+        }
+        catch (const lumina_loop_continue&)
+        {
+            if (stmt.increment)
+                evaluate(stmt.increment);
+
+            continue;
+        }
+
+        if (stmt.increment)
+            evaluate(stmt.increment);
+    }
 }
 
 void interpreter::visit_break_statement(break_statement& stmt)
