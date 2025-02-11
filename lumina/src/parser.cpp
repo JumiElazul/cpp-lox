@@ -77,29 +77,30 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 {
     // statement -> expression_statement | if_statement | print_statement | block;
     if (matches_token({ token_type::print_ }))
-    {
         return create_print_statement();
-    }
 
     if (matches_token({ token_type::if_ }))
-    {
         return create_if_statement();
-    }
 
     if (matches_token({ token_type::while_ }))
-    {
         return create_while_statement();
-    }
+
+    if (matches_token({ token_type::for_ }))
+        return create_for_statement();
+
+    if (matches_token({ token_type::break_ }))
+        return create_break_statement();
+
+    if (matches_token({ token_type::continue_ }))
+        return create_continue_statement();
 
     if (matches_token({ token_type::left_brace_ }))
-    {
         return create_block_statement();
-    }
 
     return create_expression_statement();
 }
 
-std::unique_ptr<variable_declaration_statement> recursive_descent_parser::create_variable_declaration_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration_statement()
 {
     // variable_declaration -> "var" IDENTIFIER ( "=" expression )? ";";
     token ident_name = consume_if_matches(token_type::identifier_, "Expected variable name after 'var'");
@@ -113,7 +114,7 @@ std::unique_ptr<variable_declaration_statement> recursive_descent_parser::create
     return std::make_unique<variable_declaration_statement>(ident_name, std::move(initializer_expr));
 }
 
-std::unique_ptr<print_statement> recursive_descent_parser::create_print_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_print_statement()
 {
     // print_statement -> "print" "(" expression ")" ";";
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'print'");
@@ -123,7 +124,7 @@ std::unique_ptr<print_statement> recursive_descent_parser::create_print_statemen
     return std::make_unique<print_statement>(std::move(expr));
 }
 
-std::unique_ptr<if_statement> recursive_descent_parser::create_if_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_if_statement()
 {
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'if'");
     std::unique_ptr<expression> cond = expression_precedence();
@@ -138,7 +139,7 @@ std::unique_ptr<if_statement> recursive_descent_parser::create_if_statement()
     return std::make_unique<if_statement>(std::move(cond), std::move(then_branch), std::move(else_branch));
 }
 
-std::unique_ptr<while_statement> recursive_descent_parser::create_while_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_while_statement()
 {
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'while'");
     std::unique_ptr<expression> cond = expression_precedence();
@@ -148,7 +149,81 @@ std::unique_ptr<while_statement> recursive_descent_parser::create_while_statemen
     return std::make_unique<while_statement>(std::move(cond), std::move(stmt_body));
 }
 
-std::unique_ptr<block_statement> recursive_descent_parser::create_block_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
+{
+    // Example of how this is transformed:
+    // for (var i = 0; i < 2; i = i + 1) { *body* }
+    // {
+    //     var i = 0;
+    //     while (i < 2)
+    //     {
+    //         *body*;
+    //         i = i + 1;
+    //     }
+    // }
+    consume_if_matches(token_type::left_paren_, "Expected '(' after 'for'");
+
+    std::unique_ptr<statement> initializer = nullptr;
+    if (matches_token({ token_type::semicolon_ }))
+        initializer = nullptr;
+    else if (matches_token({ token_type::var_ }))
+        initializer = create_variable_declaration_statement();
+    else
+        initializer = create_expression_statement();
+
+    std::unique_ptr<expression> condition = nullptr;
+    if (!check_type(token_type::semicolon_))
+        condition = expression_precedence();
+    consume_if_matches(token_type::semicolon_, "Expected ';' after for loop condition");
+
+    std::unique_ptr<expression> increment = nullptr;
+    if (!check_type(token_type::right_paren_))
+        increment = expression_precedence();
+    consume_if_matches(token_type::right_paren_, "Expected ')' after for loop clauses");
+
+    std::unique_ptr<statement> stmt_body = statement_precedence();
+
+    if (increment != nullptr)
+    {
+        std::vector<std::unique_ptr<statement>> stmts;
+        stmts.reserve(2);
+        stmts.push_back(std::move(stmt_body));
+        stmts.push_back(std::make_unique<expression_statement>(std::move(increment)));
+
+        stmt_body = std::make_unique<block_statement>(std::move(stmts));
+    }
+
+    if (condition == nullptr)
+        condition = std::make_unique<literal_expression>(true);
+
+    stmt_body = std::make_unique<while_statement>(std::move(condition), std::move(stmt_body));
+
+    if (initializer != nullptr)
+    {
+        std::vector<std::unique_ptr<statement>> stmts;
+        stmts.reserve(2);
+        stmts.push_back(std::move(initializer));
+        stmts.push_back(std::move(stmt_body));
+
+        stmt_body = std::make_unique<block_statement>(std::move(stmts));
+    }
+
+    return stmt_body;
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_break_statement()
+{
+    token break_token = consume_if_matches(token_type::semicolon_, "Expected ';' after 'break'");
+    return std::make_unique<break_statement>(break_token);
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_continue_statement()
+{
+    token continue_token = consume_if_matches(token_type::semicolon_, "Expected ';' after 'continue'");
+    return std::make_unique<continue_statement>(continue_token);
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
 {
     // block -> "{" declaration* "}";
     std::vector<std::unique_ptr<statement>> statements;
@@ -165,7 +240,7 @@ std::unique_ptr<block_statement> recursive_descent_parser::create_block_statemen
     return std::make_unique<block_statement>(std::move(statements));
 }
 
-std::unique_ptr<expression_statement> recursive_descent_parser::create_expression_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_expression_statement()
 {
     // expression_statement -> expression ";";
     std::unique_ptr<expression> expr = expression_precedence();

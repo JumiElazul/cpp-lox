@@ -49,6 +49,39 @@ void while_statement::accept_visitor(statement_visitor& v)
     v.visit_while_statement(*this);
 }
 
+for_statement::for_statement(std::unique_ptr<variable_declaration_statement> initializer_, std::unique_ptr<expression> condition_,
+        std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_)
+    : initializer(std::move(initializer_))
+    , condition(std::move(condition_))
+    , increment(std::move(increment_))
+    , stmt_body(std::move(stmt_body_))
+{
+
+}
+
+void for_statement::accept_visitor(statement_visitor& v)
+{
+    v.visit_for_statement(*this);
+}
+
+break_statement::break_statement(const token& t)
+    : break_token(t)
+{ }
+
+void break_statement::accept_visitor(statement_visitor& v)
+{
+    v.visit_break_statement(*this);
+}
+
+continue_statement::continue_statement(const token& t)
+    : continue_token(t)
+{ }
+
+void continue_statement::accept_visitor(statement_visitor& v)
+{
+    v.visit_continue_statement(*this);
+}
+
 block_statement::block_statement(std::vector<std::unique_ptr<statement>>&& statements_)
     : statements(std::move(statements_))
 { }

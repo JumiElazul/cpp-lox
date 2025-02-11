@@ -40,12 +40,15 @@ public:
 private:
     std::unique_ptr<statement> declaration_precedence();
     std::unique_ptr<statement> statement_precedence();
-    std::unique_ptr<variable_declaration_statement> create_variable_declaration_statement();
-    std::unique_ptr<print_statement> create_print_statement();
-    std::unique_ptr<if_statement> create_if_statement();
-    std::unique_ptr<while_statement> create_while_statement();
-    std::unique_ptr<block_statement> create_block_statement();
-    std::unique_ptr<expression_statement> create_expression_statement();
+    std::unique_ptr<statement> create_variable_declaration_statement();
+    std::unique_ptr<statement> create_print_statement();
+    std::unique_ptr<statement> create_if_statement();
+    std::unique_ptr<statement> create_while_statement();
+    std::unique_ptr<statement> create_for_statement();
+    std::unique_ptr<statement> create_break_statement();
+    std::unique_ptr<statement> create_continue_statement();
+    std::unique_ptr<statement> create_block_statement();
+    std::unique_ptr<statement> create_expression_statement();
 
     std::unique_ptr<expression> expression_precedence();
     std::unique_ptr<expression> assignment_precedence();

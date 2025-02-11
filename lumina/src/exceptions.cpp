@@ -45,4 +45,10 @@ std::string get_token_position(const token& t)
     return ss.str();
 }
 
+lumina_loop_break::lumina_loop_break(const std::string& msg)
+    : lumina_runtime_error(msg) { }
+
+lumina_loop_continue::lumina_loop_continue(const std::string& msg)
+    : lumina_runtime_error(msg) { }
+
 NAMESPACE_END

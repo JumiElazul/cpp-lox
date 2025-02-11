@@ -2,6 +2,7 @@
 #define JUMI_LUMINA_STATEMENTS_H
 #include "typedefs.h"
 #include "expressions.h"
+#include "tokens.h"
 #include <vector>
 #include <memory>
 
@@ -60,6 +61,43 @@ public:
 
     while_statement(std::unique_ptr<expression> condition_, std::unique_ptr<statement> stmt_body_);
     ~while_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
+class for_statement final : public statement
+{
+public:
+    std::unique_ptr<variable_declaration_statement> initializer;
+    std::unique_ptr<expression> condition;
+    std::unique_ptr<expression> increment;
+    std::unique_ptr<statement> stmt_body;
+
+    for_statement(std::unique_ptr<variable_declaration_statement> initializer_, std::unique_ptr<expression> condition_,
+            std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_);
+    ~for_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
+class break_statement final : public statement
+{
+public:
+    token break_token;
+
+    break_statement(const token& t);
+    ~break_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
+class continue_statement final : public statement
+{
+public:
+    token continue_token;
+
+    continue_statement(const token& t);
+    ~continue_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };

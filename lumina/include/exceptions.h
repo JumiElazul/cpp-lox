@@ -24,6 +24,18 @@ public:
     lumina_type_error(const std::string& msg, const token& t);
 };
 
+class lumina_loop_break : public lumina_runtime_error
+{
+public:
+    lumina_loop_break(const std::string& msg);
+};
+
+class lumina_loop_continue : public lumina_runtime_error
+{
+public:
+    lumina_loop_continue(const std::string& msg);
+};
+
 extern std::string get_token_position(const token& t);
 
 NAMESPACE_END

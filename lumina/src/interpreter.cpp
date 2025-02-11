@@ -88,8 +88,35 @@ void interpreter::visit_while_statement(while_statement& stmt)
 {
     while (is_truthy(evaluate(stmt.condition)))
     {
-        evaluate(stmt.stmt_body);
+        try
+        {
+            evaluate(stmt.stmt_body);
+        }
+        catch (const lumina_loop_break&)
+        {
+            break;
+        }
+        catch (const lumina_loop_continue&)
+        {
+            continue;
+        }
     }
+}
+
+void interpreter::visit_for_statement(for_statement& stmt)
+{
+    // Currently unused, as the parser breaks down a for loop into a while loop anyway.
+    // This is just here for future use if we decide on another implementation.
+}
+
+void interpreter::visit_break_statement(break_statement& stmt)
+{
+    throw lumina_loop_break("");
+}
+
+void interpreter::visit_continue_statement(continue_statement& stmt)
+{
+    throw lumina_loop_continue("");
 }
 
 void interpreter::visit_block_statement(block_statement& stmt)
@@ -103,6 +130,16 @@ void interpreter::visit_block_statement(block_statement& stmt)
         {
             evaluate(s);
         }
+    }
+    catch (const lumina_loop_break&)
+    {
+        _env = std::move(previous_env);
+        throw;
+    }
+    catch (const lumina_loop_continue&)
+    {
+        _env = std::move(previous_env);
+        throw;
     }
     catch (const lumina_runtime_error& e)
     {
