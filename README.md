@@ -34,39 +34,37 @@ print(!flag);        // prints false
 #### Binary Operators & Comparisons
 Geo performs type-checking for binary operations and supports comparisons ( >, <, >=, <=, ==, and != ).
 ```
-print 10 > 5;          // prints true
-print "foo" == "bar";  // prints false
-print(null == null);   // prints true
+print(10 > 5);          // prints true
+print("foo" == "bar");  // prints false
+print(null == null);    // prints true
 ```
 #### Ternary Operator
 A compact conditional operator is available to choose between two expressions.
 ```
 var a = 10;
 var b = 20;
-print (a > b) ? a : b;  // prints 20
+print((a > b) ? a : b);  // prints 20
 ```
 #### Control Flow Statements
 Geo supports control flows with if/else, while, and for loops.
-If/Else Example:
 ```
+// if/else example:
 if (x > 0) {
-    print "x is positive";
+    print("x is positive");
 } else {
-    print "x is non-positive";
+    print("x is non-positive");
 }
 
-While Loop Example:
-
+// while loop example:
 var i = 0;
 while (i < 5) {
-    print i;
+    print(i);
     i = i + 1;
 }
 
-For Loop Example:
-
+// for loop example:
 for (var i = 0; i < 5; i = i + 1) {
-    print i;
+    print(i);
 }
 ```
 #### Block Scoping
@@ -74,7 +72,7 @@ Blocks create new scopes, ensuring that variables declared inside do not leak to
 ```
 {
     var temp = "inside block";
-    print temp;
+    print(temp);
 }
 // temp is not available here
 ```
@@ -90,7 +88,7 @@ for (var i = 0; i < 5; ++i) {
     if (i == 4) {
         break;
     }
-    print i;
+    print(i);
     // prints 0 1 3
 }
 ```
