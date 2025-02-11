@@ -5,7 +5,7 @@
 
 NAMESPACE_BEGIN(lumina)
 
-extern const std::unordered_map<token_type, std::string> token_type_tostr =
+const std::unordered_map<token_type, std::string> token_type_tostr =
 {
     { token_type::left_paren_,    "left_paren"        },
     { token_type::right_paren_,   "right_paren"       },
@@ -19,8 +19,10 @@ extern const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::modulo_,        "modulo"            },
     { token_type::minus_,         "minus"             },
     { token_type::minus_equal_,   "minus_equal"       },
+    { token_type::minus_minus_,   "minus_minus"       },
     { token_type::plus_,          "plus"              },
     { token_type::plus_equal_,    "plus_equal"        },
+    { token_type::plus_plus_,     "plus_plus"         },
     { token_type::slash_,         "slash"             },
     { token_type::slash_equal_,   "slash_equal"       },
     { token_type::star_,          "star"              },

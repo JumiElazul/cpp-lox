@@ -14,6 +14,8 @@ class grouping_expression;
 class variable_expression;
 class assignment_expression;
 class logical_expression;
+class postfix_expression;
+class prefix_expression;
 class console_io;
 
 template<typename T>
@@ -29,6 +31,8 @@ public:
     virtual T visit_variable(variable_expression& expr) = 0;
     virtual T visit_assignment(assignment_expression& expr) = 0;
     virtual T visit_logical(logical_expression& expr) = 0;
+    virtual T visit_postfix(postfix_expression& expr) = 0;
+    virtual T visit_prefix(prefix_expression& expr) = 0;
 };
 
 class string_visitor final : public expression_visitor<std::string>
@@ -42,6 +46,8 @@ public:
     virtual std::string visit_variable(variable_expression& expr) override;
     virtual std::string visit_assignment(assignment_expression& expr) override;
     virtual std::string visit_logical(logical_expression& expr) override;
+    virtual std::string visit_postfix(postfix_expression& expr) override;
+    virtual std::string visit_prefix(prefix_expression& expr) override;
 };
 
 NAMESPACE_END

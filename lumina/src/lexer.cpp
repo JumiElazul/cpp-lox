@@ -266,6 +266,9 @@ token lexer::minus()
     if (advance_if_next_matches('='))
         return create_token(token_type::minus_equal_);
 
+    if (advance_if_next_matches('-'))
+        return create_token(token_type::minus_minus_);
+
     return create_token(token_type::minus_);
 }
 
@@ -273,6 +276,9 @@ token lexer::plus()
 {
     if (advance_if_next_matches('='))
         return create_token(token_type::plus_equal_);
+
+    if (advance_if_next_matches('+'))
+        return create_token(token_type::plus_plus_);
 
     return create_token(token_type::plus_);
 }

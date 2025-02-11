@@ -77,7 +77,7 @@ public:
 class grouping_expression : public expression
 {
 public:
-    std::unique_ptr<expression> expr_lhs;
+    std::unique_ptr<expression> expr_;
 
     grouping_expression(std::unique_ptr<expression> expr);
 
@@ -119,6 +119,32 @@ public:
     std::unique_ptr<expression> expr_rhs;
 
     logical_expression(std::unique_ptr<expression> lhs_, token oper_, std::unique_ptr<expression> rhs_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+class postfix_expression : public expression
+{
+public:
+    std::unique_ptr<expression> expr_lhs;
+    token oper;
+
+    postfix_expression(std::unique_ptr<expression> expr_, token oper_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+class prefix_expression : public expression
+{
+public:
+    token oper;
+    std::unique_ptr<expression> expr_rhs;
+
+    prefix_expression(token oper, std::unique_ptr<expression> expr);
 
     virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
     virtual void accept_visitor(expression_visitor<void>& v) override;

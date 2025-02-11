@@ -18,8 +18,8 @@ enum class token_type
     comma_, dot_, semicolon_, colon_, question_, modulo_,
 
     // one or two character tokens
-    minus_, minus_equal_,
-    plus_, plus_equal_,
+    minus_, minus_equal_, minus_minus_,
+    plus_, plus_equal_, plus_plus_,
     slash_, slash_equal_,
     star_, star_equal_,
     bang_, bang_equal_,

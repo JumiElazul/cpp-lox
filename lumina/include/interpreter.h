@@ -18,6 +18,9 @@ class environment;
 
 class interpreter final : public statement_visitor, public expression_visitor<literal_value>
 {
+    struct lumina_loop_break { };
+    struct lumina_loop_continue { };
+
 public:
     interpreter(console_io* io);
 
@@ -49,6 +52,8 @@ private:
     virtual literal_value visit_variable(variable_expression& expr) override;
     virtual literal_value visit_assignment(assignment_expression& expr) override;
     virtual literal_value visit_logical(logical_expression& expr) override;
+    virtual literal_value visit_postfix(postfix_expression& expr) override;
+    virtual literal_value visit_prefix(prefix_expression& expr) override;
 
     bool is_truthy(const literal_value& literal) const;
     bool is_equal(const literal_value& lhs, const literal_value& rhs) const;

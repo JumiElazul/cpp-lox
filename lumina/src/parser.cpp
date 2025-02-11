@@ -392,15 +392,29 @@ std::unique_ptr<expression> recursive_descent_parser::multiplication_precedence(
 
 std::unique_ptr<expression> recursive_descent_parser::unary_precedence()
 {
-    // unary -> ( "!" | "-" ) unary | primary;
-    if (matches_token({ token_type::bang_, token_type::minus_ }))
+    // unary -> ( "!" | "-" | "++" | "--" ) unary | postfix;
+    if (matches_token({ token_type::bang_, token_type::minus_, token_type::plus_plus_, token_type::minus_minus_ }))
     {
         token oper = *previous_token();
         std::unique_ptr<expression> rhs = unary_precedence();
         return std::make_unique<unary_expression>(oper, std::move(rhs));
     }
 
-    return primary_precedence();
+    return postfix_precedence();
+}
+
+std::unique_ptr<expression> recursive_descent_parser::postfix_precedence()
+{
+    // postfix -> primary ( "++" | "--" )*;
+    std::unique_ptr<expression> expr = primary_precedence();
+
+    while (matches_token({ token_type::plus_plus_, token_type::minus_minus_ }))
+    {
+        token oper = *previous_token();
+        expr = std::make_unique<postfix_expression>(std::move(expr), oper);
+    }
+
+    return expr;
 }
 
 std::unique_ptr<expression> recursive_descent_parser::primary_precedence()

@@ -38,7 +38,7 @@ std::string string_visitor::visit_literal(literal_expression& expr)
 
 std::string string_visitor::visit_grouping(grouping_expression& expr)
 {
-    std::string lhs_str = expr.expr_lhs->accept_visitor(*this);
+    std::string lhs_str = expr.expr_->accept_visitor(*this);
     return "( " + lhs_str + " )";
 }
 
@@ -61,6 +61,18 @@ std::string string_visitor::visit_logical(logical_expression& expr)
     std::string rhs_str = expr.expr_rhs->accept_visitor(*this);
 
     return lhs_str + " " + expr.oper.lexeme + " " + rhs_str;
+}
+
+std::string string_visitor::visit_postfix(postfix_expression& expr)
+{
+    std::string lhs_str = expr.expr_lhs->accept_visitor(*this);
+    return lhs_str + expr.oper.lexeme;
+}
+
+std::string string_visitor::visit_prefix(prefix_expression& expr)
+{
+    std::string rhs_str = expr.expr_rhs->accept_visitor(*this);
+    return expr.oper.lexeme + rhs_str;
 }
 
 NAMESPACE_END

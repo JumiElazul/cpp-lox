@@ -105,6 +105,9 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
+    std::unique_ptr<environment> previous_env = std::move(_env);
+    _env = std::make_unique<environment>(previous_env.get());
+
     if (stmt.initializer)
     {
         evaluate(stmt.initializer);
@@ -131,16 +134,18 @@ void interpreter::visit_for_statement(for_statement& stmt)
         if (stmt.increment)
             evaluate(stmt.increment);
     }
+
+    _env = std::move(previous_env);
 }
 
 void interpreter::visit_break_statement(break_statement& stmt)
 {
-    throw lumina_loop_break("");
+    throw lumina_loop_break();
 }
 
 void interpreter::visit_continue_statement(continue_statement& stmt)
 {
-    throw lumina_loop_continue("");
+    throw lumina_loop_continue();
 }
 
 void interpreter::visit_block_statement(block_statement& stmt)
@@ -196,12 +201,38 @@ literal_value interpreter::visit_unary(unary_expression& expr)
 
         return !is_truthy(literal);
     }
-    else if (oper.type == token_type::minus_)
+
+    if (oper.type == token_type::minus_)
     {
         if (literal_type != lumina_type::number_)
             throw type_error("Cannot use unary operator ('-') on non-number type", oper);
 
         return -(std::get<double>(literal));
+    }
+
+    if (oper.type == token_type::plus_plus_ || oper.type == token_type::minus_minus_)
+    {
+        variable_expression* var_expr = dynamic_cast<variable_expression*>(expr.expr_rhs.get());
+        std::string oper = expr.oper.lexeme;
+
+        if (!var_expr)
+            throw type_error("Unary prefix operator '" + oper + "' requires a variable operand", expr.oper);
+
+        literal_value literal = _env->get(var_expr->ident_name);
+        lumina_type type = literal_to_lumina_type(literal);
+
+        if (type != lumina_type::number_)
+            throw type_error("Invalid type for postfix operator '" + oper + "'", expr.oper);
+
+        double value = std::get<double>(literal);
+
+        if (expr.oper.type == token_type::plus_plus_)
+            ++value;
+        else if (expr.oper.type == token_type::minus_minus_)
+            --value;
+
+        _env->assign(var_expr->ident_name.lexeme, value);
+        return value;
     }
 
     throw lumina_type_error("Unknown unary operator", oper);
@@ -372,12 +403,19 @@ literal_value interpreter::visit_literal(literal_expression& expr)
 
 literal_value interpreter::visit_grouping(grouping_expression& expr)
 {
-    return evaluate(expr.expr_lhs);
+    return evaluate(expr.expr_);
 }
 
 literal_value interpreter::visit_variable(variable_expression& expr)
 {
     return _env->get(expr.ident_name);
+}
+
+literal_value interpreter::visit_assignment(assignment_expression& expr)
+{
+    literal_value literal = evaluate(expr.initializer_expr);
+    _env->assign(expr.ident_name.lexeme, literal);
+    return literal;
 }
 
 literal_value interpreter::visit_logical(logical_expression& expr)
@@ -396,11 +434,36 @@ literal_value interpreter::visit_logical(logical_expression& expr)
     return evaluate(expr.expr_rhs);
 }
 
-literal_value interpreter::visit_assignment(assignment_expression& expr)
+literal_value interpreter::visit_postfix(postfix_expression& expr)
 {
-    literal_value literal = evaluate(expr.initializer_expr);
-    _env->assign(expr.ident_name.lexeme, literal);
-    return literal;
+    variable_expression* var_expr = dynamic_cast<variable_expression*>(expr.expr_lhs.get());
+    std::string oper = expr.oper.lexeme;
+
+    if (!var_expr)
+        throw type_error("Postfix operator '" + oper + "' requires a variable operand", expr.oper);
+
+    literal_value literal = _env->get(var_expr->ident_name);
+    lumina_type type = literal_to_lumina_type(literal);
+
+    if (type != lumina_type::number_)
+        throw type_error("Invalid type for postfix operator '" + oper + "'", expr.oper);
+
+    double value = std::get<double>(literal);
+    double new_val = value;
+
+    if (expr.oper.type == token_type::plus_plus_)
+        new_val++;
+    else if (expr.oper.type == token_type::minus_minus_)
+        new_val--;
+
+    _env->assign(var_expr->ident_name.lexeme, new_val);
+    return value;
+}
+
+literal_value interpreter::visit_prefix(prefix_expression& expr)
+{
+    // Unused for now
+    assert(false);
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const
