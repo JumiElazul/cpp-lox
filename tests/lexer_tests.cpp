@@ -3,7 +3,7 @@
 #include "lexer_test_cases.h"
 #include "lexer.h"
 
-NAMESPACE_BEGIN(lumina)
+NAMESPACE_BEGIN(geo)
 
 TEST_CASE("Lexer handles empty input", "[lexer]") {
     lexer l("");

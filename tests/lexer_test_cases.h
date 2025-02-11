@@ -1,11 +1,11 @@
-#ifndef JUMI_LUMINA_TESTS_LEXER_TEST_CASES_H
-#define JUMI_LUMINA_TESTS_LEXER_TEST_CASES_H
+#ifndef JUMI_GEO_TESTS_LEXER_TEST_CASES_H
+#define JUMI_GEO_TESTS_LEXER_TEST_CASES_H
 #include "typedefs.h"
 #include "tokens.h"
 #include <string>
 #include <vector>
 
-NAMESPACE_BEGIN(lumina)
+NAMESPACE_BEGIN(geo)
 
 struct lexer_test_case {
     std::string input;

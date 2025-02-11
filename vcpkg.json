@@ -1,6 +1,6 @@
 {
-  "name": "lumina",
-  "version-string": "0.0.9",
+  "name": "geo",
+  "version-string": "0.0.10",
   "dependencies": [
       "spdlog",
       "catch2"
