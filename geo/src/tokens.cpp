@@ -47,7 +47,6 @@ const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::true_,          "true"              },
     { token_type::func_,          "func"              },
     { token_type::null_,          "null"              },
-    { token_type::print_,         "print"             },
     { token_type::return_,        "return"            },
     { token_type::super_,         "super"             },
     { token_type::this_,          "this"              },

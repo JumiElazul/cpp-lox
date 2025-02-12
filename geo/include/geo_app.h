@@ -22,7 +22,7 @@ private:
 
     bool _had_runtime_error;
 
-    void run(const std::string& source, bool print_expr = false);
+    void run(const std::string& source);
 };
 
 NAMESPACE_END

@@ -58,11 +58,11 @@ void geo_app::run_interpreter_mode()
         if (source == "q" || source == "quit")
             break;
 
-        run(source, true);
+        run(source);
     }
 }
 
-void geo_app::run(const std::string& source, bool print_expr)
+void geo_app::run(const std::string& source)
 {
     lexer l(source, _io.get());
 
@@ -80,7 +80,7 @@ void geo_app::run(const std::string& source, bool print_expr)
         return;
     }
 
-    _interpreter.interpret(statements, print_expr);
+    _interpreter.interpret(statements);
 }
 
 NAMESPACE_END

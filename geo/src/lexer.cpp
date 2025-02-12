@@ -45,7 +45,6 @@ const std::unordered_map<std::string, token_type> lexer::reserved_keyword_lookup
     { "true",     token_type::true_     },
     { "func",     token_type::func_     },
     { "null",     token_type::null_     },
-    { "print",    token_type::print_    },
     { "return",   token_type::return_   },
     { "super",    token_type::super_    },
     { "this",     token_type::this_     },

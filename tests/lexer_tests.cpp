@@ -263,12 +263,6 @@ TEST_CASE("Lexer correctly identifies all reserved keywords", "[lexer]") {
         REQUIRE(tokens.at(1).type == token_type::null_);
     }
 
-    SECTION("print token") {
-        lexer l("print");
-        const std::vector<token>& tokens = l.get_tokens();
-        REQUIRE(tokens.at(1).type == token_type::print_);
-    }
-
     SECTION("return token") {
         lexer l("return");
         const std::vector<token>& tokens = l.get_tokens();

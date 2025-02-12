@@ -75,4 +75,23 @@ std::string string_visitor::visit_prefix(prefix_expression& expr)
     return expr.oper.lexeme + rhs_str;
 }
 
+std::string string_visitor::visit_call(call_expression& expr)
+{
+    std::string callee_str = expr.callee->accept_visitor(*this);
+    std::string args_str = "";
+
+    for (auto& arg : expr.arguments)
+    {
+        args_str += arg->accept_visitor(*this) + ", ";
+    }
+
+    if (!args_str.empty())
+    {
+        args_str.pop_back();
+        args_str.pop_back();
+    }
+
+    return callee_str + "(" + args_str + ")";
+}
+
 NAMESPACE_END

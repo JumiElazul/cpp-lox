@@ -28,3 +28,7 @@ while (x > 0)
     print(x);
     --x;
 }
+
+print("hello");
+print(iter);
+print(i);

@@ -131,14 +131,14 @@ inline const std::vector<lexer_test_case> lexer_test_cases
     { "if (x > 3) { print(x); }",
         { token_type::bof_, token_type::if_, token_type::left_paren_, token_type::identifier_,
             token_type::greater_, token_type::number_, token_type::right_paren_,
-            token_type::left_brace_, token_type::print_, token_type::left_paren_,
+            token_type::left_brace_, token_type::identifier_, token_type::left_paren_,
             token_type::identifier_, token_type::right_paren_, token_type::semicolon_,
             token_type::right_brace_, token_type::eof_ } },
 
     { "and or if else class false true func null print return super this var for while",
         { token_type::bof_, token_type::and_, token_type::or_, token_type::if_, token_type::else_,
             token_type::class_, token_type::false_, token_type::true_, token_type::func_, token_type::null_,
-            token_type::print_, token_type::return_, token_type::super_, token_type::this_,
+            token_type::identifier_, token_type::return_, token_type::super_, token_type::this_,
             token_type::var_, token_type::for_, token_type::while_, token_type::eof_ } },
 
 

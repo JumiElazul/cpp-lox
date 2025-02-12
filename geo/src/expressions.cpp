@@ -48,6 +48,11 @@ prefix_expression::prefix_expression(token oper_, std::unique_ptr<expression> ex
     : oper(oper_)
     , expr_rhs(std::move(expr_)) { }
 
+call_expression::call_expression(std::unique_ptr<expression> callee_, token paren_, std::vector<std::unique_ptr<expression>> arguments_)
+    : callee(std::move(callee_))
+    , paren(paren_)
+    , arguments(std::move(arguments_)) { }
+
 literal_value unary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_unary(*this); }
 literal_value binary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_binary(*this); }
 literal_value ternary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_ternary(*this); }
@@ -58,6 +63,7 @@ literal_value assignment_expression::accept_visitor(expression_visitor<literal_v
 literal_value logical_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_logical(*this); }
 literal_value postfix_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_postfix(*this); }
 literal_value prefix_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_prefix(*this); }
+literal_value call_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_call(*this); }
 
 void unary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_unary(*this); }
 void binary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_binary(*this); }
@@ -69,6 +75,7 @@ void assignment_expression::accept_visitor(expression_visitor<void>& v) { v.visi
 void logical_expression::accept_visitor(expression_visitor<void>& v) { v.visit_logical(*this); }
 void postfix_expression::accept_visitor(expression_visitor<void>& v) { v.visit_postfix(*this); }
 void prefix_expression::accept_visitor(expression_visitor<void>& v) { v.visit_prefix(*this); }
+void call_expression::accept_visitor(expression_visitor<void>& v) { v.visit_call(*this); }
 
 std::string unary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_unary(*this); }
 std::string binary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_binary(*this); }
@@ -80,5 +87,6 @@ std::string assignment_expression::accept_visitor(expression_visitor<std::string
 std::string logical_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_logical(*this); }
 std::string postfix_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_postfix(*this); }
 std::string prefix_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_prefix(*this); }
+std::string call_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_call(*this); }
 
 NAMESPACE_END
