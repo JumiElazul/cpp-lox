@@ -29,7 +29,7 @@ var a = 5;
 a++;                // Postfix increment: increases a by 1
 print(a);           // prints 6
 var flag = true;
-print(!flag);        // prints false
+print(!flag);       // prints false
 ```
 #### Binary Operators & Comparisons
 Geo performs type-checking for binary operations and supports comparisons ( >, <, >=, <=, ==, and != ).
@@ -91,6 +91,15 @@ for (var i = 0; i < 5; ++i) {
     print(i);
     // prints 0 1 3
 }
+```
+
+#### Built in functions
+Currently there are not many built in functions, but more will be added as the language is developed.
+```
+print("Hello, World!");  // prints "Hello, World!"
+var my_str = input();    // waits for user input and stores it in my_str
+clock();                 // prints the current system time since epoch in seconds
+
 ```
 
 ## Installation
