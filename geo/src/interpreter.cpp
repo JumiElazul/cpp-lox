@@ -53,6 +53,7 @@ void interpreter::instantiate_native_funcs()
 {
     _globals->define("clock", new clock());
     _globals->define("print", new print(_io));
+    _globals->define("input", new input(_io));
 }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)

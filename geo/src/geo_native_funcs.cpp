@@ -33,4 +33,15 @@ literal_value print::call(interpreter& i, const std::vector<literal_value>& args
     return std::monostate();
 }
 
+input::input(console_io* io)
+    : _io(io) { }
+
+int input::arity() { return 0; }
+std::string input::to_string() const { return "<native_func>input"; }
+
+literal_value input::call(interpreter& i, const std::vector<literal_value>& args)
+{
+    return _io->readline("");
+}
+
 NAMESPACE_END
