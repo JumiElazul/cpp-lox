@@ -23,13 +23,16 @@ class interpreter final : public statement_visitor, public expression_visitor<li
 
 public:
     interpreter(console_io* io);
+    ~interpreter();
 
-    void interpret(const std::vector<std::unique_ptr<statement>>& statements, bool print_expr = false);
+    void interpret(const std::vector<std::unique_ptr<statement>>& statements);
 
 private:
-    std::unique_ptr<environment> _env;
+    std::unique_ptr<environment> _globals;
+    environment* _env;
     console_io* _io;
-    bool _print_expr;
+
+    void instantiate_native_funcs();
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
@@ -54,6 +57,7 @@ private:
     virtual literal_value visit_logical(logical_expression& expr) override;
     virtual literal_value visit_postfix(postfix_expression& expr) override;
     virtual literal_value visit_prefix(prefix_expression& expr) override;
+    virtual literal_value visit_call(call_expression& expr) override;
 
     bool is_truthy(const literal_value& literal) const;
     bool is_equal(const literal_value& lhs, const literal_value& rhs) const;

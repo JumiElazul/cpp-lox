@@ -4,6 +4,7 @@
 #include "exceptions.h"
 #include "expressions.h"
 #include "geo_types.h"
+#include "geo_native_funcs.h"
 #include "tokens.h"
 #include "typedefs.h"
 #include "statements.h"
@@ -15,17 +16,26 @@
 NAMESPACE_BEGIN(geo)
 
 interpreter::interpreter(console_io* io)
-    : _env(new environment())
+    : _globals(std::make_unique<environment>())
+    , _env(_globals.get())
     , _io(io)
-    , _print_expr(false)
 {
-
+    instantiate_native_funcs();
 }
 
-void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements, bool print_expr)
+interpreter::~interpreter()
 {
-    _print_expr = print_expr;
+    for (const auto& [name, value] : _globals->_variables)
+    {
+        if (literal_to_geo_type(value) == geo_type::callable_)
+        {
+            delete std::get<geo_callable*>(value);
+        }
+    }
+}
 
+void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
+{
     try
     {
         for (const auto& stmt : statements)
@@ -37,6 +47,13 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     {
         _io->err() << e.what() << '\n';
     }
+}
+
+void interpreter::instantiate_native_funcs()
+{
+    _globals->define("clock", new clock());
+    _globals->define("print", new print(_io));
+    _globals->define("input", new input(_io));
 }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
@@ -105,8 +122,9 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    std::unique_ptr<environment> previous_env = std::move(_env);
-    _env = std::make_unique<environment>(previous_env.get());
+    environment* previous_env = _env;
+    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
+    _env = block_env.get();
 
     if (stmt.initializer)
     {
@@ -135,7 +153,7 @@ void interpreter::visit_for_statement(for_statement& stmt)
             evaluate(stmt.increment);
     }
 
-    _env = std::move(previous_env);
+    _env = previous_env;
 }
 
 void interpreter::visit_break_statement(break_statement& stmt)
@@ -150,8 +168,9 @@ void interpreter::visit_continue_statement(continue_statement& stmt)
 
 void interpreter::visit_block_statement(block_statement& stmt)
 {
-    std::unique_ptr<environment> previous_env = std::move(_env);
-    _env = std::make_unique<environment>(previous_env.get());
+    environment* previous_env = _env;
+    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
+    _env = block_env.get();
 
     try
     {
@@ -175,16 +194,12 @@ void interpreter::visit_block_statement(block_statement& stmt)
         _io->err() << e.what() << '\n';
     }
 
-    _env = std::move(previous_env);
+    _env = previous_env;
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)
 {
     literal_value literal = evaluate(stmt.expr);
-    if (_print_expr)
-    {
-        _io->out() << literal_tostr(literal) << '\n';
-    }
 }
 
 literal_value interpreter::visit_unary(unary_expression& expr)
@@ -462,8 +477,32 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
 
 literal_value interpreter::visit_prefix(prefix_expression& expr)
 {
-    // Unused for now
+    // Unused for now.  This is currently being handled in visit_unary.
     assert(false);
+}
+
+literal_value interpreter::visit_call(call_expression& expr)
+{
+    literal_value literal = evaluate(expr.callee);
+    geo_type type = literal_to_geo_type(literal);
+
+    if (type != geo_type::callable_)
+        throw geo_runtime_error("Can only call functions and classes '()'", expr.paren);
+
+    geo_callable* function = std::get<geo_callable*>(literal);
+    std::vector<literal_value> arguments;
+    arguments.reserve(expr.arguments.size());
+
+    for (std::unique_ptr<expression>& arg_expr : expr.arguments)
+        arguments.emplace_back(evaluate(arg_expr));
+
+    if (function->arity() != static_cast<int>(arguments.size()))
+    {
+        std::string msg = "Expected " + std::to_string(function->arity()) + " arguments but received " + std::to_string(arguments.size());
+        throw geo_runtime_error(msg);
+    }
+
+    return function->call(*this, arguments);
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

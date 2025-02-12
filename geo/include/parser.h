@@ -62,7 +62,10 @@ private:
     std::unique_ptr<expression> multiplication_precedence();
     std::unique_ptr<expression> unary_precedence();
     std::unique_ptr<expression> postfix_precedence();
+    std::unique_ptr<expression> call_precedence();
     std::unique_ptr<expression> primary_precedence();
+
+    std::unique_ptr<expression> finish_call(std::unique_ptr<expression> expr);
 
     std::optional<token> advance_parser();
     std::optional<token> previous_token() const;

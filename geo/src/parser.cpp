@@ -64,7 +64,7 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 
 std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 {
-    // declaration -> variable_declaration_statement | statement;
+    // declaration -> variable_declaration_statement | statement ;
     if (matches_token({ token_type::var_ }))
     {
         return create_variable_declaration_statement();
@@ -75,9 +75,7 @@ std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 {
-    // statement -> expression_statement | if_statement | print_statement | block;
-    if (matches_token({ token_type::print_ }))
-        return create_print_statement();
+    // statement -> if_statement | while_statement | for_statement | break | continue | block | expression_statement ;
 
     if (matches_token({ token_type::if_ }))
         return create_if_statement();
@@ -102,7 +100,7 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 
 std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration_statement()
 {
-    // variable_declaration -> "var" IDENTIFIER ( "=" expression )? ";";
+    // variable_declaration -> "var" IDENTIFIER ( "=" expression )? ";" ;
     token ident_name = consume_if_matches(token_type::identifier_, "Expected variable name after 'var'");
 
     std::unique_ptr<expression> initializer_expr = nullptr;
@@ -116,7 +114,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration
 
 std::unique_ptr<statement> recursive_descent_parser::create_print_statement()
 {
-    // print_statement -> "print" "(" expression ")" ";";
+    // print_statement -> "print" "(" expression ")" ";" ;
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'print'");
     std::unique_ptr<expression> expr = expression_precedence();
     consume_if_matches(token_type::right_paren_, "Expected ')' after 'expression'");
@@ -195,7 +193,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_continue_statement()
 
 std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
 {
-    // block -> "{" declaration* "}";
+    // block -> "{" declaration* "}" ;
     std::vector<std::unique_ptr<statement>> statements;
     while (!check_type(token_type::right_brace_) && peek_next_token()->type != token_type::eof_)
     {
@@ -212,7 +210,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
 
 std::unique_ptr<statement> recursive_descent_parser::create_expression_statement()
 {
-    // expression_statement -> expression ";";
+    // expression_statement -> expression ";" ;
     std::unique_ptr<expression> expr = expression_precedence();
     consume_if_matches(token_type::semicolon_, "Expected ';' after expression");
     return std::make_unique<expression_statement>(std::move(expr));
@@ -226,7 +224,7 @@ std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 {
-    // assignment -> ( IDENTIFIER "=" assignment ) | comma;
+    // assignment -> ( IDENTIFIER "=" assignment ) | comma ;
     std::unique_ptr<expression> expr = comma_precedence();
 
     if (matches_token({ token_type::equal_ }))
@@ -253,7 +251,7 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
 {
-    // comma -> ternary ( "," ternary )*;
+    // comma -> ternary ( "," ternary )* ;
     validate_binary_has_lhs({ token_type::comma_ });
 
     std::unique_ptr<expression> expr = ternary_precedence();
@@ -270,7 +268,7 @@ std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
 {
-    // ternary -> logic_or ( "?" expression ":" ternary )?;
+    // ternary -> logic_or ( "?" expression ":" ternary )? ;
     validate_binary_has_lhs({ token_type::question_ });
 
     std::unique_ptr<expression> expr = logic_or_precedence();
@@ -289,7 +287,7 @@ std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::logic_or_precedence()
 {
-    // logic_or -> logic_and ( "or" logic_and )*;
+    // logic_or -> logic_and ( "or" logic_and )* ;
     validate_binary_has_lhs({ token_type::or_ });
 
     std::unique_ptr<expression> expr = logic_and_precedence();
@@ -306,7 +304,7 @@ std::unique_ptr<expression> recursive_descent_parser::logic_or_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::logic_and_precedence()
 {
-    // logic_and -> equality ( "and" equality )*;
+    // logic_and -> equality ( "and" equality )* ;
     validate_binary_has_lhs({ token_type::and_ });
 
     std::unique_ptr<expression> expr = equality_precedence();
@@ -323,7 +321,7 @@ std::unique_ptr<expression> recursive_descent_parser::logic_and_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::equality_precedence()
 {
-    // equality -> comparison ( ( "!=" | "\==" ) comparison)\*;
+    // equality -> comparison ( ( "!=" | "\==" ) comparison)* ;
     validate_binary_has_lhs({ token_type::bang_equal_, token_type::equal_equal_ });
 
     std::unique_ptr<expression> expr = comparison_precedence();
@@ -341,7 +339,7 @@ std::unique_ptr<expression> recursive_descent_parser::equality_precedence()
 std::unique_ptr<expression> recursive_descent_parser::comparison_precedence()
 {
 
-    // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )\*;
+    // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     validate_binary_has_lhs({ token_type::greater_, token_type::greater_equal_, token_type::less_, token_type::less_equal_ });
 
     std::unique_ptr<expression> expr = addition_precedence();
@@ -358,7 +356,7 @@ std::unique_ptr<expression> recursive_descent_parser::comparison_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::addition_precedence()
 {
-    // term -> factor ( ( "-" | "+" ) factor )\*;
+    // term -> factor ( ( "-" | "+" ) factor )* ;
     validate_binary_has_lhs({ token_type::plus_ });
 
     std::unique_ptr<expression> expr = multiplication_precedence();
@@ -375,7 +373,7 @@ std::unique_ptr<expression> recursive_descent_parser::addition_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::multiplication_precedence()
 {
-    // factor -> unary ( ( "\*" | "/" ) unary )\*;
+    // factor -> unary ( ( "\*" | "/" ) unary )* ;
     validate_binary_has_lhs({ token_type::star_, token_type::slash_ });
 
     std::unique_ptr<expression> expr = unary_precedence();
@@ -392,7 +390,7 @@ std::unique_ptr<expression> recursive_descent_parser::multiplication_precedence(
 
 std::unique_ptr<expression> recursive_descent_parser::unary_precedence()
 {
-    // unary -> ( "!" | "-" | "++" | "--" ) unary | postfix;
+    // unary -> ( "!" | "-" | "++" | "--" ) unary | postfix ;
     if (matches_token({ token_type::bang_, token_type::minus_, token_type::plus_plus_, token_type::minus_minus_ }))
     {
         token oper = *previous_token();
@@ -405,13 +403,33 @@ std::unique_ptr<expression> recursive_descent_parser::unary_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::postfix_precedence()
 {
-    // postfix -> primary ( "++" | "--" )*;
-    std::unique_ptr<expression> expr = primary_precedence();
+    // postfix -> call ( "++" | "--" )* ;
+    std::unique_ptr<expression> expr = call_precedence();
 
     while (matches_token({ token_type::plus_plus_, token_type::minus_minus_ }))
     {
         token oper = *previous_token();
         expr = std::make_unique<postfix_expression>(std::move(expr), oper);
+    }
+
+    return expr;
+}
+
+std::unique_ptr<expression> recursive_descent_parser::call_precedence()
+{
+    // call -> primary ( "(" arguments? ")" )* ;
+    std::unique_ptr<expression> expr = primary_precedence();
+
+    while (true)
+    {
+        if (matches_token({ token_type::left_paren_ }))
+        {
+            expr = finish_call(std::move(expr));
+        }
+        else
+        {
+            break;
+        }
     }
 
     return expr;
@@ -440,6 +458,25 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
     }
 
     throw error("Expected expression but none was given", *previous_token());
+}
+
+std::unique_ptr<expression> recursive_descent_parser::finish_call(std::unique_ptr<expression> callee)
+{
+    std::vector<std::unique_ptr<expression>> arguments;
+    if (!check_type(token_type::right_paren_))
+    {
+        do
+        {
+            if (arguments.size() >= 255)
+            {
+                error("Cannot have 255 or more arguments in a function call", *peek_next_token());
+            }
+            arguments.push_back(expression_precedence());
+        } while (matches_token({ token_type::comma_ }));
+    }
+
+    token paren = consume_if_matches(token_type::right_paren_, "Expected ')' after function arguments");
+    return std::make_unique<call_expression>(std::move(callee), paren, std::move(arguments));
 }
 
 std::optional<token> recursive_descent_parser::advance_parser()
@@ -534,7 +571,6 @@ void recursive_descent_parser::synchronize()
             case token_type::for_:
             case token_type::if_:
             case token_type::while_:
-            case token_type::print_:
             case token_type::return_:
                 return;
             default:

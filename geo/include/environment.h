@@ -10,6 +10,7 @@ NAMESPACE_BEGIN(geo)
 
 class environment
 {
+friend class interpreter;
 public:
     environment(environment* enclosing_scope = nullptr);
 

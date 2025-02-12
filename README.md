@@ -101,12 +101,10 @@ The cmake --preset command relies on the VCPKG_ROOT environment variable. You mu
 [vcpkg github](https://github.com/microsoft/vcpkg)
 
 #### Steps
-To build one of these targets, from the Geo root folder, run:
-
 Clone the repository and compile the interpreter using your favorite C++ compiler. For example:
 ```
-git clone https://github.com/JumiElazul/geo.git
-cd geo
+git clone https://github.com/JumiElazul/Geo.git
+cd Geo
 ```
 
 Geo uses a CMakePresets.json file with the following targets:
@@ -137,15 +135,20 @@ cmake --build out/build/linux-debug
 
 Run the interpreter from the command line and pass in a Geo source file:
 
+```
 ./geo path/to/your/file.geo
+```
 
 Or, if you are developing, you can run the REPL:
 
+```
 ./geo
+```
 
 ## TODO
 
 - [ ] Implement user-defined functions.
+- [ ] Vastly improve testing.  Currently, on the lexer has proper tests written.
 - [ ] Add support for arrays, dictionaries, and other collection types.
 - [ ] Improve error messages across the lexer/parser/interpreter with more context and a stack trace.
 - [ ] Develop a module/import system to allow code organization across multiple files.
