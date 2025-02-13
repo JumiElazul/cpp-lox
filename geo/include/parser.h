@@ -4,6 +4,7 @@
 #include "tokens.h"
 #include "exceptions.h"
 #include "statements.h"
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -72,8 +73,8 @@ private:
     std::optional<token> peek_next_token() const;
     token consume_if_matches(token_type type, const std::string& msg);
     bool check_type(token_type type);
-    bool matches_token(const std::vector<token_type>& token_types);
-    void validate_binary_has_lhs(const std::vector<token_type>& types);
+    bool matches_token(std::initializer_list<token_type> token_types);
+    void validate_binary_has_lhs(std::initializer_list<token_type> types);
     geo_runtime_error error(const std::string& msg, const token& t);
     void synchronize();
 };

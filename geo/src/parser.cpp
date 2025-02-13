@@ -6,6 +6,7 @@
 #include "typedefs.h"
 #include "statements.h"
 #include <limits>
+#include <initializer_list>
 #include <optional>
 #include <vector>
 #include <memory>
@@ -519,7 +520,7 @@ bool recursive_descent_parser::check_type(token_type type)
     return peek_next_token()->type == type;
 }
 
-bool recursive_descent_parser::matches_token(const std::vector<token_type>& token_types)
+bool recursive_descent_parser::matches_token(std::initializer_list<token_type> token_types)
 {
     for (token_type type : token_types)
     {
@@ -532,7 +533,7 @@ bool recursive_descent_parser::matches_token(const std::vector<token_type>& toke
     return false;
 }
 
-void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_type>& types)
+void recursive_descent_parser::validate_binary_has_lhs(std::initializer_list<token_type> types)
 {
     if (matches_token(types))
     {
