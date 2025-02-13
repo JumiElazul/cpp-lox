@@ -420,16 +420,9 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
     // call -> primary ( "(" arguments? ")" )* ;
     std::unique_ptr<expression> expr = primary_precedence();
 
-    while (true)
+    while (matches_token({ token_type::left_paren_ }))
     {
-        if (matches_token({ token_type::left_paren_ }))
-        {
-            expr = finish_call(std::move(expr));
-        }
-        else
-        {
-            break;
-        }
+        expr = finish_call(std::move(expr));
     }
 
     return expr;
