@@ -25,10 +25,10 @@ std::string geo_type_tostr(geo_type type)
             return "bool";
         case geo_type::null_:
             return "null";
-        case geo_type::undefined_:
-            return "undefined";
         case geo_type::callable_:
             return "callable";
+        case geo_type::undefined_:
+            return "undefined";
         default:
             return "invalid";
     }

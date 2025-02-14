@@ -65,13 +65,55 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 
 std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 {
-    // declaration -> variable_declaration_statement | statement ;
+    // declaration -> func_declaration | variable_declaration_statement | statement ;
+    if (matches_token({ token_type::func_ }))
+    {
+        return create_function_declaration_statement("function");
+    }
+
     if (matches_token({ token_type::var_ }))
     {
         return create_variable_declaration_statement();
     }
 
     return statement_precedence();
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_function_declaration_statement(const std::string& kind)
+{
+    // func_declaration -> "func" function ;
+    token ident = consume_if_matches(token_type::identifier_, "Expected a " + kind + " name.");
+    consume_if_matches(token_type::left_paren_, "Expect '(' after " + kind + " name.");
+    std::vector<token> parameters;
+    if (!check_type(token_type::right_paren_))
+    {
+        do
+        {
+            if (parameters.size() > 255)
+                error("Cannot have 255 or more arguments in a function parameter declaration", *peek_next_token());
+
+            parameters.emplace_back(consume_if_matches(token_type::identifier_, "Expected a parameter indentifier"));
+        } while (matches_token({ token_type::comma_ }));
+    }
+    consume_if_matches(token_type::right_paren_, "Expect ')' after " + kind + " declaration.");
+    consume_if_matches(token_type::left_brace_, "Expect '{' before " + kind + " body.");
+
+    std::unique_ptr<statement> body = create_block_statement();
+    return std::make_unique<function_declaration_statement>(ident, parameters, std::move(body));
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration_statement()
+{
+    // variable_declaration -> "var" IDENTIFIER ( "=" expression )? ";" ;
+    token ident_name = consume_if_matches(token_type::identifier_, "Expected variable name after 'var'");
+
+    std::unique_ptr<expression> initializer_expr = nullptr;
+    if (matches_token({ token_type::equal_ }))
+    {
+        initializer_expr = expression_precedence();
+    }
+    consume_if_matches(token_type::semicolon_, "Expected ';' after variable declaration");
+    return std::make_unique<variable_declaration_statement>(ident_name, std::move(initializer_expr));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
@@ -97,20 +139,6 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
         return create_block_statement();
 
     return create_expression_statement();
-}
-
-std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration_statement()
-{
-    // variable_declaration -> "var" IDENTIFIER ( "=" expression )? ";" ;
-    token ident_name = consume_if_matches(token_type::identifier_, "Expected variable name after 'var'");
-
-    std::unique_ptr<expression> initializer_expr = nullptr;
-    if (matches_token({ token_type::equal_ }))
-    {
-        initializer_expr = expression_precedence();
-    }
-    consume_if_matches(token_type::semicolon_, "Expected ';' after variable declaration");
-    return std::make_unique<variable_declaration_statement>(ident_name, std::move(initializer_expr));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_print_statement()

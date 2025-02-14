@@ -13,7 +13,7 @@ struct undefined
 };
 
 class geo_callable;
-using literal_value = std::variant<double, bool, std::string, std::monostate, undefined, geo_callable*>;
+using literal_value = std::variant<double, bool, std::string, std::monostate, geo_callable*, undefined>;
 
 enum class geo_type
 {
@@ -21,8 +21,8 @@ enum class geo_type
     bool_,
     string_,
     null_,
-    undefined_,
     callable_,
+    undefined_,
 
     invalid_,
 };

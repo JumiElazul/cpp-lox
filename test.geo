@@ -1,34 +1,14 @@
-var iter = 10;
-
-for (var i = 0; i < iter; ++i)
+func my_func(a)
 {
-    if (i == 2)
-        continue;
-
-    if (i == 8)
-        break;
-
-    print(i);
+    print(a);
 }
 
-for (var i = 0; i < iter; ++i)
+func factorial(n)
 {
-    if (i == 2)
-        continue;
+    if (n == 1)
+        print(1);
 
-    if (i == 8)
-        break;
-
-    print(i);
+    print(factorial(n - 1));
 }
 
-var x = 10;
-while (x > 0)
-{
-    print(x);
-    --x;
-}
-
-print("hello");
-print(iter);
-print(i);
+factorial(5);

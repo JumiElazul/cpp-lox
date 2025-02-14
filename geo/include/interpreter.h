@@ -18,6 +18,8 @@ class environment;
 
 class interpreter final : public statement_visitor, public expression_visitor<literal_value>
 {
+    friend class geo_function;
+
     struct geo_loop_break { };
     struct geo_loop_continue { };
 
@@ -26,17 +28,20 @@ public:
     ~interpreter();
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
+    [[nodiscard]] environment* global_environment() const;
 
 private:
     std::unique_ptr<environment> _globals;
-    environment* _env;
+    environment* _curr_env;
     console_io* _io;
 
     void instantiate_native_funcs();
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
+    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* new_environment);
 
+    virtual void visit_function_declaration_statement(function_declaration_statement& stmt) override;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
     virtual void visit_print_statement(print_statement& stmt) override;
     virtual void visit_if_statement(if_statement& stmt) override;
