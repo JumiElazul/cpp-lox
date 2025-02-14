@@ -129,6 +129,18 @@ public:
     virtual void accept_visitor(statement_visitor& v) override;
 };
 
+class return_statement final : public statement
+{
+public:
+    token keyword;
+    std::unique_ptr<expression> return_expr;
+
+    return_statement(const token& keyword_, std::unique_ptr<expression> return_expr_);
+    ~return_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
 class block_statement final : public statement
 {
 public:

@@ -126,7 +126,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 {
-    // statement -> if_statement | while_statement | for_statement | break | continue | block | expression_statement ;
+    // statement -> if_statement | while_statement | for_statement | break | continue | return | block | expression_statement ;
 
     if (matches_token({ token_type::if_ }))
         return create_if_statement();
@@ -142,6 +142,9 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 
     if (matches_token({ token_type::continue_ }))
         return create_continue_statement();
+
+    if (matches_token({ token_type::return_ }))
+        return create_return_statement();
 
     if (matches_token({ token_type::left_brace_ }))
         return create_block_statement();
@@ -226,6 +229,20 @@ std::unique_ptr<statement> recursive_descent_parser::create_continue_statement()
 {
     token continue_token = consume_if_matches(token_type::semicolon_, "Expected ';' after 'continue'");
     return std::make_unique<continue_statement>(continue_token);
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_return_statement()
+{
+    token keyword = *previous_token();
+
+    std::unique_ptr<expression> return_expr = nullptr;
+    if (!check_type(token_type::semicolon_))
+    {
+        return_expr = expression_precedence();
+    }
+
+    consume_if_matches(token_type::semicolon_, "Expected ';' after return statement");
+    return std::make_unique<return_statement>(keyword, std::move(return_expr));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_block_statement()

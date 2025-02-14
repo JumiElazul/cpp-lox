@@ -49,6 +49,7 @@ private:
     std::unique_ptr<statement> create_for_statement();
     std::unique_ptr<statement> create_break_statement();
     std::unique_ptr<statement> create_continue_statement();
+    std::unique_ptr<statement> create_return_statement();
     std::unique_ptr<statement> create_block_statement();
     std::unique_ptr<statement> create_expression_statement();
 

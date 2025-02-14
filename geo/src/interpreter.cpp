@@ -56,6 +56,10 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
             evaluate(stmt);
         }
     }
+    catch (const geo_function_return& e)
+    {
+        _io->err() << "Statement 'return' not allowed outside of function body\n";
+    }
     catch (const geo_runtime_error& e)
     {
         _io->err() << e.what() << '\n';
@@ -254,6 +258,16 @@ void interpreter::visit_break_statement(break_statement& stmt)
 void interpreter::visit_continue_statement(continue_statement& stmt)
 {
     throw geo_loop_continue();
+}
+
+void interpreter::visit_return_statement(return_statement& stmt)
+{
+    literal_value value = std::monostate{};
+
+    if (stmt.return_expr != nullptr)
+        value = evaluate(stmt.return_expr);
+
+    throw geo_function_return(value);
 }
 
 void interpreter::visit_block_statement(block_statement& stmt)

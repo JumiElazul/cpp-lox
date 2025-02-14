@@ -20,8 +20,14 @@ class interpreter final : public statement_visitor, public expression_visitor<li
 {
     friend class geo_function;
 
-    struct geo_loop_break { };
-    struct geo_loop_continue { };
+    // These are custom exception classes that are thrown by the interpreter.  These are not useful
+    // to users of Geo, other than the sense that they define the inner worksing of the interpreter.
+    struct geo_loop_break      { };
+    struct geo_loop_continue   { };
+    struct geo_function_return
+    {
+        literal_value return_val;
+    };
 
     class environment_scope_guard
     {
@@ -61,6 +67,7 @@ private:
     virtual void visit_for_statement(for_statement& stmt) override;
     virtual void visit_break_statement(break_statement& stmt) override;
     virtual void visit_continue_statement(continue_statement& stmt) override;
+    virtual void visit_return_statement(return_statement& stmt) override;
     virtual void visit_block_statement(block_statement& stmt) override;
     virtual void visit_expression_statement(expression_statement& stmt) override;
 

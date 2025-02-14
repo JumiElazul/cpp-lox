@@ -22,6 +22,7 @@ public:
     virtual void visit_for_statement(for_statement& stmt) = 0;
     virtual void visit_break_statement(break_statement& stmt) = 0;
     virtual void visit_continue_statement(continue_statement& stmt) = 0;
+    virtual void visit_return_statement(return_statement& stmt) = 0;
     virtual void visit_block_statement(block_statement& stmt) = 0;
     virtual void visit_expression_statement(expression_statement& stmt) = 0;
 };

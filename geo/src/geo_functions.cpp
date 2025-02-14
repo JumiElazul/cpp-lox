@@ -28,7 +28,14 @@ literal_value geo_function::call(interpreter& i, const std::vector<literal_value
     if (!body_ptr)
         throw geo_runtime_error("Function body is not a block statement");
 
-    i.execute_block(body_ptr->statements, std::move(function_environment));
+    try
+    {
+        i.execute_block(body_ptr->statements, std::move(function_environment));
+    }
+    catch (const interpreter::geo_function_return& ret)
+    {
+        return ret.return_val;
+    }
     return std::monostate{};
 }
 
