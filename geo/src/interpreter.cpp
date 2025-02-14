@@ -32,6 +32,12 @@ interpreter::interpreter(console_io* io)
     , _curr_env(_globals.get())
     , _io(io)
 {
+    auto instantiate_native_funcs = [&]() {
+        _globals->define("clock", new clock());
+        _globals->define("print", new print(_io));
+        _globals->define("input", new input(_io));
+        _globals->define("random", new random());
+    };
     instantiate_native_funcs();
 }
 
@@ -52,14 +58,6 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
 
 environment* interpreter::global_environment() const { return _globals.get(); }
 environment* interpreter::current_environment() const { return _curr_env; }
-
-void interpreter::instantiate_native_funcs()
-{
-    _globals->define("clock", new clock());
-    _globals->define("print", new print(_io));
-    _globals->define("input", new input(_io));
-    _globals->define("random", new random());
-}
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
 {

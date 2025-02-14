@@ -46,8 +46,6 @@ private:
     environment* _curr_env;
     console_io* _io;
 
-    void instantiate_native_funcs();
-
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
     void execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* env = nullptr);
