@@ -54,8 +54,6 @@ private:
 
     std::unique_ptr<expression> expression_precedence();
     std::unique_ptr<expression> assignment_precedence();
-    std::unique_ptr<expression> comma_precedence();
-    std::unique_ptr<expression> ternary_precedence();
     std::unique_ptr<expression> logic_or_precedence();
     std::unique_ptr<expression> logic_and_precedence();
     std::unique_ptr<expression> equality_precedence();

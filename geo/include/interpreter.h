@@ -66,7 +66,6 @@ private:
 
     virtual literal_value visit_unary(unary_expression& expr) override;
     virtual literal_value visit_binary(binary_expression& expr) override;
-    virtual literal_value visit_ternary(ternary_expression& expr) override;
     virtual literal_value visit_literal(literal_expression& expr) override;
     virtual literal_value visit_grouping(grouping_expression& expr) override;
     virtual literal_value visit_variable(variable_expression& expr) override;

@@ -261,8 +261,8 @@ std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 {
-    // assignment -> ( IDENTIFIER "=" assignment ) | comma ;
-    std::unique_ptr<expression> expr = comma_precedence();
+    // assignment -> ( IDENTIFIER "=" assignment ) | logic_or ;
+    std::unique_ptr<expression> expr = logic_or_precedence();
 
     if (matches_token({ token_type::equal_ }))
     {
@@ -281,42 +281,6 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 
         // R-value, invalid
         throw error("Invalid assignment target", equals);
-    }
-
-    return expr;
-}
-
-std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
-{
-    // comma -> ternary ( "," ternary )* ;
-    validate_binary_has_lhs({ token_type::comma_ });
-
-    std::unique_ptr<expression> expr = ternary_precedence();
-
-    while (matches_token({ token_type::comma_ }))
-    {
-        token oper = *previous_token();
-        std::unique_ptr<expression> rhs = ternary_precedence();
-        expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
-    }
-
-    return expr;
-}
-
-std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
-{
-    // ternary -> logic_or ( "?" expression ":" ternary )? ;
-    validate_binary_has_lhs({ token_type::question_ });
-
-    std::unique_ptr<expression> expr = logic_or_precedence();
-
-    if (matches_token({ token_type::question_ }))
-    {
-        token oper = *previous_token();
-        std::unique_ptr<expression> then_expr = expression_precedence();
-        consume_if_matches(token_type::colon_, "Expected ':' after ternary expression.");
-        std::unique_ptr<expression> else_expr = expression_precedence();
-        expr = std::make_unique<ternary_expression>(std::move(expr), oper, std::move(then_expr), std::move(else_expr));
     }
 
     return expr;

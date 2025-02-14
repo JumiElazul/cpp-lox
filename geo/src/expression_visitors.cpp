@@ -22,15 +22,6 @@ std::string string_visitor::visit_binary(binary_expression& expr)
     return lhs_str + " " + expr.oper.lexeme + " " + rhs_str;
 }
 
-std::string string_visitor::visit_ternary(ternary_expression& expr)
-{
-    std::string lhs_str = expr.expr_lhs->accept_visitor(*this);
-    std::string then_str = expr.expr_then->accept_visitor(*this);
-    std::string else_str = expr.expr_else->accept_visitor(*this);
-
-    return lhs_str + " " + expr.oper.lexeme + " " + then_str + " : " + else_str;
-}
-
 std::string string_visitor::visit_literal(literal_expression& expr)
 {
     return literal_tostr(expr.literal_val);

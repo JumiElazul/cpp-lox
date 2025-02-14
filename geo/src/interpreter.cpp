@@ -458,23 +458,6 @@ literal_value interpreter::visit_binary(binary_expression& expr)
     throw type_error("Unknown operator in handle_binary()", oper);
 }
 
-literal_value interpreter::visit_ternary(ternary_expression& expr)
-{
-    literal_value if_literal = evaluate(expr.expr_lhs);
-    literal_value then_literal = evaluate(expr.expr_then);
-    literal_value else_literal = evaluate(expr.expr_else);
-
-    geo_type if_type = literal_to_geo_type(if_literal);
-    const token& oper = expr.oper;
-
-    if (if_type != geo_type::bool_)
-    {
-        throw geo_runtime_error("Cannot convert lhs of ternary expression to bool", oper);
-    }
-
-    return std::get<bool>(if_literal) ? then_literal : else_literal;
-}
-
 literal_value interpreter::visit_literal(literal_expression& expr)
 {
     return expr.literal_val;

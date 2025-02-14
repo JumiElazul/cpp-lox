@@ -15,13 +15,6 @@ binary_expression::binary_expression(std::unique_ptr<expression> lhs, token oper
     , oper(oper)
     , expr_rhs(std::move(rhs)) { }
 
-ternary_expression::ternary_expression(std::unique_ptr<expression> lhs, token oper,
-        std::unique_ptr<expression> expr_then, std::unique_ptr<expression> expr_else)
-    : expr_lhs(std::move(lhs))
-    , oper(oper)
-    , expr_then(std::move(expr_then))
-    , expr_else(std::move(expr_else)) { }
-
 literal_expression::literal_expression(const literal_value& literal)
     : literal_val(literal) { }
 
@@ -55,7 +48,6 @@ call_expression::call_expression(std::unique_ptr<expression> callee_, token pare
 
 literal_value unary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_unary(*this); }
 literal_value binary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_binary(*this); }
-literal_value ternary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_ternary(*this); }
 literal_value literal_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_literal(*this); }
 literal_value grouping_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_grouping(*this); }
 literal_value variable_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_variable(*this); }
@@ -67,7 +59,6 @@ literal_value call_expression::accept_visitor(expression_visitor<literal_value>&
 
 void unary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_unary(*this); }
 void binary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_binary(*this); }
-void ternary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_ternary(*this); }
 void literal_expression::accept_visitor(expression_visitor<void>& v) { v.visit_literal(*this); }
 void grouping_expression::accept_visitor(expression_visitor<void>& v) { v.visit_grouping(*this); }
 void variable_expression::accept_visitor(expression_visitor<void>& v) { v.visit_variable(*this); }
@@ -79,7 +70,6 @@ void call_expression::accept_visitor(expression_visitor<void>& v) { v.visit_call
 
 std::string unary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_unary(*this); }
 std::string binary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_binary(*this); }
-std::string ternary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_ternary(*this); }
 std::string literal_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_literal(*this); }
 std::string grouping_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_grouping(*this); }
 std::string variable_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_variable(*this); }
