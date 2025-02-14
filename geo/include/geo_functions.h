@@ -5,6 +5,7 @@
 #include "geo_types.h"
 #include "environment.h"
 #include <vector>
+#include <memory>
 
 NAMESPACE_BEGIN(geo)
 
@@ -23,9 +24,9 @@ public:
 class geo_function : public geo_callable
 {
 public:
-    function_declaration_statement* declaration;
+    std::unique_ptr<function_declaration_statement> declaration;
 
-    geo_function(function_declaration_statement* declaration_);
+    geo_function(std::unique_ptr<function_declaration_statement> declaration_);
     virtual ~geo_function() = default;
     virtual int arity() override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;

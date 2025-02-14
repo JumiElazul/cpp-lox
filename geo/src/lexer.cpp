@@ -53,6 +53,8 @@ const std::unordered_map<std::string, token_type> lexer::reserved_keyword_lookup
     { "while",    token_type::while_    },
     { "break",    token_type::break_    },
     { "continue", token_type::continue_ },
+
+    { "debug",    token_type::debug_    },
 };
 
 lexer::lexer(const std::string& input, console_io* io)

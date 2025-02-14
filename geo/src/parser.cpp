@@ -66,6 +66,14 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 {
     // declaration -> func_declaration | variable_declaration_statement | statement ;
+
+    // handle our debug_ token
+    if (matches_token({ token_type::debug_ }))
+    {
+        consume_if_matches(token_type::semicolon_, "Expected ';' after debug statement");
+        return std::make_unique<debug_statement>();
+    }
+
     if (matches_token({ token_type::func_ }))
     {
         return create_function_declaration_statement("function");

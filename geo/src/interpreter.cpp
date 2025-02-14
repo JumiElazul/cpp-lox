@@ -103,9 +103,57 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
     }
 }
 
+void interpreter::visit_debug_statement(debug_statement& stmt)
+{
+    _io->err() << "DEBUG INFO: " << '\n';
+    environment* env = _curr_env;
+
+    auto get_root_scope_level = [this](auto& self, environment* env) -> int {
+        if (env == _globals.get() || env == nullptr)
+            return 0;
+        return 1 + self(self, env->_enclosing_scope);
+    };
+
+    auto indent_print = [this](int level, char c) {
+        for (int i = 0; i < level * 4; ++i)
+        {
+            _io->err() << c;
+        }
+    };
+
+    int scope_level = get_root_scope_level(get_root_scope_level, env);
+
+    while (env != nullptr)
+    {
+        indent_print(scope_level, ' ');
+
+        if (env == _globals.get()) _io->err() << "[GLOBAL SCOPE]";
+        else _io->err() << "[LOCAL SCOPE]";
+        _io->err() << " : Level " << scope_level;
+        _io->err() << '\n';
+
+        for (const auto& [name, value] : env->_variables)
+        {
+            indent_print(scope_level, ' ');
+            _io->err() << name << " = " << literal_tostr(value) << '\n';
+        }
+        env = env->_enclosing_scope;
+        indent_print(scope_level * 4, '-');
+        _io->err() << '\n';
+
+        --scope_level;
+    }
+}
+
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
 {
-    geo_function* func = new geo_function(&stmt);
+    // We need to create a unique_ptr for this function_declaration_statement because its lifetime is
+    // currently tied to the std::vector<statement> in the main loop. This was fine when reading a source
+    // file because everything is parsed in one go.  However, in REPL mode, this means that when parsing
+    // a line like "func my_func(a) { print(a); }", and then calling my_func(1), the statement will
+    // already be destroyed.
+    std::unique_ptr<function_declaration_statement> statement = std::make_unique<function_declaration_statement>(stmt.ident_name, stmt.params, std::move(stmt.body));
+    geo_function* func = new geo_function(std::move(statement));
     _curr_env->define(stmt.ident_name.lexeme, func);
 }
 

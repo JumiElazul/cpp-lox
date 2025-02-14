@@ -51,6 +51,8 @@ private:
     void evaluate(const std::unique_ptr<statement>& stmt);
     void execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::unique_ptr<environment> new_environment = nullptr);
 
+    virtual void visit_debug_statement(debug_statement& stmt) override;
+
     virtual void visit_function_declaration_statement(function_declaration_statement& stmt) override;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
     virtual void visit_print_statement(print_statement& stmt) override;

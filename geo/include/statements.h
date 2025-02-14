@@ -18,6 +18,19 @@ public:
     virtual void accept_visitor(statement_visitor& v) = 0;
 };
 
+// --------------------------------------------------
+// DEBUG STATEMENT
+class debug_statement final : public statement
+{
+public:
+    debug_statement();
+    ~debug_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+// DEBUG STATEMENT
+// --------------------------------------------------
+
 class function_declaration_statement final : public statement
 {
 public:

@@ -4,14 +4,15 @@
 #include "statements.h"
 #include <cassert>
 #include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
 #include <random>
 
 NAMESPACE_BEGIN(geo)
 
-geo_function::geo_function(function_declaration_statement* declaration_)
-    : declaration(declaration_) { }
+geo_function::geo_function(std::unique_ptr<function_declaration_statement> declaration_)
+    : declaration(std::move(declaration_)) { }
 
 int geo_function::arity() { return static_cast<int>(declaration->params.size()); }
 std::string geo_function::to_string() const { return "<user_func " + declaration->ident_name.lexeme + ">"; }
