@@ -59,6 +59,8 @@ const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::eof_,           "eof"               },
     { token_type::ignore_,        "ignore"            },
     { token_type::invalid_,       "invalid"           },
+
+    { token_type::debug_,         "debug"             },
 };
 
 std::string debug_to_string(const token& t)

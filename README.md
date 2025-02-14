@@ -38,13 +38,6 @@ print(10 > 5);          // prints true
 print("foo" == "bar");  // prints false
 print(null == null);    // prints true
 ```
-#### Ternary Operator
-A compact conditional operator is available to choose between two expressions.
-```
-var a = 10;
-var b = 20;
-print((a > b) ? a : b);  // prints 20
-```
 #### Control Flow Statements
 Geo supports control flows with if/else, while, and for loops.
 ```

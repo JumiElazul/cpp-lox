@@ -26,7 +26,6 @@ public:
     virtual ~expression_visitor() = default;
     virtual T visit_unary(unary_expression& expr) = 0;
     virtual T visit_binary(binary_expression& expr) = 0;
-    virtual T visit_ternary(ternary_expression& expr) = 0;
     virtual T visit_literal(literal_expression& expr) = 0;
     virtual T visit_grouping(grouping_expression& expr) = 0;
     virtual T visit_variable(variable_expression& expr) = 0;
@@ -42,7 +41,6 @@ class string_visitor final : public expression_visitor<std::string>
 public:
     virtual std::string visit_unary(unary_expression& expr) override;
     virtual std::string visit_binary(binary_expression& expr) override;
-    virtual std::string visit_ternary(ternary_expression& expr) override;
     virtual std::string visit_literal(literal_expression& expr) override;
     virtual std::string visit_grouping(grouping_expression& expr) override;
     virtual std::string visit_variable(variable_expression& expr) override;

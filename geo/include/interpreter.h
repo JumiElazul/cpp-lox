@@ -26,11 +26,12 @@ class interpreter final : public statement_visitor, public expression_visitor<li
     class environment_scope_guard
     {
     public:
-        environment_scope_guard(environment*& interpreter_curr_env, environment* new_env);
+        environment_scope_guard(environment*& interpreter_curr_env, std::unique_ptr<environment> new_env = nullptr);
         ~environment_scope_guard();
 
     private:
         environment*& _interpreter_curr_env;
+        std::unique_ptr<environment> _new_env;
         environment* _prev_env;
     };
 
@@ -48,7 +49,9 @@ private:
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
-    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* env = nullptr);
+    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::unique_ptr<environment> new_environment = nullptr);
+
+    virtual void visit_debug_statement(debug_statement& stmt) override;
 
     virtual void visit_function_declaration_statement(function_declaration_statement& stmt) override;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
@@ -63,7 +66,6 @@ private:
 
     virtual literal_value visit_unary(unary_expression& expr) override;
     virtual literal_value visit_binary(binary_expression& expr) override;
-    virtual literal_value visit_ternary(ternary_expression& expr) override;
     virtual literal_value visit_literal(literal_expression& expr) override;
     virtual literal_value visit_grouping(grouping_expression& expr) override;
     virtual literal_value visit_variable(variable_expression& expr) override;

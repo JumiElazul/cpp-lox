@@ -48,21 +48,6 @@ public:
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
 };
 
-class ternary_expression : public expression
-{
-public:
-    std::unique_ptr<expression> expr_lhs;
-    token oper;
-    std::unique_ptr<expression> expr_then;
-    std::unique_ptr<expression> expr_else;
-
-    ternary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> expr_then, std::unique_ptr<expression> expr_else);
-
-    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
-    virtual void accept_visitor(expression_visitor<void>& v) override;
-    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
-};
-
 class literal_expression : public expression
 {
 public:

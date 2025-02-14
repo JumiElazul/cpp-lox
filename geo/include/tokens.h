@@ -39,6 +39,8 @@ enum class token_type
     eof_,
     ignore_,
     invalid_,
+
+    debug_
 };
 
 using coord = std::pair<uint32, uint32>;
