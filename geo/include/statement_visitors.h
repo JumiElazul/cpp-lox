@@ -5,10 +5,13 @@
 
 NAMESPACE_BEGIN(geo)
 
+class environment;
+
 class statement_visitor
 {
 public:
     virtual ~statement_visitor() = default;
+    virtual void visit_function_declaration_statement(function_declaration_statement& stmt) = 0;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) = 0;
     virtual void visit_print_statement(print_statement& stmt) = 0;
     virtual void visit_if_statement(if_statement& stmt) = 0;

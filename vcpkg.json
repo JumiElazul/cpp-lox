@@ -1,6 +1,6 @@
 {
   "name": "geo",
-  "version-string": "0.0.11",
+  "version-string": "0.0.12",
   "dependencies": [
       "spdlog",
       "catch2"

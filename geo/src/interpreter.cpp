@@ -15,23 +15,30 @@
 
 NAMESPACE_BEGIN(geo)
 
-interpreter::interpreter(console_io* io)
-    : _globals(std::make_unique<environment>())
-    , _env(_globals.get())
-    , _io(io)
+interpreter::environment_scope_guard::environment_scope_guard(environment*& interpreter_curr_env, environment* new_env)
+    : _interpreter_curr_env(interpreter_curr_env)
+    , _prev_env(interpreter_curr_env)
 {
-    instantiate_native_funcs();
+    _interpreter_curr_env = new_env;
 }
 
-interpreter::~interpreter()
+interpreter::environment_scope_guard::~environment_scope_guard()
 {
-    for (const auto& [name, value] : _globals->_variables)
-    {
-        if (literal_to_geo_type(value) == geo_type::callable_)
-        {
-            delete std::get<geo_callable*>(value);
-        }
-    }
+    _interpreter_curr_env = _prev_env;
+}
+
+interpreter::interpreter(console_io* io)
+    : _globals(std::make_unique<environment>())
+    , _curr_env(_globals.get())
+    , _io(io)
+{
+    auto instantiate_native_funcs = [&]() {
+        _globals->define("clock", new clock());
+        _globals->define("print", new print(_io));
+        _globals->define("input", new input(_io));
+        _globals->define("random", new random());
+    };
+    instantiate_native_funcs();
 }
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
@@ -49,12 +56,8 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     }
 }
 
-void interpreter::instantiate_native_funcs()
-{
-    _globals->define("clock", new clock());
-    _globals->define("print", new print(_io));
-    _globals->define("input", new input(_io));
-}
+environment* interpreter::global_environment() const { return _globals.get(); }
+environment* interpreter::current_environment() const { return _curr_env; }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
 {
@@ -66,16 +69,49 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
     stmt->accept_visitor(*this);
 }
 
+void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* env)
+{
+    environment* parent = env ? env : _curr_env;
+    auto new_environment = std::make_unique<environment>(parent);
+    environment_scope_guard guard(_curr_env, new_environment.get());
+
+    try
+    {
+        for (const auto& s : statements)
+        {
+            evaluate(s);
+        }
+    }
+    catch (const geo_loop_break&)
+    {
+        throw;
+    }
+    catch (const geo_loop_continue&)
+    {
+        throw;
+    }
+    catch (const geo_runtime_error& e)
+    {
+        _io->err() << e.what() << '\n';
+    }
+}
+
+void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
+{
+    geo_function* func = new geo_function(&stmt);
+    _curr_env->define(stmt.ident_name.lexeme, func);
+}
+
 void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
 {
     if (stmt.initializer_expr)
     {
         literal_value literal = evaluate(stmt.initializer_expr);
-        _env->define(stmt.ident_name.lexeme, literal);
+        _curr_env->define(stmt.ident_name.lexeme, literal);
     }
     else
     {
-        _env->define(stmt.ident_name.lexeme, undefined{});
+        _curr_env->define(stmt.ident_name.lexeme, undefined{});
     }
 }
 
@@ -122,9 +158,8 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    environment* previous_env = _env;
-    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
-    _env = block_env.get();
+    auto new_environment = std::make_unique<environment>(_curr_env);
+    environment_scope_guard guard(_curr_env, new_environment.get());
 
     if (stmt.initializer)
     {
@@ -152,8 +187,6 @@ void interpreter::visit_for_statement(for_statement& stmt)
         if (stmt.increment)
             evaluate(stmt.increment);
     }
-
-    _env = previous_env;
 }
 
 void interpreter::visit_break_statement(break_statement& stmt)
@@ -168,33 +201,7 @@ void interpreter::visit_continue_statement(continue_statement& stmt)
 
 void interpreter::visit_block_statement(block_statement& stmt)
 {
-    environment* previous_env = _env;
-    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
-    _env = block_env.get();
-
-    try
-    {
-        for (const auto& s : stmt.statements)
-        {
-            evaluate(s);
-        }
-    }
-    catch (const geo_loop_break&)
-    {
-        _env = std::move(previous_env);
-        throw;
-    }
-    catch (const geo_loop_continue&)
-    {
-        _env = std::move(previous_env);
-        throw;
-    }
-    catch (const geo_runtime_error& e)
-    {
-        _io->err() << e.what() << '\n';
-    }
-
-    _env = previous_env;
+    execute_block(stmt.statements);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)
@@ -233,7 +240,7 @@ literal_value interpreter::visit_unary(unary_expression& expr)
         if (!var_expr)
             throw type_error("Unary prefix operator '" + oper + "' requires a variable operand", expr.oper);
 
-        literal_value literal = _env->get(var_expr->ident_name);
+        literal_value literal = _curr_env->get(var_expr->ident_name);
         geo_type type = literal_to_geo_type(literal);
 
         if (type != geo_type::number_)
@@ -246,7 +253,7 @@ literal_value interpreter::visit_unary(unary_expression& expr)
         else if (expr.oper.type == token_type::minus_minus_)
             --value;
 
-        _env->assign(var_expr->ident_name.lexeme, value);
+        _curr_env->assign(var_expr->ident_name.lexeme, value);
         return value;
     }
 
@@ -423,13 +430,13 @@ literal_value interpreter::visit_grouping(grouping_expression& expr)
 
 literal_value interpreter::visit_variable(variable_expression& expr)
 {
-    return _env->get(expr.ident_name);
+    return _curr_env->get(expr.ident_name);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = evaluate(expr.initializer_expr);
-    _env->assign(expr.ident_name.lexeme, literal);
+    _curr_env->assign(expr.ident_name.lexeme, literal);
     return literal;
 }
 
@@ -457,7 +464,7 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     if (!var_expr)
         throw type_error("Postfix operator '" + oper + "' requires a variable operand", expr.oper);
 
-    literal_value literal = _env->get(var_expr->ident_name);
+    literal_value literal = _curr_env->get(var_expr->ident_name);
     geo_type type = literal_to_geo_type(literal);
 
     if (type != geo_type::number_)
@@ -471,7 +478,7 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     else if (expr.oper.type == token_type::minus_minus_)
         new_val--;
 
-    _env->assign(var_expr->ident_name.lexeme, new_val);
+    _curr_env->assign(var_expr->ident_name.lexeme, new_val);
     return value;
 }
 

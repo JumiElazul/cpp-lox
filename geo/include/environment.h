@@ -13,6 +13,7 @@ class environment
 friend class interpreter;
 public:
     environment(environment* enclosing_scope = nullptr);
+    ~environment();
 
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);

@@ -1,34 +1,40 @@
-var iter = 10;
-
-for (var i = 0; i < iter; ++i)
+func count(a)
 {
-    if (i == 2)
-        continue;
-
-    if (i == 8)
-        break;
-
-    print(i);
+    if (a == 1)
+    {
+        print(1);
+    }
+    else
+    {
+        print(a);
+        count(a - 1);
+    }
 }
 
-for (var i = 0; i < iter; ++i)
+func my_func(a)
 {
-    if (i == 2)
-        continue;
-
-    if (i == 8)
-        break;
-
-    print(i);
+    print(a);
 }
 
-var x = 10;
-while (x > 0)
+func outer()
 {
-    print(x);
-    --x;
+    print("outer");
+    func inner()
+    {
+        print("inner");
+    }
+    inner();
+    print("outer");
 }
 
-print("hello");
-print(iter);
-print(i);
+count(5);
+my_func("hello");
+outer();
+
+{
+    var b = 1;
+    print(b);
+}
+
+print(b);
+

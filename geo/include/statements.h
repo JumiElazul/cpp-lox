@@ -9,12 +9,26 @@
 NAMESPACE_BEGIN(geo)
 
 class statement_visitor;
+class block_statement;
 
 class statement
 {
 public:
     virtual ~statement() = default;
     virtual void accept_visitor(statement_visitor& v) = 0;
+};
+
+class function_declaration_statement final : public statement
+{
+public:
+    token ident_name;
+    std::vector<token> params;
+    std::unique_ptr<statement> body;
+
+    function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::unique_ptr<statement>&& body_);
+    ~function_declaration_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
 };
 
 class variable_declaration_statement final : public statement
