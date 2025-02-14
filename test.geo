@@ -31,4 +31,10 @@ count(5);
 my_func("hello");
 outer();
 
+{
+    var b = 1;
+    print(b);
+}
+
+print(b);
 

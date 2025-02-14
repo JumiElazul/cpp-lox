@@ -1,6 +1,6 @@
 # Geo Programming Language
 
-Geo is a simple, dynamically-typed programming language written in C++—inspired by Robert Nystrom's Crafting Interpreters. It is basically the book's version of lox, but with some extra features.  Geo uses a recursive descent parser to proceshttps://github.com/jbt/markdown-editors code.
+Geo is a simple, dynamically-typed programming language written in C++—inspired by Robert Nystrom's Crafting Interpreters. It is basically the book's version of lox, but with some extra features.  Geo uses a recursive descent parser to process code.
 
 Please note that the language is being actively worked on, and many things, including syntax are subject to change.
 
