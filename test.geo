@@ -11,4 +11,24 @@ func count(a)
     }
 }
 
+func my_func(a)
+{
+    print(a);
+}
+
+func outer()
+{
+    print("outer");
+    func inner()
+    {
+        print("inner");
+    }
+    inner();
+    print("outer");
+}
+
 count(5);
+my_func("hello");
+outer();
+
+

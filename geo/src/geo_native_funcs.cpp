@@ -25,7 +25,7 @@ literal_value geo_function::call(interpreter& i, const std::vector<literal_value
 
     block_statement* body_ptr = dynamic_cast<block_statement*>(declaration->body.get());
     if (!body_ptr)
-        assert(false);
+        throw geo_runtime_error("Function body is not a block statement");
 
     i.execute_block(body_ptr->statements, env.get());
     return std::monostate{};

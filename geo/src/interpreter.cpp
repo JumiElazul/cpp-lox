@@ -15,6 +15,18 @@
 
 NAMESPACE_BEGIN(geo)
 
+interpreter::environment_scope_guard::environment_scope_guard(environment*& interpreter_curr_env, environment* new_env)
+    : _interpreter_curr_env(interpreter_curr_env)
+    , _prev_env(interpreter_curr_env)
+{
+    _interpreter_curr_env = new_env;
+}
+
+interpreter::environment_scope_guard::~environment_scope_guard()
+{
+    _interpreter_curr_env = _prev_env;
+}
+
 interpreter::interpreter(console_io* io)
     : _globals(std::make_unique<environment>())
     , _curr_env(_globals.get())
@@ -59,10 +71,11 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
     stmt->accept_visitor(*this);
 }
 
-void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* new_environment)
+void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* env)
 {
-    environment* previous_env = _curr_env;
-    _curr_env = new_environment;
+    environment* parent = env ? env : _curr_env;
+    auto new_environment = std::make_unique<environment>(parent);
+    environment_scope_guard guard(_curr_env, new_environment.get());
 
     try
     {
@@ -73,20 +86,16 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
     }
     catch (const geo_loop_break&)
     {
-        _curr_env = std::move(previous_env);
         throw;
     }
     catch (const geo_loop_continue&)
     {
-        _curr_env = std::move(previous_env);
         throw;
     }
     catch (const geo_runtime_error& e)
     {
         _io->err() << e.what() << '\n';
     }
-
-    _curr_env = previous_env;
 }
 
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
@@ -151,9 +160,8 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    environment* previous_env = _curr_env;
-    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
-    _curr_env = block_env.get();
+    auto new_environment = std::make_unique<environment>(_curr_env);
+    environment_scope_guard guard(_curr_env, new_environment.get());
 
     if (stmt.initializer)
     {
@@ -181,8 +189,6 @@ void interpreter::visit_for_statement(for_statement& stmt)
         if (stmt.increment)
             evaluate(stmt.increment);
     }
-
-    _curr_env = previous_env;
 }
 
 void interpreter::visit_break_statement(break_statement& stmt)
@@ -197,8 +203,7 @@ void interpreter::visit_continue_statement(continue_statement& stmt)
 
 void interpreter::visit_block_statement(block_statement& stmt)
 {
-    std::unique_ptr<environment> new_environment = std::make_unique<environment>(_curr_env);
-    execute_block(stmt.statements, new_environment.get());
+    execute_block(stmt.statements);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)
