@@ -25,10 +25,10 @@ class interpreter final : public statement_visitor, public expression_visitor<li
 
 public:
     interpreter(console_io* io);
-    ~interpreter();
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
     [[nodiscard]] environment* global_environment() const;
+    [[nodiscard]] environment* current_environment() const;
 
 private:
     std::unique_ptr<environment> _globals;

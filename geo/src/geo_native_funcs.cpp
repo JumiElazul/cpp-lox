@@ -18,7 +18,7 @@ std::string geo_function::to_string() const { return "<user_func " + declaration
 
 literal_value geo_function::call(interpreter& i, const std::vector<literal_value>& args)
 {
-    std::unique_ptr<environment> env = std::make_unique<environment>(i.global_environment());
+    std::unique_ptr<environment> env = std::make_unique<environment>(i.current_environment());
 
     for (size_t i = 0; i < declaration->params.size(); ++i)
         env->define(declaration->params.at(i).lexeme, args.at(i));

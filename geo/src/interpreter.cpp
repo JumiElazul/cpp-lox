@@ -23,17 +23,6 @@ interpreter::interpreter(console_io* io)
     instantiate_native_funcs();
 }
 
-interpreter::~interpreter()
-{
-    for (const auto& [name, value] : _globals->_variables)
-    {
-        if (literal_to_geo_type(value) == geo_type::callable_)
-        {
-            delete std::get<geo_callable*>(value);
-        }
-    }
-}
-
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
 {
     try
@@ -50,6 +39,7 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
 }
 
 environment* interpreter::global_environment() const { return _globals.get(); }
+environment* interpreter::current_environment() const { return _curr_env; }
 
 void interpreter::instantiate_native_funcs()
 {

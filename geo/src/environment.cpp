@@ -1,4 +1,5 @@
 #include "environment.h"
+#include "geo_native_funcs.h"
 #include "typedefs.h"
 #include "exceptions.h"
 
@@ -6,9 +7,17 @@ NAMESPACE_BEGIN(geo)
 
 environment::environment(environment* enclosing_scope)
     : _variables()
-    , _enclosing_scope(enclosing_scope)
-{
+      , _enclosing_scope(enclosing_scope) { }
 
+environment::~environment()
+{
+    for (const auto& [name, value] : _variables)
+    {
+        if (literal_to_geo_type(value) == geo_type::callable_)
+        {
+            delete std::get<geo_callable*>(value);
+        }
+    }
 }
 
 void environment::define(const std::string& name, const literal_value& value)

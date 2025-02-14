@@ -1,14 +1,14 @@
-func my_func(a)
+func count(a)
 {
-    print(a);
-}
-
-func factorial(n)
-{
-    if (n == 1)
+    if (a == 1)
+    {
         print(1);
-
-    print(factorial(n - 1));
+    }
+    else
+    {
+        print(a);
+        count(a - 1);
+    }
 }
 
-factorial(5);
+count(5);
