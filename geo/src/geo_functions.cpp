@@ -1,4 +1,4 @@
-#include "geo_native_funcs.h"
+#include "geo_functions.h"
 #include "console_io.h"
 #include "interpreter.h"
 #include "statements.h"
@@ -18,16 +18,16 @@ std::string geo_function::to_string() const { return "<user_func " + declaration
 
 literal_value geo_function::call(interpreter& i, const std::vector<literal_value>& args)
 {
-    std::unique_ptr<environment> env = std::make_unique<environment>(i.current_environment());
+    std::unique_ptr<environment> function_environment = std::make_unique<environment>(i.current_environment());
 
     for (size_t i = 0; i < declaration->params.size(); ++i)
-        env->define(declaration->params.at(i).lexeme, args.at(i));
+        function_environment->define(declaration->params.at(i).lexeme, args.at(i));
 
     block_statement* body_ptr = dynamic_cast<block_statement*>(declaration->body.get());
     if (!body_ptr)
         throw geo_runtime_error("Function body is not a block statement");
 
-    i.execute_block(body_ptr->statements, env.get());
+    i.execute_block(body_ptr->statements, std::move(function_environment));
     return std::monostate{};
 }
 

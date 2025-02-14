@@ -1,5 +1,5 @@
-#ifndef JUMI_GEO_GEO_NATIVE_FUNCS_H
-#define JUMI_GEO_GEO_NATIVE_FUNCS_H
+#ifndef JUMI_GEO_GEO_FUNCTIONS_H
+#define JUMI_GEO_GEO_FUNCTIONS_H
 #include "statements.h"
 #include "typedefs.h"
 #include "geo_types.h"

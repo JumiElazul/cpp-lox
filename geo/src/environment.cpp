@@ -1,5 +1,5 @@
 #include "environment.h"
-#include "geo_native_funcs.h"
+#include "geo_functions.h"
 #include "typedefs.h"
 #include "exceptions.h"
 

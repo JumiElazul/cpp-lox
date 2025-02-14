@@ -4,7 +4,7 @@
 #include "exceptions.h"
 #include "expressions.h"
 #include "geo_types.h"
-#include "geo_native_funcs.h"
+#include "geo_functions.h"
 #include "tokens.h"
 #include "typedefs.h"
 #include "statements.h"
@@ -15,11 +15,17 @@
 
 NAMESPACE_BEGIN(geo)
 
-interpreter::environment_scope_guard::environment_scope_guard(environment*& interpreter_curr_env, environment* new_env)
+interpreter::environment_scope_guard::environment_scope_guard(environment*& interpreter_curr_env, std::unique_ptr<environment> new_env)
     : _interpreter_curr_env(interpreter_curr_env)
+    , _new_env(std::move(new_env))
     , _prev_env(interpreter_curr_env)
 {
-    _interpreter_curr_env = new_env;
+    if (!_new_env)
+    {
+        _new_env = std::make_unique<environment>(_prev_env);
+    }
+
+    _interpreter_curr_env = _new_env.get();
 }
 
 interpreter::environment_scope_guard::~environment_scope_guard()
@@ -69,11 +75,12 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
     stmt->accept_visitor(*this);
 }
 
-void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* env)
+// This function will create an new environment by default, if none is passed to it from somewhere else.
+// However, if a new environment is passed to it, like from a geo_function that needs to populate the
+// environment with local function variables before this happens, then execute_block will just use that environment.
+void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::unique_ptr<environment> new_environment)
 {
-    environment* parent = env ? env : _curr_env;
-    auto new_environment = std::make_unique<environment>(parent);
-    environment_scope_guard guard(_curr_env, new_environment.get());
+    environment_scope_guard guard(_curr_env, std::move(new_environment));
 
     try
     {
@@ -158,8 +165,10 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    auto new_environment = std::make_unique<environment>(_curr_env);
-    environment_scope_guard guard(_curr_env, new_environment.get());
+    // auto new_environment = std::make_unique<environment>(_curr_env);
+    // environment_scope_guard guard(_curr_env, new_environment.get());
+
+    environment_scope_guard guard(_curr_env);
 
     if (stmt.initializer)
     {
