@@ -15,7 +15,6 @@ class variable_expression;
 class assignment_expression;
 class logical_expression;
 class postfix_expression;
-class prefix_expression;
 class call_expression;
 class console_io;
 
@@ -32,7 +31,6 @@ public:
     virtual T visit_assignment(assignment_expression& expr) = 0;
     virtual T visit_logical(logical_expression& expr) = 0;
     virtual T visit_postfix(postfix_expression& expr) = 0;
-    virtual T visit_prefix(prefix_expression& expr) = 0;
     virtual T visit_call(call_expression& expr) = 0;
 };
 
@@ -47,7 +45,6 @@ public:
     virtual std::string visit_assignment(assignment_expression& expr) override;
     virtual std::string visit_logical(logical_expression& expr) override;
     virtual std::string visit_postfix(postfix_expression& expr) override;
-    virtual std::string visit_prefix(prefix_expression& expr) override;
     virtual std::string visit_call(call_expression& expr) override;
 };
 

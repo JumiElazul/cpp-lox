@@ -47,12 +47,12 @@ std::string literal_tostr(const literal_value& l)
 
     return std::visit(
         literal_value_overload{
-            [&](double d)                    { return format_number(d);                               },
-            [&](bool b)                      { return b ? std::string("true") : std::string("false"); },
-            [&](const std::string& s)        { return s;                                              },
-            [&](std::monostate)              { return std::string("null");                            },
-            [&](const undefined& u)          { return std::string("undefined");                       },
-            [&](geo_callable*)               { return std::string("callable");                        },
+            [&](double d)                      { return format_number(d);                               },
+            [&](bool b)                        { return b ? std::string("true") : std::string("false"); },
+            [&](const std::string& s)          { return s;                                              },
+            [&](std::monostate)                { return std::string("null");                            },
+            [&](const undefined& u)            { return std::string("undefined");                       },
+            [&](std::shared_ptr<geo_callable>) { return std::string("callable");                        },
         }, l);
 }
 

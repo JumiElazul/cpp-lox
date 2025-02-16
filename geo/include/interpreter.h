@@ -29,33 +29,20 @@ class interpreter final : public statement_visitor, public expression_visitor<li
         literal_value return_val;
     };
 
-    class environment_scope_guard
-    {
-    public:
-        environment_scope_guard(environment*& interpreter_curr_env, std::unique_ptr<environment> new_env = nullptr);
-        ~environment_scope_guard();
-
-    private:
-        environment*& _interpreter_curr_env;
-        std::unique_ptr<environment> _new_env;
-        environment* _prev_env;
-    };
-
 public:
     interpreter(console_io* io);
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
-    [[nodiscard]] environment* global_environment() const;
-    [[nodiscard]] environment* current_environment() const;
+    [[nodiscard]] inline std::shared_ptr<environment> current_environment() const { return _curr_env; }
 
 private:
-    std::unique_ptr<environment> _globals;
-    environment* _curr_env;
+    std::shared_ptr<environment> _global_env;
+    std::shared_ptr<environment> _curr_env;
     console_io* _io;
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
-    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::unique_ptr<environment> new_environment = nullptr);
+    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::shared_ptr<environment> new_environment = nullptr);
 
     virtual void visit_debug_statement(debug_statement& stmt) override;
 
@@ -79,7 +66,6 @@ private:
     virtual literal_value visit_assignment(assignment_expression& expr) override;
     virtual literal_value visit_logical(logical_expression& expr) override;
     virtual literal_value visit_postfix(postfix_expression& expr) override;
-    virtual literal_value visit_prefix(prefix_expression& expr) override;
     virtual literal_value visit_call(call_expression& expr) override;
 
     bool is_truthy(const literal_value& literal) const;

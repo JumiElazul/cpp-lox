@@ -15,34 +15,33 @@
 
 NAMESPACE_BEGIN(geo)
 
-interpreter::environment_scope_guard::environment_scope_guard(environment*& interpreter_curr_env, std::unique_ptr<environment> new_env)
-    : _interpreter_curr_env(interpreter_curr_env)
-    , _new_env(std::move(new_env))
-    , _prev_env(interpreter_curr_env)
+class environment_guard 
 {
-    if (!_new_env)
+public:
+    environment_guard(std::shared_ptr<environment>& curr_env, std::shared_ptr<environment> old_env)
+        : curr_env_(curr_env)
+        , old_env_(old_env) { }
+
+    ~environment_guard() 
     {
-        _new_env = std::make_unique<environment>(_prev_env);
+        curr_env_ = old_env_;
     }
 
-    _interpreter_curr_env = _new_env.get();
-}
-
-interpreter::environment_scope_guard::~environment_scope_guard()
-{
-    _interpreter_curr_env = _prev_env;
-}
+private:
+    std::shared_ptr<environment>& curr_env_;
+    std::shared_ptr<environment> old_env_;
+};
 
 interpreter::interpreter(console_io* io)
-    : _globals(std::make_unique<environment>())
-    , _curr_env(_globals.get())
+    : _global_env(std::make_shared<environment>())
+    , _curr_env(_global_env)
     , _io(io)
 {
     auto instantiate_native_funcs = [&]() {
-        _globals->define("clock", new clock());
-        _globals->define("print", new print(_io));
-        _globals->define("input", new input(_io));
-        _globals->define("random", new random());
+        _global_env->define("clock", std::make_shared<clock>());
+        _global_env->define("print", std::make_shared<print>(_io));
+        _global_env->define("input", std::make_shared<input>(_io));
+        _global_env->define("random", std::make_shared<random>());
     };
     instantiate_native_funcs();
 }
@@ -66,9 +65,6 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     }
 }
 
-environment* interpreter::global_environment() const { return _globals.get(); }
-environment* interpreter::current_environment() const { return _curr_env; }
-
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
 {
     return expr->accept_visitor(*this);
@@ -82,9 +78,17 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
 // This function will create an new environment by default, if none is passed to it from somewhere else.
 // However, if a new environment is passed to it, like from a geo_function that needs to populate the
 // environment with local function variables before this happens, then execute_block will just use that environment.
-void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::unique_ptr<environment> new_environment)
+void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::shared_ptr<environment> new_environment)
 {
-    environment_scope_guard guard(_curr_env, std::move(new_environment));
+    if (!new_environment)
+    {
+        new_environment = std::make_shared<environment>(_curr_env);
+    }
+
+    std::shared_ptr<environment> old_environment = _curr_env;
+    _curr_env = new_environment;
+
+    environment_guard guard(_curr_env, old_environment);
 
     try
     {
@@ -109,44 +113,44 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
 
 void interpreter::visit_debug_statement(debug_statement& stmt)
 {
-    _io->err() << "DEBUG INFO: " << '\n';
-    environment* env = _curr_env;
+    // _io->err() << "DEBUG INFO: " << '\n';
+    // environment* env = _curr_env;
 
-    auto get_root_scope_level = [this](auto& self, environment* env) -> int {
-        if (env == _globals.get() || env == nullptr)
-            return 0;
-        return 1 + self(self, env->_enclosing_scope);
-    };
+    // auto get_root_scope_level = [this](auto& self, environment* env) -> int {
+    //     if (env == _global_env.get() || env == nullptr)
+    //         return 0;
+    //     return 1 + self(self, env->_enclosing_scope);
+    // };
 
-    auto indent_print = [this](int level, char c) {
-        for (int i = 0; i < level * 4; ++i)
-        {
-            _io->err() << c;
-        }
-    };
+    // auto indent_print = [this](int level, char c) {
+    //     for (int i = 0; i < level * 4; ++i)
+    //     {
+    //         _io->err() << c;
+    //     }
+    // };
 
-    int scope_level = get_root_scope_level(get_root_scope_level, env);
+    // int scope_level = get_root_scope_level(get_root_scope_level, env);
 
-    while (env != nullptr)
-    {
-        indent_print(scope_level, ' ');
+    // while (env != nullptr)
+    // {
+    //     indent_print(scope_level, ' ');
 
-        if (env == _globals.get()) _io->err() << "[GLOBAL SCOPE]";
-        else _io->err() << "[LOCAL SCOPE]";
-        _io->err() << " : Level " << scope_level;
-        _io->err() << '\n';
+    //     if (env == _global_env.get()) _io->err() << "[GLOBAL SCOPE]";
+    //     else _io->err() << "[LOCAL SCOPE]";
+    //     _io->err() << " : Level " << scope_level;
+    //     _io->err() << '\n';
 
-        for (const auto& [name, value] : env->_variables)
-        {
-            indent_print(scope_level, ' ');
-            _io->err() << name << " = " << literal_tostr(value) << '\n';
-        }
-        env = env->_enclosing_scope;
-        indent_print(scope_level * 4, '-');
-        _io->err() << '\n';
+    //     for (const auto& [name, value] : env->_variables)
+    //     {
+    //         indent_print(scope_level, ' ');
+    //         _io->err() << name << " = " << literal_tostr(value) << '\n';
+    //     }
+    //     env = env->_enclosing_scope;
+    //     indent_print(scope_level * 4, '-');
+    //     _io->err() << '\n';
 
-        --scope_level;
-    }
+    //     --scope_level;
+    // }
 }
 
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
@@ -157,7 +161,7 @@ void interpreter::visit_function_declaration_statement(function_declaration_stat
     // a line like "func my_func(a) { print(a); }", and then calling my_func(1), the statement will
     // already be destroyed.
     std::unique_ptr<function_declaration_statement> statement = std::make_unique<function_declaration_statement>(stmt.ident_name, stmt.params, std::move(stmt.body));
-    geo_function* func = new geo_function(std::move(statement));
+    std::shared_ptr<geo_callable> func = std::make_shared<geo_function>(std::move(statement));
     _curr_env->define(stmt.ident_name.lexeme, func);
 }
 
@@ -217,11 +221,6 @@ void interpreter::visit_while_statement(while_statement& stmt)
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    // auto new_environment = std::make_unique<environment>(_curr_env);
-    // environment_scope_guard guard(_curr_env, new_environment.get());
-
-    environment_scope_guard guard(_curr_env);
-
     if (stmt.initializer)
     {
         evaluate(stmt.initializer);
@@ -536,12 +535,6 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     return value;
 }
 
-literal_value interpreter::visit_prefix(prefix_expression& expr)
-{
-    // Unused for now.  This is currently being handled in visit_unary.
-    assert(false);
-}
-
 literal_value interpreter::visit_call(call_expression& expr)
 {
     literal_value literal = evaluate(expr.callee);
@@ -550,7 +543,7 @@ literal_value interpreter::visit_call(call_expression& expr)
     if (type != geo_type::callable_)
         throw geo_runtime_error("Can only call functions and classes '()'", expr.paren);
 
-    geo_callable* function = std::get<geo_callable*>(literal);
+    std::shared_ptr<geo_callable> function = std::get<std::shared_ptr<geo_callable>>(literal);
     std::vector<literal_value> arguments;
     arguments.reserve(expr.arguments.size());
 

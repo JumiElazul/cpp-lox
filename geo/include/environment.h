@@ -3,6 +3,7 @@
 #include "typedefs.h"
 #include "geo_types.h"
 #include "tokens.h"
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -12,8 +13,7 @@ class environment
 {
 friend class interpreter;
 public:
-    environment(environment* enclosing_scope = nullptr);
-    ~environment();
+    environment(std::shared_ptr<environment> enclosing_scope = nullptr);
 
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
@@ -21,7 +21,7 @@ public:
 
 private:
     std::unordered_map<std::string, literal_value> _variables;
-    environment* _enclosing_scope;
+    std::shared_ptr<environment> _enclosing_scope;
 };
 
 NAMESPACE_END
