@@ -3,7 +3,6 @@
 #include "typedefs.h"
 #include <string>
 #include <variant>
-#include <memory>
 
 NAMESPACE_BEGIN(geo)
 
@@ -14,7 +13,7 @@ struct undefined
 };
 
 class geo_callable;
-using literal_value = std::variant<double, bool, std::string, std::monostate, std::shared_ptr<geo_callable>, undefined>;
+using literal_value = std::variant<double, bool, std::string, std::monostate, undefined>;
 
 enum class geo_type
 {

@@ -5,6 +5,7 @@
 #include "tokens.h"
 #include "typedefs.h"
 #include "statements.h"
+#include <cassert>
 #include <limits>
 #include <initializer_list>
 #include <optional>
@@ -422,7 +423,7 @@ std::unique_ptr<expression> recursive_descent_parser::unary_precedence()
 std::unique_ptr<expression> recursive_descent_parser::postfix_precedence()
 {
     // postfix -> call ( "++" | "--" )* ;
-    std::unique_ptr<expression> expr = call_precedence();
+    std::unique_ptr<expression> expr = primary_precedence();
 
     while (matches_token({ token_type::plus_plus_, token_type::minus_minus_ }))
     {
@@ -436,14 +437,7 @@ std::unique_ptr<expression> recursive_descent_parser::postfix_precedence()
 std::unique_ptr<expression> recursive_descent_parser::call_precedence()
 {
     // call -> primary ( "(" arguments? ")" )* ;
-    std::unique_ptr<expression> expr = primary_precedence();
-
-    while (matches_token({ token_type::left_paren_ }))
-    {
-        expr = finish_call(std::move(expr));
-    }
-
-    return expr;
+    assert(false);
 }
 
 std::unique_ptr<expression> recursive_descent_parser::primary_precedence()

@@ -15,36 +15,9 @@
 
 NAMESPACE_BEGIN(geo)
 
-class environment_guard 
-{
-public:
-    environment_guard(std::shared_ptr<environment>& curr_env, std::shared_ptr<environment> old_env)
-        : curr_env_(curr_env)
-        , old_env_(old_env) { }
-
-    ~environment_guard() 
-    {
-        curr_env_ = old_env_;
-    }
-
-private:
-    std::shared_ptr<environment>& curr_env_;
-    std::shared_ptr<environment> old_env_;
-};
-
 interpreter::interpreter(console_io* io)
-    : _global_env(std::make_shared<environment>())
-    , _curr_env(_global_env)
-    , _io(io)
-{
-    auto instantiate_native_funcs = [&]() {
-        _global_env->define("clock", std::make_shared<clock>());
-        _global_env->define("print", std::make_shared<print>(_io));
-        _global_env->define("input", std::make_shared<input>(_io));
-        _global_env->define("random", std::make_shared<random>());
-    };
-    instantiate_native_funcs();
-}
+    : _env_manager()
+    , _io(io) { }
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
 {
@@ -80,15 +53,8 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
 // environment with local function variables before this happens, then execute_block will just use that environment.
 void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::shared_ptr<environment> new_environment)
 {
-    if (!new_environment)
-    {
-        new_environment = std::make_shared<environment>(_curr_env);
-    }
-
-    std::shared_ptr<environment> old_environment = _curr_env;
-    _curr_env = new_environment;
-
-    environment_guard guard(_curr_env, old_environment);
+    // HANDLE ENVIRONMENTS
+    _env_manager.push_environment("block");
 
     try
     {
@@ -105,6 +71,10 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
     {
         throw;
     }
+    catch (const geo_function_return&)
+    {
+        throw;
+    }
     catch (const geo_runtime_error& e)
     {
         _io->err() << e.what() << '\n';
@@ -113,44 +83,7 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
 
 void interpreter::visit_debug_statement(debug_statement& stmt)
 {
-    // _io->err() << "DEBUG INFO: " << '\n';
-    // environment* env = _curr_env;
 
-    // auto get_root_scope_level = [this](auto& self, environment* env) -> int {
-    //     if (env == _global_env.get() || env == nullptr)
-    //         return 0;
-    //     return 1 + self(self, env->_enclosing_scope);
-    // };
-
-    // auto indent_print = [this](int level, char c) {
-    //     for (int i = 0; i < level * 4; ++i)
-    //     {
-    //         _io->err() << c;
-    //     }
-    // };
-
-    // int scope_level = get_root_scope_level(get_root_scope_level, env);
-
-    // while (env != nullptr)
-    // {
-    //     indent_print(scope_level, ' ');
-
-    //     if (env == _global_env.get()) _io->err() << "[GLOBAL SCOPE]";
-    //     else _io->err() << "[LOCAL SCOPE]";
-    //     _io->err() << " : Level " << scope_level;
-    //     _io->err() << '\n';
-
-    //     for (const auto& [name, value] : env->_variables)
-    //     {
-    //         indent_print(scope_level, ' ');
-    //         _io->err() << name << " = " << literal_tostr(value) << '\n';
-    //     }
-    //     env = env->_enclosing_scope;
-    //     indent_print(scope_level * 4, '-');
-    //     _io->err() << '\n';
-
-    //     --scope_level;
-    // }
 }
 
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
@@ -160,9 +93,7 @@ void interpreter::visit_function_declaration_statement(function_declaration_stat
     // file because everything is parsed in one go.  However, in REPL mode, this means that when parsing
     // a line like "func my_func(a) { print(a); }", and then calling my_func(1), the statement will
     // already be destroyed.
-    std::unique_ptr<function_declaration_statement> statement = std::make_unique<function_declaration_statement>(stmt.ident_name, stmt.params, std::move(stmt.body));
-    std::shared_ptr<geo_callable> func = std::make_shared<geo_function>(std::move(statement));
-    _curr_env->define(stmt.ident_name.lexeme, func);
+
 }
 
 void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
@@ -170,11 +101,11 @@ void interpreter::visit_variable_declaration_statement(variable_declaration_stat
     if (stmt.initializer_expr)
     {
         literal_value literal = evaluate(stmt.initializer_expr);
-        _curr_env->define(stmt.ident_name.lexeme, literal);
+        _env_manager.get_global_environment()->define(stmt.ident_name.lexeme, literal);
     }
     else
     {
-        _curr_env->define(stmt.ident_name.lexeme, undefined{});
+        _env_manager.get_global_environment()->define(stmt.ident_name.lexeme, undefined{});
     }
 }
 
@@ -310,7 +241,7 @@ literal_value interpreter::visit_unary(unary_expression& expr)
         if (!var_expr)
             throw type_error("Unary prefix operator '" + oper + "' requires a variable operand", expr.oper);
 
-        literal_value literal = _curr_env->get(var_expr->ident_name);
+        literal_value literal = _env_manager.get_global_environment()->get(var_expr->ident_name);
         geo_type type = literal_to_geo_type(literal);
 
         if (type != geo_type::number_)
@@ -323,7 +254,7 @@ literal_value interpreter::visit_unary(unary_expression& expr)
         else if (expr.oper.type == token_type::minus_minus_)
             --value;
 
-        _curr_env->assign(var_expr->ident_name.lexeme, value);
+        _env_manager.get_global_environment()->assign(var_expr->ident_name.lexeme, value);
         return value;
     }
 
@@ -483,13 +414,13 @@ literal_value interpreter::visit_grouping(grouping_expression& expr)
 
 literal_value interpreter::visit_variable(variable_expression& expr)
 {
-    return _curr_env->get(expr.ident_name);
+    return _env_manager.get_global_environment()->get(expr.ident_name);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = evaluate(expr.initializer_expr);
-    _curr_env->assign(expr.ident_name.lexeme, literal);
+    _env_manager.get_global_environment()->assign(expr.ident_name.lexeme, literal);
     return literal;
 }
 
@@ -517,7 +448,7 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     if (!var_expr)
         throw type_error("Postfix operator '" + oper + "' requires a variable operand", expr.oper);
 
-    literal_value literal = _curr_env->get(var_expr->ident_name);
+    literal_value literal = _env_manager.get_global_environment()->get(var_expr->ident_name);
     geo_type type = literal_to_geo_type(literal);
 
     if (type != geo_type::number_)
@@ -531,32 +462,13 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     else if (expr.oper.type == token_type::minus_minus_)
         new_val--;
 
-    _curr_env->assign(var_expr->ident_name.lexeme, new_val);
+    _env_manager.get_global_environment()->assign(var_expr->ident_name.lexeme, new_val);
     return value;
 }
 
 literal_value interpreter::visit_call(call_expression& expr)
 {
-    literal_value literal = evaluate(expr.callee);
-    geo_type type = literal_to_geo_type(literal);
-
-    if (type != geo_type::callable_)
-        throw geo_runtime_error("Can only call functions and classes '()'", expr.paren);
-
-    std::shared_ptr<geo_callable> function = std::get<std::shared_ptr<geo_callable>>(literal);
-    std::vector<literal_value> arguments;
-    arguments.reserve(expr.arguments.size());
-
-    for (std::unique_ptr<expression>& arg_expr : expr.arguments)
-        arguments.emplace_back(evaluate(arg_expr));
-
-    if (function->arity() != static_cast<int>(arguments.size()))
-    {
-        std::string msg = "Expected " + std::to_string(function->arity()) + " arguments but received " + std::to_string(arguments.size());
-        throw geo_runtime_error(msg);
-    }
-
-    return function->call(*this, arguments);
+    assert(false);
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

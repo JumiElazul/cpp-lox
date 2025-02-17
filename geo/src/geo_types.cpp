@@ -25,8 +25,6 @@ std::string geo_type_tostr(geo_type type)
             return "bool";
         case geo_type::null_:
             return "null";
-        case geo_type::callable_:
-            return "callable";
         case geo_type::undefined_:
             return "undefined";
         default:
@@ -52,7 +50,6 @@ std::string literal_tostr(const literal_value& l)
             [&](const std::string& s)          { return s;                                              },
             [&](std::monostate)                { return std::string("null");                            },
             [&](const undefined& u)            { return std::string("undefined");                       },
-            [&](std::shared_ptr<geo_callable>) { return std::string("callable");                        },
         }, l);
 }
 

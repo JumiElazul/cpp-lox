@@ -18,26 +18,19 @@ class environment;
 
 class interpreter final : public statement_visitor, public expression_visitor<literal_value>
 {
-    friend class geo_function;
-
     // These are custom exception classes that are thrown by the interpreter.  These are not useful
-    // to users of Geo, other than the sense that they define the inner worksing of the interpreter.
-    struct geo_loop_break      { };
-    struct geo_loop_continue   { };
-    struct geo_function_return
-    {
-        literal_value return_val;
-    };
+    // to users of Geo, they just help with the inner workings of the interpreter.
+    struct geo_loop_break      {                           };
+    struct geo_loop_continue   {                           };
+    struct geo_function_return { literal_value return_val; };
 
 public:
     interpreter(console_io* io);
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
-    [[nodiscard]] inline std::shared_ptr<environment> current_environment() const { return _curr_env; }
 
 private:
-    std::shared_ptr<environment> _global_env;
-    std::shared_ptr<environment> _curr_env;
+    environment_manager _env_manager;
     console_io* _io;
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
