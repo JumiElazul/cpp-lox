@@ -1,4 +1,5 @@
 #include "environment.h"
+#include "geo_types.h"
 #include "typedefs.h"
 #include "geo_functions.h"
 #include "exceptions.h"
@@ -9,15 +10,6 @@ NAMESPACE_BEGIN(geo)
 environment::environment(environment* parent_scope)
     : _variables()
     , _parent_scope(parent_scope) { }
-
-environment::~environment()
-{
-    for (const auto& [name, value] : _variables)
-    {
-        if (std::holds_alternative<geo_callable*>(value))
-            delete std::get<geo_callable*>(value);
-    }
-}
 
 void environment::define(const std::string& name, const literal_value& value)
 {
@@ -74,14 +66,32 @@ literal_value environment::get(const token& name) const
 
 environment_manager::environment_manager()
     : _environments()
+    , _held_environments()
 {
     _environments.emplace_back(new environment());
 }
 
 environment_manager::~environment_manager()
 {
-    for (auto env : _environments)
+    for (const auto& env : _held_environments)
+    {
+        for (const auto& [name, value] : env->_variables)
+        {
+            if (literal_to_geo_type(value) == geo_type::callable_)
+                delete std::get<geo_callable*>(value);
+        }
         delete env;
+    }
+
+    for (const auto& env : _environments)
+    {
+        for (const auto& [name, value] : env->_variables)
+        {
+            if (literal_to_geo_type(value) == geo_type::callable_)
+                delete std::get<geo_callable*>(value);
+        }
+        delete env;
+    }
 }
 
 environment* environment_manager::get_global_environment() const noexcept
@@ -99,12 +109,17 @@ void environment_manager::push_environment()
     _environments.emplace_back(new environment(_environments.back()));
 }
 
+void environment_manager::push_environment(environment* parent_scope)
+{
+    _environments.emplace_back(new environment(parent_scope));
+}
+
 void environment_manager::pop_environment()
 {
     if (_environments.size() == 1)
         throw geo_runtime_error("Cannot pop the global environment");
 
-    delete _environments.back();
+    _held_environments.push_back(_environments.back());
     _environments.pop_back();
 }
 

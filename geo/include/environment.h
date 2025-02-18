@@ -10,9 +10,9 @@ NAMESPACE_BEGIN(geo)
 
 class environment
 {
+friend class environment_manager;
 public:
     environment(environment* parent_scope = nullptr);
-    ~environment();
 
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
@@ -36,6 +36,7 @@ public:
     [[nodiscard]] environment* get_global_environment() const noexcept;
     [[nodiscard]] environment* get_current_environment() const noexcept;
     void push_environment();
+    void push_environment(environment* parent_scope);
     void pop_environment();
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
@@ -43,6 +44,7 @@ public:
 
 private:
     std::vector<environment*> _environments;
+    std::vector<environment*> _held_environments;
 };
 
 NAMESPACE_END
