@@ -36,9 +36,9 @@ class function_declaration_statement final : public statement
 public:
     token ident_name;
     std::vector<token> params;
-    std::unique_ptr<statement> body;
+    std::vector<std::unique_ptr<statement>> body;
 
-    function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::unique_ptr<statement>&& body_);
+    function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_);
     ~function_declaration_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
@@ -125,6 +125,18 @@ public:
 
     continue_statement(const token& t);
     ~continue_statement() = default;
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
+class return_statement final : public statement
+{
+public:
+    token keyword;
+    std::unique_ptr<expression> return_expr;
+
+    return_statement(const token& keyword_, std::unique_ptr<expression> return_expr_);
+    ~return_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };

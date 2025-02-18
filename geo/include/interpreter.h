@@ -18,38 +18,24 @@ class environment;
 
 class interpreter final : public statement_visitor, public expression_visitor<literal_value>
 {
-    friend class geo_function;
-
-    struct geo_loop_break { };
-    struct geo_loop_continue { };
-
-    class environment_scope_guard
-    {
-    public:
-        environment_scope_guard(environment*& interpreter_curr_env, std::unique_ptr<environment> new_env = nullptr);
-        ~environment_scope_guard();
-
-    private:
-        environment*& _interpreter_curr_env;
-        std::unique_ptr<environment> _new_env;
-        environment* _prev_env;
-    };
+    friend class user_function;
+    // These are custom exception classes that are thrown by the interpreter.  These are not useful
+    // to users of Geo, they just help with the inner workings of the interpreter.
+    struct geo_loop_break      {                           };
+    struct geo_loop_continue   {                           };
+    struct geo_function_return { literal_value return_val; };
 
 public:
     interpreter(console_io* io);
 
     void interpret(const std::vector<std::unique_ptr<statement>>& statements);
-    [[nodiscard]] environment* global_environment() const;
-    [[nodiscard]] environment* current_environment() const;
 
 private:
-    std::unique_ptr<environment> _globals;
-    environment* _curr_env;
+    environment_manager _env_manager;
     console_io* _io;
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
-    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, std::unique_ptr<environment> new_environment = nullptr);
 
     virtual void visit_debug_statement(debug_statement& stmt) override;
 
@@ -61,7 +47,9 @@ private:
     virtual void visit_for_statement(for_statement& stmt) override;
     virtual void visit_break_statement(break_statement& stmt) override;
     virtual void visit_continue_statement(continue_statement& stmt) override;
+    virtual void visit_return_statement(return_statement& stmt) override;
     virtual void visit_block_statement(block_statement& stmt) override;
+    void execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* new_environment);
     virtual void visit_expression_statement(expression_statement& stmt) override;
 
     virtual literal_value visit_unary(unary_expression& expr) override;
@@ -72,7 +60,6 @@ private:
     virtual literal_value visit_assignment(assignment_expression& expr) override;
     virtual literal_value visit_logical(logical_expression& expr) override;
     virtual literal_value visit_postfix(postfix_expression& expr) override;
-    virtual literal_value visit_prefix(prefix_expression& expr) override;
     virtual literal_value visit_call(call_expression& expr) override;
 
     bool is_truthy(const literal_value& literal) const;

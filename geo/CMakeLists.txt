@@ -47,19 +47,20 @@ include(cmake/logging.cmake)
 
 include(FetchContent)
 
+message(STATUS "linenoise being FetchDeclared as dependency")
 FetchContent_Declare(linenoise
-    GIT_REPOSITORY https://github.com/antirez/linenoise
+    GIT_REPOSITORY https://github.com/yhirose/cpp-linenoise
     GIT_TAG master
 )
 
 FetchContent_MakeAvailable(linenoise)
-add_library(linenoise STATIC ${linenoise_SOURCE_DIR}/linenoise.c)
-target_include_directories(linenoise PUBLIC ${linenoise_SOURCE_DIR})
+message(STATUS "linenoise_SOURCE_DIR: ${linenoise_SOURCE_DIR}")
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
-target_link_libraries(geo-core PRIVATE spdlog::spdlog linenoise)
+target_link_libraries(geo-core PRIVATE spdlog::spdlog)
+target_include_directories(geo-core SYSTEM PUBLIC ${linenoise_SOURCE_DIR})
 target_compile_definitions(geo-core PUBLIC "GEO_VERSION=\"${PROJECT_VERSION}\"")
 
 # Setup the executable

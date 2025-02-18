@@ -4,16 +4,15 @@
 #include "geo_types.h"
 #include "tokens.h"
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 NAMESPACE_BEGIN(geo)
 
 class environment
 {
-friend class interpreter;
+friend class environment_manager;
 public:
-    environment(environment* enclosing_scope = nullptr);
-    ~environment();
+    environment(environment* parent_scope = nullptr);
 
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
@@ -21,7 +20,31 @@ public:
 
 private:
     std::unordered_map<std::string, literal_value> _variables;
-    environment* _enclosing_scope;
+    environment* _parent_scope;
+};
+
+class environment_manager
+{
+public:
+    environment_manager();
+    ~environment_manager();
+    environment_manager(const environment_manager&) = delete;
+    environment_manager& operator=(const environment_manager&) = delete;
+    environment_manager(environment_manager&&) = delete;
+    environment_manager& operator=(environment_manager&&) = delete;
+
+    [[nodiscard]] environment* get_global_environment() const noexcept;
+    [[nodiscard]] environment* get_current_environment() const noexcept;
+    void push_environment();
+    void push_environment(environment* parent_scope);
+    void pop_environment();
+    void define(const std::string& name, const literal_value& value);
+    void assign(const std::string& name, const literal_value& value);
+    literal_value get(const token& name) const;
+
+private:
+    std::vector<environment*> _environments;
+    std::vector<environment*> _held_environments;
 };
 
 NAMESPACE_END

@@ -5,6 +5,7 @@
 #include "tokens.h"
 #include "typedefs.h"
 #include "statements.h"
+#include <cassert>
 #include <limits>
 #include <initializer_list>
 #include <optional>
@@ -106,7 +107,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_function_declaration
     consume_if_matches(token_type::right_paren_, "Expect ')' after " + kind + " declaration.");
     consume_if_matches(token_type::left_brace_, "Expect '{' before " + kind + " body.");
 
-    std::unique_ptr<statement> body = create_block_statement();
+    std::vector<std::unique_ptr<statement>> body = create_block_statement();
     return std::make_unique<function_declaration_statement>(ident, parameters, std::move(body));
 }
 
@@ -126,7 +127,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
 {
-    // statement -> if_statement | while_statement | for_statement | break | continue | block | expression_statement ;
+    // statement -> if_statement | while_statement | for_statement | break | continue | return | block | expression_statement ;
 
     if (matches_token({ token_type::if_ }))
         return create_if_statement();
@@ -143,8 +144,14 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
     if (matches_token({ token_type::continue_ }))
         return create_continue_statement();
 
+    if (matches_token({ token_type::return_ }))
+        return create_return_statement();
+
     if (matches_token({ token_type::left_brace_ }))
-        return create_block_statement();
+    {
+        std::vector<std::unique_ptr<statement>> statements = create_block_statement();
+        return std::make_unique<block_statement>(std::move(statements));
+    }
 
     return create_expression_statement();
 }
@@ -228,7 +235,21 @@ std::unique_ptr<statement> recursive_descent_parser::create_continue_statement()
     return std::make_unique<continue_statement>(continue_token);
 }
 
-std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_return_statement()
+{
+    token keyword = *previous_token();
+
+    std::unique_ptr<expression> return_expr = nullptr;
+    if (!check_type(token_type::semicolon_))
+    {
+        return_expr = expression_precedence();
+    }
+
+    consume_if_matches(token_type::semicolon_, "Expected ';' after return statement");
+    return std::make_unique<return_statement>(keyword, std::move(return_expr));
+}
+
+std::vector<std::unique_ptr<statement>> recursive_descent_parser::create_block_statement()
 {
     // block -> "{" declaration* "}" ;
     std::vector<std::unique_ptr<statement>> statements;
@@ -242,7 +263,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
     }
 
     consume_if_matches(token_type::right_brace_, "Expected '}' after block statement");
-    return std::make_unique<block_statement>(std::move(statements));
+    return statements;
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_expression_statement()
@@ -421,9 +442,16 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
     // call -> primary ( "(" arguments? ")" )* ;
     std::unique_ptr<expression> expr = primary_precedence();
 
-    while (matches_token({ token_type::left_paren_ }))
+    while (true)
     {
-        expr = finish_call(std::move(expr));
+        if (matches_token({ token_type::left_paren_ }))
+        {
+            expr = finish_call(std::move(expr));
+        }
+        else
+        {
+            break;
+        }
     }
 
     return expr;

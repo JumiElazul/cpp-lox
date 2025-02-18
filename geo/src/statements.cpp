@@ -16,7 +16,7 @@ void debug_statement::accept_visitor(statement_visitor& v) { v.visit_debug_state
 // DEBUG STATEMENT
 // --------------------------------------------------
 
-function_declaration_statement::function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::unique_ptr<statement>&& body_)
+function_declaration_statement::function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_)
     : ident_name(ident_name_)
     , params(params_)
     , body(std::move(body_)) { }
@@ -50,6 +50,10 @@ break_statement::break_statement(const token& t)
 continue_statement::continue_statement(const token& t)
     : continue_token(t) { }
 
+return_statement::return_statement(const token& keyword_, std::unique_ptr<expression> expr_)
+    : keyword(keyword_)
+    , return_expr(std::move(expr_)) { }
+
 block_statement::block_statement(std::vector<std::unique_ptr<statement>>&& statements_)
     : statements(std::move(statements_)) { }
 
@@ -64,6 +68,7 @@ void while_statement::accept_visitor(statement_visitor& v)                { v.vi
 void for_statement::accept_visitor(statement_visitor& v)                  { v.visit_for_statement(*this); }
 void break_statement::accept_visitor(statement_visitor& v)                { v.visit_break_statement(*this); }
 void continue_statement::accept_visitor(statement_visitor& v)             { v.visit_continue_statement(*this); }
+void return_statement::accept_visitor(statement_visitor& v)               { v.visit_return_statement(*this); }
 void block_statement::accept_visitor(statement_visitor& v)                { v.visit_block_statement(*this); }
 void expression_statement::accept_visitor(statement_visitor& v)           { v.visit_expression_statement(*this); }
 

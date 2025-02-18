@@ -124,19 +124,6 @@ public:
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
 };
 
-class prefix_expression : public expression
-{
-public:
-    token oper;
-    std::unique_ptr<expression> expr_rhs;
-
-    prefix_expression(token oper, std::unique_ptr<expression> expr);
-
-    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
-    virtual void accept_visitor(expression_visitor<void>& v) override;
-    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
-};
-
 class call_expression : public expression
 {
 public:

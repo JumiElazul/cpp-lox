@@ -1,24 +1,16 @@
 #include "environment.h"
-#include "geo_functions.h"
+#include "geo_types.h"
 #include "typedefs.h"
+#include "geo_functions.h"
 #include "exceptions.h"
+#include <vector>
+#include <unordered_set>
 
 NAMESPACE_BEGIN(geo)
 
-environment::environment(environment* enclosing_scope)
+environment::environment(environment* parent_scope)
     : _variables()
-      , _enclosing_scope(enclosing_scope) { }
-
-environment::~environment()
-{
-    for (const auto& [name, value] : _variables)
-    {
-        if (literal_to_geo_type(value) == geo_type::callable_)
-        {
-            delete std::get<geo_callable*>(value);
-        }
-    }
-}
+    , _parent_scope(parent_scope) { }
 
 void environment::define(const std::string& name, const literal_value& value)
 {
@@ -40,9 +32,9 @@ void environment::assign(const std::string& name, const literal_value& value)
     }
     else
     {
-        if (_enclosing_scope)
+        if (_parent_scope)
         {
-            _enclosing_scope->assign(name, value);
+            _parent_scope->assign(name, value);
             return;
         }
     }
@@ -65,12 +57,96 @@ literal_value environment::get(const token& name) const
     else
     {
         // If there's a parent scope to check, we check to see if that scope contains the variable to get
-        if (_enclosing_scope)
-            return _enclosing_scope->get(name);
+        if (_parent_scope)
+            return _parent_scope->get(name);
     }
 
     // When no scopes have the variable, we found a runtime error
     throw geo_runtime_error("Undefined variable '" + name.lexeme + "'", name);
+}
+
+environment_manager::environment_manager()
+    : _environments()
+    , _held_environments()
+{
+    _environments.emplace_back(new environment());
+}
+
+environment_manager::~environment_manager()
+{
+    // We need to keep track of the deleted callables so we don't delete them twice
+    std::unordered_set<geo_callable*> deleted_callables;
+
+    auto cleanup_env = [&deleted_callables](environment* env) 
+    {
+        for (const auto& [name, value] : env->_variables)
+        {
+            if (literal_to_geo_type(value) == geo_type::callable_)
+            {
+                geo_callable* ptr = std::get<geo_callable*>(value);
+                if (ptr && deleted_callables.find(ptr) == deleted_callables.end())
+                {
+                    delete ptr;
+                    deleted_callables.insert(ptr);
+                }
+            }
+        }
+        delete env;
+    };
+
+    for (const auto& env : _held_environments)
+    {
+        cleanup_env(env);
+    }
+
+    for (const auto& env : _environments)
+    {
+        cleanup_env(env);
+    }
+}
+
+environment* environment_manager::get_global_environment() const noexcept
+{
+    return _environments.at(0);
+}
+
+environment* environment_manager::get_current_environment() const noexcept
+{
+    return _environments.back();
+}
+
+void environment_manager::push_environment()
+{
+    _environments.emplace_back(new environment(_environments.back()));
+}
+
+void environment_manager::push_environment(environment* parent_scope)
+{
+    _environments.emplace_back(new environment(parent_scope));
+}
+
+void environment_manager::pop_environment()
+{
+    if (_environments.size() == 1)
+        throw geo_runtime_error("Cannot pop the global environment");
+
+    _held_environments.push_back(_environments.back());
+    _environments.pop_back();
+}
+
+void environment_manager::define(const std::string& name, const literal_value& value)
+{
+    _environments.back()->define(name, value);
+}
+
+void environment_manager::assign(const std::string& name, const literal_value& value)
+{
+    _environments.back()->assign(name, value);
+}
+
+literal_value environment_manager::get(const token& name) const
+{
+    return _environments.back()->get(name);
 }
 
 NAMESPACE_END

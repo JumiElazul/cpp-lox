@@ -1,84 +1,75 @@
 #ifndef JUMI_GEO_GEO_FUNCTIONS_H
 #define JUMI_GEO_GEO_FUNCTIONS_H
-#include "statements.h"
+#include "environment.h"
 #include "typedefs.h"
 #include "geo_types.h"
-#include "environment.h"
-#include <vector>
 #include <memory>
+#include <vector>
 
 NAMESPACE_BEGIN(geo)
 
-class interpreter;
 class console_io;
+class function_declaration_statement;
+class interpreter;
+class environment_manager;
 
 class geo_callable
 {
 public:
     virtual ~geo_callable() = default;
     virtual int arity() = 0;
-    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) = 0;
     virtual std::string to_string() const = 0;
+    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) = 0;
+
+protected:
+    environment_manager* _env_manager;
 };
 
-class geo_function : public geo_callable
+class native_function : public geo_callable
+{
+public:
+    virtual ~native_function() = default;
+    virtual int arity() = 0;
+    virtual std::string to_string() const = 0;
+    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) = 0;
+};
+
+class user_function : public geo_callable
 {
 public:
     std::unique_ptr<function_declaration_statement> declaration;
+    environment* closure;
 
-    geo_function(std::unique_ptr<function_declaration_statement> declaration_);
-    virtual ~geo_function() = default;
+    user_function(environment_manager* env_manager, std::unique_ptr<function_declaration_statement> declaration_, environment* closure);
     virtual int arity() override;
-    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
     virtual std::string to_string() const override;
+    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
+
+protected:
+    environment_manager* _env_manager;
 };
 
-class clock : public geo_callable
+class clock : public native_function
 {
 public:
+    clock();
     virtual ~clock() = default;
-
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
 };
 
-class print : public geo_callable
+class print : public native_function
 {
 public:
     print(console_io* io);
     virtual ~print() = default;
-
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
 
 private:
     console_io* _io;
-};
-
-class input : public geo_callable
-{
-public:
-    input(console_io* io);
-    virtual ~input() = default;
-
-    virtual int arity() override;
-    virtual std::string to_string() const override;
-    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
-
-private:
-    console_io* _io;
-};
-
-class random : public geo_callable
-{
-public:
-    virtual ~random() = default;
-
-    virtual int arity() override;
-    virtual std::string to_string() const override;
-    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
 };
 
 NAMESPACE_END

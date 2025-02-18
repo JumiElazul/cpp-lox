@@ -32,7 +32,7 @@ void geo_app::run_file_mode(const char* filepath)
     std::ifstream file(filepath);
     if (!file)
     {
-        _io->err() << "File with path [" << filepath << "could not be read\n";
+        _io->err() << "File with path [" << filepath << "] could not be read\n";
         return;
     }
 

@@ -60,12 +60,6 @@ std::string string_visitor::visit_postfix(postfix_expression& expr)
     return lhs_str + expr.oper.lexeme;
 }
 
-std::string string_visitor::visit_prefix(prefix_expression& expr)
-{
-    std::string rhs_str = expr.expr_rhs->accept_visitor(*this);
-    return expr.oper.lexeme + rhs_str;
-}
-
 std::string string_visitor::visit_call(call_expression& expr)
 {
     std::string callee_str = expr.callee->accept_visitor(*this);
