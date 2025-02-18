@@ -4,6 +4,7 @@
 #include "geo_functions.h"
 #include "exceptions.h"
 #include <vector>
+#include <unordered_set>
 
 NAMESPACE_BEGIN(geo)
 
@@ -73,24 +74,34 @@ environment_manager::environment_manager()
 
 environment_manager::~environment_manager()
 {
-    for (const auto& env : _held_environments)
+    // We need to keep track of the deleted callables so we don't delete them twice
+    std::unordered_set<geo_callable*> deleted_callables;
+
+    auto cleanup_env = [&deleted_callables](environment* env) 
     {
         for (const auto& [name, value] : env->_variables)
         {
             if (literal_to_geo_type(value) == geo_type::callable_)
-                delete std::get<geo_callable*>(value);
+            {
+                geo_callable* ptr = std::get<geo_callable*>(value);
+                if (ptr && deleted_callables.find(ptr) == deleted_callables.end())
+                {
+                    delete ptr;
+                    deleted_callables.insert(ptr);
+                }
+            }
         }
         delete env;
+    };
+
+    for (const auto& env : _held_environments)
+    {
+        cleanup_env(env);
     }
 
     for (const auto& env : _environments)
     {
-        for (const auto& [name, value] : env->_variables)
-        {
-            if (literal_to_geo_type(value) == geo_type::callable_)
-                delete std::get<geo_callable*>(value);
-        }
-        delete env;
+        cleanup_env(env);
     }
 }
 

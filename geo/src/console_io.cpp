@@ -1,6 +1,6 @@
 #include "console_io.h"
 #include "typedefs.h"
-#include <linenoise.h>
+#include <linenoise.hpp>
 #include <iostream>
 #include <memory>
 
@@ -13,15 +13,13 @@ public:
         : _os(os)
         , _err_os(err_os)
     {
-        linenoiseHistorySetMaxLen(MAX_HISTORY_SIZE);
+        linenoise::SetHistoryMaxLen(MAX_HISTORY_SIZE);
     }
 
     std::string readline(const char* msg) const
     {
-        char* line = linenoise(msg);
-        std::string return_value = line;
-        linenoiseHistoryAdd(line);
-        free(line);
+        std::string return_value = linenoise::Readline(msg);
+        linenoise::AddHistory(return_value.c_str());
         return return_value;
     }
 
