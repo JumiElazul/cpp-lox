@@ -16,7 +16,7 @@ void debug_statement::accept_visitor(statement_visitor& v) { v.visit_debug_state
 // DEBUG STATEMENT
 // --------------------------------------------------
 
-function_declaration_statement::function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::unique_ptr<statement>&& body_)
+function_declaration_statement::function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_)
     : ident_name(ident_name_)
     , params(params_)
     , body(std::move(body_)) { }

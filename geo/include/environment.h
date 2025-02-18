@@ -4,26 +4,27 @@
 #include "geo_types.h"
 #include "tokens.h"
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 NAMESPACE_BEGIN(geo)
 
+class environment
+{
+public:
+    environment(environment* parent_scope = nullptr);
+    ~environment();
+
+    void define(const std::string& name, const literal_value& value);
+    void assign(const std::string& name, const literal_value& value);
+    literal_value get(const token& name) const;
+
+private:
+    std::unordered_map<std::string, literal_value> _variables;
+    environment* _parent_scope;
+};
+
 class environment_manager
 {
-    class environment
-    {
-    public:
-        environment(environment* parent_scope = nullptr);
-
-        void define(const std::string& name, const literal_value& value);
-        void assign(const std::string& name, const literal_value& value);
-        literal_value get(const token& name) const;
-
-    private:
-        std::unordered_map<std::string, literal_value> _variables;
-        environment* _parent_scope;
-    };
-
 public:
     environment_manager();
     ~environment_manager();
@@ -33,14 +34,15 @@ public:
     environment_manager& operator=(environment_manager&&) = delete;
 
     [[nodiscard]] environment* get_global_environment() const noexcept;
-    void push_environment(const std::string& name);
+    [[nodiscard]] environment* get_current_environment() const noexcept;
+    void push_environment();
     void pop_environment();
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
     literal_value get(const token& name) const;
 
 private:
-    std::unordered_map<std::string, environment*> _environments;
+    std::vector<environment*> _environments;
 };
 
 NAMESPACE_END

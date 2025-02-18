@@ -1,16 +1,25 @@
 #include "environment.h"
-#include "geo_functions.h"
 #include "typedefs.h"
+#include "geo_functions.h"
 #include "exceptions.h"
-#include <memory>
+#include <vector>
 
 NAMESPACE_BEGIN(geo)
 
-environment_manager::environment::environment(environment* parent_scope)
+environment::environment(environment* parent_scope)
     : _variables()
     , _parent_scope(parent_scope) { }
 
-void environment_manager::environment::define(const std::string& name, const literal_value& value)
+environment::~environment()
+{
+    for (const auto& [name, value] : _variables)
+    {
+        if (std::holds_alternative<geo_callable*>(value))
+            delete std::get<geo_callable*>(value);
+    }
+}
+
+void environment::define(const std::string& name, const literal_value& value)
 {
     auto find = _variables.find(name);
     if (find != _variables.end())
@@ -20,7 +29,7 @@ void environment_manager::environment::define(const std::string& name, const lit
     _variables[name] = value;
 }
 
-void environment_manager::environment::assign(const std::string& name, const literal_value& value)
+void environment::assign(const std::string& name, const literal_value& value)
 {
     auto find = _variables.find(name);
     if (find != _variables.end())
@@ -40,7 +49,7 @@ void environment_manager::environment::assign(const std::string& name, const lit
     throw geo_runtime_error("Undefined variable '" + name + "' can not be assigned to");
 }
 
-literal_value environment_manager::environment::get(const token& name) const
+literal_value environment::get(const token& name) const
 {
     // Check for the variable name in the local lexical scope first
     auto it = _variables.find(name.lexeme);
@@ -66,34 +75,52 @@ literal_value environment_manager::environment::get(const token& name) const
 environment_manager::environment_manager()
     : _environments()
 {
-    _environments["global"] = new environment();
+    _environments.emplace_back(new environment());
 }
 
 environment_manager::~environment_manager()
 {
-    for (auto& [name, env] : _environments)
+    for (auto env : _environments)
         delete env;
 }
 
-environment_manager::environment* environment_manager::get_global_environment() const noexcept
+environment* environment_manager::get_global_environment() const noexcept
 {
-    return _environments.at("global");
+    return _environments.at(0);
 }
 
-void environment_manager::push_environment(const std::string& name)
+environment* environment_manager::get_current_environment() const noexcept
 {
-    _environments[name] = new environment(_environments["global"]);
+    return _environments.back();
+}
+
+void environment_manager::push_environment()
+{
+    _environments.emplace_back(new environment(_environments.back()));
 }
 
 void environment_manager::pop_environment()
 {
     if (_environments.size() == 1)
-        throw geo_runtime_error("Cannot pop global environment", token{});
+        throw geo_runtime_error("Cannot pop the global environment");
 
-    auto it = _environments.begin();
-    delete it->second;
+    delete _environments.back();
+    _environments.pop_back();
+}
 
-    _environments.erase(it);
+void environment_manager::define(const std::string& name, const literal_value& value)
+{
+    _environments.back()->define(name, value);
+}
+
+void environment_manager::assign(const std::string& name, const literal_value& value)
+{
+    _environments.back()->assign(name, value);
+}
+
+literal_value environment_manager::get(const token& name) const
+{
+    return _environments.back()->get(name);
 }
 
 NAMESPACE_END

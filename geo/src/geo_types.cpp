@@ -23,6 +23,8 @@ std::string geo_type_tostr(geo_type type)
             return "number";
         case geo_type::bool_:
             return "bool";
+        case geo_type::callable_:
+            return "callable";
         case geo_type::null_:
             return "null";
         case geo_type::undefined_:
@@ -48,6 +50,7 @@ std::string literal_tostr(const literal_value& l)
             [&](double d)                      { return format_number(d);                               },
             [&](bool b)                        { return b ? std::string("true") : std::string("false"); },
             [&](const std::string& s)          { return s;                                              },
+            [&](const geo_callable*)           { return std::string("callable");                        },
             [&](std::monostate)                { return std::string("null");                            },
             [&](const undefined& u)            { return std::string("undefined");                       },
         }, l);

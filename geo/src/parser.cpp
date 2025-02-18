@@ -107,7 +107,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_function_declaration
     consume_if_matches(token_type::right_paren_, "Expect ')' after " + kind + " declaration.");
     consume_if_matches(token_type::left_brace_, "Expect '{' before " + kind + " body.");
 
-    std::unique_ptr<statement> body = create_block_statement();
+    std::vector<std::unique_ptr<statement>> body = create_block_statement();
     return std::make_unique<function_declaration_statement>(ident, parameters, std::move(body));
 }
 
@@ -148,7 +148,10 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
         return create_return_statement();
 
     if (matches_token({ token_type::left_brace_ }))
-        return create_block_statement();
+    {
+        std::vector<std::unique_ptr<statement>> statements = create_block_statement();
+        return std::make_unique<block_statement>(std::move(statements));
+    }
 
     return create_expression_statement();
 }
@@ -246,7 +249,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_return_statement()
     return std::make_unique<return_statement>(keyword, std::move(return_expr));
 }
 
-std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
+std::vector<std::unique_ptr<statement>> recursive_descent_parser::create_block_statement()
 {
     // block -> "{" declaration* "}" ;
     std::vector<std::unique_ptr<statement>> statements;
@@ -260,7 +263,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
     }
 
     consume_if_matches(token_type::right_brace_, "Expected '}' after block statement");
-    return std::make_unique<block_statement>(std::move(statements));
+    return statements;
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_expression_statement()
@@ -423,7 +426,7 @@ std::unique_ptr<expression> recursive_descent_parser::unary_precedence()
 std::unique_ptr<expression> recursive_descent_parser::postfix_precedence()
 {
     // postfix -> call ( "++" | "--" )* ;
-    std::unique_ptr<expression> expr = primary_precedence();
+    std::unique_ptr<expression> expr = call_precedence();
 
     while (matches_token({ token_type::plus_plus_, token_type::minus_minus_ }))
     {
@@ -437,7 +440,21 @@ std::unique_ptr<expression> recursive_descent_parser::postfix_precedence()
 std::unique_ptr<expression> recursive_descent_parser::call_precedence()
 {
     // call -> primary ( "(" arguments? ")" )* ;
-    assert(false);
+    std::unique_ptr<expression> expr = primary_precedence();
+
+    while (true)
+    {
+        if (matches_token({ token_type::left_paren_ }))
+        {
+            expr = finish_call(std::move(expr));
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return expr;
 }
 
 std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
