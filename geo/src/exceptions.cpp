@@ -42,6 +42,8 @@ std::string get_token_position(const token& t)
     }
 
     ss << " on line/col [" << t.position.first << ":" << t.position.second << "] on token '" << t.lexeme << "'";
+    ss << '\n';
+    ss << ">>> " << t.source_line;
     return ss.str();
 }
 
