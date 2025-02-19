@@ -17,6 +17,7 @@ NAMESPACE_BEGIN(geo)
 geo_app::geo_app()
     : _io(std::make_unique<console_io>())
     , _interpreter(_io.get())
+    , _resolver()
     , _had_runtime_error(false)
 {
 

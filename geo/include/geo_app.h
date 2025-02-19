@@ -2,6 +2,7 @@
 #define JUMI_GEO_GEO_APP_H
 #include "typedefs.h"
 #include "interpreter.h"
+#include "resolver.h"
 #include <memory>
 
 NAMESPACE_BEGIN(geo)
@@ -19,6 +20,7 @@ public:
 private:
     std::unique_ptr<console_io> _io;
     interpreter _interpreter;
+    resolver _resolver;
 
     bool _had_runtime_error;
 
