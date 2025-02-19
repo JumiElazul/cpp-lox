@@ -56,9 +56,9 @@ void interpreter::visit_debug_statement(debug_statement& stmt)
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
 {
     geo_callable* new_function = new user_function(
-            &_env_manager,
-            std::make_unique<function_declaration_statement>(stmt.ident_name, stmt.params, std::move(stmt.body)),
-            _env_manager.get_current_environment());
+            stmt,
+            _env_manager.get_current_environment(),
+            &_env_manager);
 
     _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, new_function);
 }
