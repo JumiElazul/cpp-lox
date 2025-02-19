@@ -2,6 +2,8 @@
 #define JUMI_GEO_CONSOLE_IO_H
 #include "typedefs.h"
 #include <memory>
+#include <string>
+#include <iostream>
 
 NAMESPACE_BEGIN(geo)
 
