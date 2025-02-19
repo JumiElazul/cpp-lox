@@ -36,6 +36,10 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     {
         _io->err() << e.what() << '\n';
     }
+    catch (...)
+    {
+        _io->err() << "Exception swallower hit\n";
+    }
 }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
