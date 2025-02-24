@@ -72,6 +72,19 @@ private:
     console_io* _io;
 };
 
+class input : public native_function
+{
+public:
+    input(console_io* io);
+    virtual ~input() = default;
+    virtual int arity() override;
+    virtual std::string to_string() const override;
+    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
+
+private:
+    console_io* _io;
+};
+
 NAMESPACE_END
 
 #endif

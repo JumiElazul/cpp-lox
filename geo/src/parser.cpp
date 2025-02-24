@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "exceptions.h"
 #include "expressions.h"
 #include "tokens.h"
@@ -31,6 +32,10 @@ recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lex
 
 std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 {
+#ifndef NDEBUG
+    debug_timer dt("recursive_descent_parser::parse()", _io);
+#endif
+
     std::vector<std::unique_ptr<statement>> statements;
     // Estimate the number of statements to reserve
     statements.reserve(_lexer_tokens.size() / 4);

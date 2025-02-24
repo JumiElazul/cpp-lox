@@ -144,9 +144,30 @@ void environment_manager::assign(const std::string& name, const literal_value& v
     _environments.back()->assign(name, value);
 }
 
+void environment_manager::assign_at(int distance, const token& name, const literal_value& literal)
+{
+    return ancestor(distance)->assign(name.lexeme, literal);
+}
+
 literal_value environment_manager::get(const token& name) const
 {
     return _environments.back()->get(name);
+}
+
+literal_value environment_manager::get_at(int distance, const token& name) const
+{
+    return ancestor(distance)->get(name);
+}
+
+environment* environment_manager::ancestor(int distance) const
+{
+    environment* env = _environments.back();
+    for (int i = 0; i < distance; ++i)
+    {
+        env = env->_parent_scope;
+    }
+
+    return env;
 }
 
 NAMESPACE_END

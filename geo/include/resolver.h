@@ -2,23 +2,24 @@
 #define JUMI_GEO_RESOLVER_H
 #include "typedefs.h"
 #include "expression_visitors.h"
+#include "interpreter.h"
 #include "statement_visitors.h"
 #include "statements.h"
+#include "tokens.h"
 #include <memory>
 #include <vector>
 #include <unordered_map>
 
 NAMESPACE_BEGIN(geo)
 
+class console_io;
+
 class resolver : public statement_visitor, expression_visitor<void>
 {
 public:
-    resolver();
+    resolver(interpreter& interpreter_);
 
-    void resolve(const std::vector<std::unique_ptr<statement>>& statements);
-    void resolve(const std::unique_ptr<statement>& stmt);
-    void resolve(const std::unique_ptr<expression>& expr);
-
+    void resolve_all(const std::vector<std::unique_ptr<statement>>& statements);
     virtual void visit_debug_statement(debug_statement& stmt) override;
 
     virtual void visit_function_declaration_statement(function_declaration_statement& stmt) override;
@@ -44,10 +45,21 @@ public:
     virtual void visit_call(call_expression& expr) override;
 
 private:
+    interpreter& _interpreter;
+    console_io* _io;
     std::vector<std::unordered_map<std::string, bool>> _scopes;
+
+    void resolve(const std::vector<std::unique_ptr<statement>>& statements);
+    void resolve(const std::unique_ptr<statement>& stmt);
+    void resolve(const std::unique_ptr<expression>& expr);
 
     void begin_scope();
     void end_scope();
+
+    void declare(const token& t);
+    void define(const token& t);
+    void resolve_local(expression& expr, const token& t);
+    void resolve_function(function_declaration_statement& expr);
 };
 
 NAMESPACE_END

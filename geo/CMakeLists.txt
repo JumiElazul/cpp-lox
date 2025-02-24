@@ -2,6 +2,7 @@ set(SOURCES
     "src/geo_app.cpp"
 
     "src/console_io.cpp"
+    "src/debug_timer.cpp"
     "src/environment.cpp"
     "src/exceptions.cpp"
     "src/expressions.cpp"
@@ -23,6 +24,7 @@ set(HEADERS
     "include/i_logger.h"
 
     "include/console_io.h"
+    "include/debug_timer.h"
     "include/environment.h"
     "include/exceptions.h"
     "include/expressions.h"
