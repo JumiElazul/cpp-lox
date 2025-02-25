@@ -1,5 +1,6 @@
 #include "geo_app.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "expression_visitors.h"
 #include "interpreter.h"
 #include "logger.h"
@@ -89,6 +90,15 @@ void geo_app::run(const std::string& source)
 
     // 4. Interpreter
     _interpreter.interpret(statements);
+
+#ifndef NDEBUG
+    _io->out() << "-----------------------------------\n";
+    _io->out() << "[ Execution Time ]\n";
+    for (const auto& time : execution_times_us)
+    {
+        _io->out() << format_execution_time(time.first, time.second);
+    }
+#endif
 }
 
 NAMESPACE_END

@@ -65,11 +65,15 @@ lexer::lexer(const std::string& input, console_io* io)
     , _io(io)
 {
 #ifndef NDEBUG
-    debug_timer dt("lexer::lexer()", io);
+    debug_timer dt("lexer::lexer()");
 #endif
 
     _lexer_state.input = std::move(input);
     tokenize();
+
+#ifndef NDEBUG
+    dt.stop();
+#endif
 }
 
 const std::vector<token>& lexer::get_tokens() const noexcept

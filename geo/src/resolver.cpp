@@ -20,10 +20,14 @@ resolver::resolver(interpreter& interpreter_)
 void resolver::resolve_all(const std::vector<std::unique_ptr<statement>>& statements)
 {
 #ifndef NDEBUG
-    debug_timer dt("resolver::resolve()", _io);
+    debug_timer dt("resolver::resolve()");
 #endif
 
     resolve(statements);
+
+#ifndef NDEBUG
+    dt.stop();
+#endif
 }
 
 void resolver::resolve(const std::vector<std::unique_ptr<statement>>& statements)
@@ -220,6 +224,13 @@ void resolver::define(const token& t)
 {
     if (_scopes.empty()) return;
     auto& scope = _scopes.back();
+
+    auto it = scope.find(t.lexeme);
+    if (it != scope.end() && it->second)
+    {
+        throw geo_runtime_error("Variable with this name already declared in this scope: " + t.lexeme);
+    }
+
     scope[t.lexeme] = true;
 }
 
