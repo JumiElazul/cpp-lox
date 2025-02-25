@@ -88,6 +88,12 @@ void geo_app::run(const std::string& source)
     // 3. Static Analysis
     _resolver.resolve_all(statements);
 
+    if (_resolver.error_occurred())
+    {
+        _had_runtime_error = true;
+        return;
+    }
+
     // 4. Interpreter
     _interpreter.interpret(statements);
 

@@ -15,7 +15,12 @@ NAMESPACE_BEGIN(geo)
 resolver::resolver(interpreter& interpreter_)
     : _interpreter(interpreter_)
     , _io(_interpreter._io)
-    , _scopes() { }
+    , _scopes()
+    , _current_function_type(function_type::none)
+    , _had_error(false) { }
+
+bool resolver::error_occurred() const noexcept { return _had_error; }
+void resolver::reset_error_flag() noexcept { _had_error = false; }
 
 void resolver::resolve_all(const std::vector<std::unique_ptr<statement>>& statements)
 {
@@ -23,7 +28,15 @@ void resolver::resolve_all(const std::vector<std::unique_ptr<statement>>& statem
     debug_timer dt("resolver::resolve()");
 #endif
 
-    resolve(statements);
+    try
+    {
+        resolve(statements);
+    }
+    catch (const geo_runtime_error& e)
+    {
+        _io->err() << e.what() << '\n';
+        _had_error = true;
+    }
 
 #ifndef NDEBUG
     dt.stop();
@@ -32,7 +45,6 @@ void resolver::resolve_all(const std::vector<std::unique_ptr<statement>>& statem
 
 void resolver::resolve(const std::vector<std::unique_ptr<statement>>& statements)
 {
-
     for (const auto& stmt : statements)
     {
         resolve(stmt);
@@ -56,10 +68,14 @@ void resolver::visit_debug_statement(debug_statement& stmt)
 
 void resolver::visit_function_declaration_statement(function_declaration_statement& stmt)
 {
+    _current_function_type = function_type::function;
+
     declare(stmt.ident_name);
     define(stmt.ident_name);
 
     resolve_function(stmt);
+
+    _current_function_type = function_type::none;
 }
 
 void resolver::visit_variable_declaration_statement(variable_declaration_statement& stmt)
@@ -118,6 +134,9 @@ void resolver::visit_continue_statement(continue_statement& stmt)
 
 void resolver::visit_return_statement(return_statement& stmt)
 {
+    if (_current_function_type == function_type::none)
+        throw geo_runtime_error("Invalid return found; return statement must be nested inside a function", stmt.keyword);
+
     if (stmt.return_expr)
         resolve(stmt.return_expr);
 }
@@ -217,13 +236,6 @@ void resolver::declare(const token& t)
         return;
 
     auto& scope = _scopes.back();
-    scope[t.lexeme] = false;
-}
-
-void resolver::define(const token& t)
-{
-    if (_scopes.empty()) return;
-    auto& scope = _scopes.back();
 
     auto it = scope.find(t.lexeme);
     if (it != scope.end() && it->second)
@@ -231,6 +243,13 @@ void resolver::define(const token& t)
         throw geo_runtime_error("Variable with this name already declared in this scope: " + t.lexeme);
     }
 
+    scope[t.lexeme] = false;
+}
+
+void resolver::define(const token& t)
+{
+    if (_scopes.empty()) return;
+    auto& scope = _scopes.back();
     scope[t.lexeme] = true;
 }
 

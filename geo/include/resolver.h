@@ -14,10 +14,19 @@ NAMESPACE_BEGIN(geo)
 
 class console_io;
 
+enum class function_type
+{
+    none,
+    function
+};
+
 class resolver : public statement_visitor, expression_visitor<void>
 {
 public:
     resolver(interpreter& interpreter_);
+
+    bool error_occurred() const noexcept;
+    void reset_error_flag() noexcept;
 
     void resolve_all(const std::vector<std::unique_ptr<statement>>& statements);
     virtual void visit_debug_statement(debug_statement& stmt) override;
@@ -48,6 +57,8 @@ private:
     interpreter& _interpreter;
     console_io* _io;
     std::vector<std::unordered_map<std::string, bool>> _scopes;
+    function_type _current_function_type;
+    bool _had_error;
 
     void resolve(const std::vector<std::unique_ptr<statement>>& statements);
     void resolve(const std::unique_ptr<statement>& stmt);

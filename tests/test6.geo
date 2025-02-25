@@ -6,6 +6,7 @@ var a = "global";
     }
     show_a();
     var a = "block";
+    var a = "not block";
     show_a();
 }
 
