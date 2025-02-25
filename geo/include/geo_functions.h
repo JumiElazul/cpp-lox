@@ -37,10 +37,10 @@ public:
 class user_function : public geo_callable
 {
 public:
-    std::unique_ptr<function_declaration_statement> declaration;
+    function_declaration_statement& declaration;
     environment* closure;
 
-    user_function(environment_manager* env_manager, std::unique_ptr<function_declaration_statement> declaration_, environment* closure);
+    user_function(function_declaration_statement& declaration_, environment* closure, environment_manager* env_manager);
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
@@ -64,6 +64,19 @@ class print : public native_function
 public:
     print(console_io* io);
     virtual ~print() = default;
+    virtual int arity() override;
+    virtual std::string to_string() const override;
+    virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
+
+private:
+    console_io* _io;
+};
+
+class input : public native_function
+{
+public:
+    input(console_io* io);
+    virtual ~input() = default;
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;

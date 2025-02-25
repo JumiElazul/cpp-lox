@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include <cctype>
@@ -63,8 +64,16 @@ lexer::lexer(const std::string& input, console_io* io)
     , _lexer_error(false)
     , _io(io)
 {
+#ifndef NDEBUG
+    debug_timer dt("lexer::lexer()");
+#endif
+
     _lexer_state.input = std::move(input);
     tokenize();
+
+#ifndef NDEBUG
+    dt.stop();
+#endif
 }
 
 const std::vector<token>& lexer::get_tokens() const noexcept

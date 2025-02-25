@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "environment.h"
 #include "exceptions.h"
 #include "expressions.h"
@@ -18,13 +19,19 @@ NAMESPACE_BEGIN(geo)
 interpreter::interpreter(console_io* io)
     : _env_manager()
     , _io(io) 
+    , _locals()
 { 
     _env_manager.get_global_environment()->define("clock", new clock());
     _env_manager.get_global_environment()->define("print", new print(_io));
+    _env_manager.get_global_environment()->define("input", new input(_io));
 }
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
 {
+#ifndef NDEBUG
+    debug_timer dt("interpreter::interpret()");
+#endif
+
     try
     {
         for (const auto& stmt : statements)
@@ -36,6 +43,14 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     {
         _io->err() << e.what() << '\n';
     }
+    catch (...)
+    {
+        _io->err() << "Exception swallower hit\n";
+    }
+
+#ifndef NDEBUG
+    dt.stop();
+#endif
 }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
@@ -48,6 +63,24 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
     stmt->accept_visitor(*this);
 }
 
+void interpreter::resolve(expression& expr, int depth)
+{
+    _locals[&expr] = depth;
+}
+
+literal_value interpreter::lookup_variable(const token& name, expression& expr)
+{
+    auto dist_it = _locals.find(&expr);
+    if (dist_it != _locals.end())
+    {
+        return _env_manager.get_at(dist_it->second, name);
+    }
+    else
+    {
+        return _env_manager.get_global_environment()->get(name);
+    }
+}
+
 void interpreter::visit_debug_statement(debug_statement& stmt)
 {
 
@@ -56,9 +89,9 @@ void interpreter::visit_debug_statement(debug_statement& stmt)
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
 {
     geo_callable* new_function = new user_function(
-            &_env_manager,
-            std::make_unique<function_declaration_statement>(stmt.ident_name, stmt.params, std::move(stmt.body)),
-            _env_manager.get_current_environment());
+            stmt,
+            _env_manager.get_current_environment(),
+            &_env_manager);
 
     _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, new_function);
 }
@@ -70,12 +103,6 @@ void interpreter::visit_variable_declaration_statement(variable_declaration_stat
         literal = evaluate(stmt.initializer_expr);
 
     _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, literal);
-}
-
-void interpreter::visit_print_statement(print_statement& stmt)
-{
-    literal_value literal = evaluate(stmt.expr);
-    _io->out() << literal_tostr(literal) << '\n';
 }
 
 void interpreter::visit_if_statement(if_statement& stmt)
@@ -374,18 +401,28 @@ literal_value interpreter::visit_literal(literal_expression& expr)
 
 literal_value interpreter::visit_grouping(grouping_expression& expr)
 {
-    return evaluate(expr.expr_);
+    return evaluate(expr.expr_group);
 }
 
 literal_value interpreter::visit_variable(variable_expression& expr)
 {
-    return _env_manager.get_current_environment()->get(expr.ident_name);
+    return lookup_variable(expr.ident_name, expr);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = evaluate(expr.initializer_expr);
-    _env_manager.get_current_environment()->assign(expr.ident_name.lexeme, literal);
+    auto distance_it = _locals.find(&expr);
+
+    if (distance_it != _locals.end())
+    {
+        _env_manager.assign_at(distance_it->second, expr.ident_name, literal);
+    }
+    else
+    {
+        _env_manager.get_global_environment()->assign(expr.ident_name.lexeme, literal);
+    }
+
     return literal;
 }
 

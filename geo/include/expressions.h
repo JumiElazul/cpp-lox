@@ -63,7 +63,7 @@ public:
 class grouping_expression : public expression
 {
 public:
-    std::unique_ptr<expression> expr_;
+    std::unique_ptr<expression> expr_group;
 
     grouping_expression(std::unique_ptr<expression> expr);
 

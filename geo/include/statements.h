@@ -56,17 +56,6 @@ public:
     virtual void accept_visitor(statement_visitor& v) override;
 };
 
-class print_statement final : public statement
-{
-public:
-    std::unique_ptr<expression> expr;
-
-    print_statement(std::unique_ptr<expression> expr_);
-    ~print_statement() = default;
-
-    virtual void accept_visitor(statement_visitor& v) override;
-};
-
 class if_statement final : public statement
 {
 public:

@@ -40,11 +40,15 @@ public:
     void pop_environment();
     void define(const std::string& name, const literal_value& value);
     void assign(const std::string& name, const literal_value& value);
+    void assign_at(int distance, const token& name, const literal_value& literal);
     literal_value get(const token& name) const;
+    literal_value get_at(int distance, const token& name) const;
 
 private:
     std::vector<environment*> _environments;
     std::vector<environment*> _held_environments;
+
+    environment* ancestor(int distance) const;
 };
 
 NAMESPACE_END

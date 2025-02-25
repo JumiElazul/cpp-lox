@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "exceptions.h"
 #include "expressions.h"
 #include "tokens.h"
@@ -31,6 +32,10 @@ recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lex
 
 std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 {
+#ifndef NDEBUG
+    debug_timer dt("recursive_descent_parser::parse()");
+#endif
+
     std::vector<std::unique_ptr<statement>> statements;
     // Estimate the number of statements to reserve
     statements.reserve(_lexer_tokens.size() / 4);
@@ -60,6 +65,10 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
             synchronize();
         }
     }
+
+#ifndef NDEBUG
+    dt.stop();
+#endif
 
     return statements;
 }
@@ -154,16 +163,6 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
     }
 
     return create_expression_statement();
-}
-
-std::unique_ptr<statement> recursive_descent_parser::create_print_statement()
-{
-    // print_statement -> "print" "(" expression ")" ";" ;
-    consume_if_matches(token_type::left_paren_, "Expected '(' after 'print'");
-    std::unique_ptr<expression> expr = expression_precedence();
-    consume_if_matches(token_type::right_paren_, "Expected ')' after 'expression'");
-    consume_if_matches(token_type::semicolon_, "Expected ';' after statement");
-    return std::make_unique<print_statement>(std::move(expr));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_if_statement()

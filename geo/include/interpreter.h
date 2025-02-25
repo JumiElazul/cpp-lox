@@ -19,6 +19,7 @@ class environment;
 class interpreter final : public statement_visitor, public expression_visitor<literal_value>
 {
     friend class user_function;
+    friend class resolver;
     // These are custom exception classes that are thrown by the interpreter.  These are not useful
     // to users of Geo, they just help with the inner workings of the interpreter.
     struct geo_loop_break      {                           };
@@ -33,15 +34,17 @@ public:
 private:
     environment_manager _env_manager;
     console_io* _io;
+    std::unordered_map<expression*, int> _locals;
 
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
+    void resolve(expression& expr, int depth);
+    literal_value lookup_variable(const token& name, expression& expr);
 
     virtual void visit_debug_statement(debug_statement& stmt) override;
 
     virtual void visit_function_declaration_statement(function_declaration_statement& stmt) override;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
-    virtual void visit_print_statement(print_statement& stmt) override;
     virtual void visit_if_statement(if_statement& stmt) override;
     virtual void visit_while_statement(while_statement& stmt) override;
     virtual void visit_for_statement(for_statement& stmt) override;

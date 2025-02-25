@@ -29,7 +29,7 @@ std::string string_visitor::visit_literal(literal_expression& expr)
 
 std::string string_visitor::visit_grouping(grouping_expression& expr)
 {
-    std::string lhs_str = expr.expr_->accept_visitor(*this);
+    std::string lhs_str = expr.expr_group->accept_visitor(*this);
     return "( " + lhs_str + " )";
 }
 

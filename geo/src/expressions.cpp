@@ -19,7 +19,7 @@ literal_expression::literal_expression(const literal_value& literal)
     : literal_val(literal) { }
 
 grouping_expression::grouping_expression(std::unique_ptr<expression> expr)
-    : expr_(std::move(expr)) { }
+    : expr_group(std::move(expr)) { }
 
 variable_expression::variable_expression(const token& t)
     : ident_name(t) { }

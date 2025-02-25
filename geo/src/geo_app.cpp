@@ -1,5 +1,6 @@
 #include "geo_app.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "expression_visitors.h"
 #include "interpreter.h"
 #include "logger.h"
@@ -17,11 +18,8 @@ NAMESPACE_BEGIN(geo)
 geo_app::geo_app()
     : _io(std::make_unique<console_io>())
     , _interpreter(_io.get())
-    , _resolver()
-    , _had_runtime_error(false)
-{
-
-}
+    , _resolver(_interpreter)
+    , _had_runtime_error(false) { }
 
 geo_app::~geo_app() = default;
 
@@ -65,6 +63,7 @@ void geo_app::run_interpreter_mode()
 
 void geo_app::run(const std::string& source)
 {
+    // 1. Lexing Phase
     lexer l(source, _io.get());
 
     if (l.error_occurred())
@@ -72,7 +71,12 @@ void geo_app::run(const std::string& source)
 
     const std::vector<token>& tokens = l.get_tokens();
 
+    // 2. Parsing Phase
     recursive_descent_parser parser(tokens, _io.get());
+
+    // NOTE(Greg): Currently, this vector owns the statements that are parsed. This will become a problem
+    // once we introduce multiple file projects, as well as some cases in REPL mode where these
+    // statements will go out of scope once the user executes a line.
     std::vector<std::unique_ptr<statement>> statements = parser.parse();
 
     if (parser.error_occurred())
@@ -81,7 +85,26 @@ void geo_app::run(const std::string& source)
         return;
     }
 
+    // 3. Static Analysis
+    _resolver.resolve_all(statements);
+
+    if (_resolver.error_occurred())
+    {
+        _had_runtime_error = true;
+        return;
+    }
+
+    // 4. Interpreter
     _interpreter.interpret(statements);
+
+#ifndef NDEBUG
+    _io->out() << "-----------------------------------\n";
+    _io->out() << "[ Execution Time ]\n";
+    for (const auto& time : execution_times_us)
+    {
+        _io->out() << format_execution_time(time.first, time.second);
+    }
+#endif
 }
 
 NAMESPACE_END

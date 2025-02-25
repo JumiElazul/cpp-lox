@@ -7,27 +7,27 @@
 
 NAMESPACE_BEGIN(geo)
 
-user_function::user_function(environment_manager* env_manager,
-        std::unique_ptr<function_declaration_statement> declaration_,
-        environment* closure_)
-    : declaration(std::move(declaration_))
+user_function::user_function(function_declaration_statement& declaration_,
+        environment* closure_,
+        environment_manager* env_manager)
+    : declaration(declaration_)
     , closure(closure_)
     , _env_manager(env_manager) { }
 
-int user_function::arity() { return static_cast<int>(declaration->params.size()); }
-std::string user_function::to_string() const { return std::string("<user fn>" + declaration->ident_name.lexeme); }
+int user_function::arity() { return static_cast<int>(declaration.params.size()); }
+std::string user_function::to_string() const { return std::string("<user fn>" + declaration.ident_name.lexeme); }
 
 literal_value user_function::call(interpreter& i, const std::vector<literal_value>& args)
 {
     _env_manager->push_environment(closure);
-    for (size_t i = 0; i < declaration->params.size(); ++i)
+    for (size_t i = 0; i < declaration.params.size(); ++i)
     {
-        _env_manager->get_current_environment()->define(declaration->params[i].lexeme, args[i]);
+        _env_manager->get_current_environment()->define(declaration.params[i].lexeme, args[i]);
     }
 
     try
     {
-        i.execute_block(declaration->body, _env_manager->get_current_environment());
+        i.execute_block(declaration.body, _env_manager->get_current_environment());
     }
     catch (const interpreter::geo_function_return& ret)
     {
@@ -62,6 +62,19 @@ literal_value print::call(interpreter& i, const std::vector<literal_value>& args
         _io->out() << literal_tostr(arg) << '\n';
 
     return std::monostate{};
+}
+
+input::input(console_io* io) : _io(io) {}
+int input::arity() { return 0; }
+std::string input::to_string() const { return "<native fn>input"; }
+
+literal_value input::call(interpreter& i, const std::vector<literal_value>& args)
+{
+    for (const auto& arg : args)
+        _io->out() << literal_tostr(arg) << '\n';
+
+    std::string value = _io->readline("");
+    return value;
 }
 
 NAMESPACE_END

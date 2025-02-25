@@ -6,5 +6,27 @@ var a = "global";
     }
     show_a();
     var a = "block";
+    var a = "not block";
     show_a();
+}
+
+var i = 10;
+print(i);
+
+{
+    print("one scope deep");
+    var i = 15;
+    print(i);
+    {
+        print("two scopes deep");
+        var i = 20;
+        print(i);
+        {
+            print("three scopes deep");
+            i = 30;
+            print(i);
+        }
+        print("two scopes deep (i was reassigned a new value)");
+        print(i);
+    }
 }
