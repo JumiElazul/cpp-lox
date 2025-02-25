@@ -20,6 +20,13 @@ enum class function_type
     function
 };
 
+struct variable_info
+{
+    bool defined = false;
+    bool used = false;
+    token declaration_token;
+};
+
 class resolver : public statement_visitor, expression_visitor<void>
 {
 public:
@@ -55,7 +62,8 @@ public:
 private:
     interpreter& _interpreter;
     console_io* _io;
-    std::vector<std::unordered_map<std::string, bool>> _scopes;
+    std::vector<std::unordered_map<std::string, variable_info>> _scopes;
+
     function_type _current_function_type;
     bool _had_error;
 

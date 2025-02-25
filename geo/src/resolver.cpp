@@ -169,13 +169,15 @@ void resolver::visit_variable(variable_expression& expr)
 {
     if (!_scopes.empty())
     {
-        std::unordered_map<std::string, bool>& scope = _scopes.back();
-        std::unordered_map<std::string, bool>::iterator it = scope.find(expr.ident_name.lexeme);
+        std::unordered_map<std::string, variable_info>& scope = _scopes.back();
+        std::unordered_map<std::string, variable_info>::iterator it = scope.find(expr.ident_name.lexeme);
 
         if (it != scope.end())
         {
-            if (it->second == false)
+            if (it->second.defined == false)
                 throw geo_runtime_error("Can't read local variable in its own initializer: " + it->first);
+
+            it->second.used = true;
         }
 
         resolve_local(expr, expr.ident_name);
@@ -211,11 +213,23 @@ void resolver::visit_call(call_expression& expr)
 
 void resolver::begin_scope()
 {
-    _scopes.push_back(std::unordered_map<std::string, bool>());
+    _scopes.push_back(std::unordered_map<std::string, variable_info>());
 }
 
 void resolver::end_scope()
 {
+    if (!_scopes.empty())
+    {
+        auto& scope = _scopes.back();
+        for (const auto& [name, info] : scope)
+        {
+            if (!info.used)
+            {
+                _io->err() << "Variable declared but never used: " << name << '\n';
+            }
+        }
+    }
+
     _scopes.pop_back();
 }
 
@@ -227,19 +241,19 @@ void resolver::declare(const token& t)
     auto& scope = _scopes.back();
 
     auto it = scope.find(t.lexeme);
-    if (it != scope.end() && it->second)
+    if (it != scope.end() && it->second.defined)
     {
         throw geo_runtime_error("Variable with this name already declared in this scope: " + t.lexeme);
     }
 
-    scope[t.lexeme] = false;
+    scope[t.lexeme] = variable_info{ false, false, t };
 }
 
 void resolver::define(const token& t)
 {
     if (_scopes.empty()) return;
     auto& scope = _scopes.back();
-    scope[t.lexeme] = true;
+    scope[t.lexeme].defined = true;
 }
 
 void resolver::resolve_local(expression& expr, const token& t)
