@@ -68,14 +68,10 @@ void resolver::visit_debug_statement(debug_statement& stmt)
 
 void resolver::visit_function_declaration_statement(function_declaration_statement& stmt)
 {
-    _current_function_type = function_type::function;
-
     declare(stmt.ident_name);
     define(stmt.ident_name);
 
-    resolve_function(stmt);
-
-    _current_function_type = function_type::none;
+    resolve_function(stmt, function_type::function);
 }
 
 void resolver::visit_variable_declaration_statement(variable_declaration_statement& stmt)
@@ -84,11 +80,6 @@ void resolver::visit_variable_declaration_statement(variable_declaration_stateme
     if (stmt.initializer_expr)
         resolve(stmt.initializer_expr);
     define(stmt.ident_name);
-}
-
-void resolver::visit_print_statement(print_statement& stmt)
-{
-
 }
 
 void resolver::visit_if_statement(if_statement& stmt)
@@ -179,9 +170,7 @@ void resolver::visit_variable(variable_expression& expr)
     if (!_scopes.empty())
     {
         std::unordered_map<std::string, bool>& scope = _scopes.back();
-        std::unordered_map<std::string, bool>::iterator it;
-
-        it = scope.find(expr.ident_name.lexeme);
+        std::unordered_map<std::string, bool>::iterator it = scope.find(expr.ident_name.lexeme);
 
         if (it != scope.end())
         {
@@ -267,8 +256,11 @@ void resolver::resolve_local(expression& expr, const token& t)
     }
 }
 
-void resolver::resolve_function(function_declaration_statement& expr)
+void resolver::resolve_function(function_declaration_statement& expr, function_type type)
 {
+    function_type enclosing_function = _current_function_type;
+    _current_function_type = type;
+
     begin_scope();
 
     for (const token& t : expr.params)
@@ -279,6 +271,8 @@ void resolver::resolve_function(function_declaration_statement& expr)
 
     resolve(expr.body);
     end_scope();
+
+    _current_function_type = enclosing_function;
 }
 
 NAMESPACE_END

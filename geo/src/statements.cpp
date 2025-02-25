@@ -25,9 +25,6 @@ variable_declaration_statement::variable_declaration_statement(const token& iden
     : ident_name(ident_name_)
     , initializer_expr(std::move(initializer_expr_)) { }
 
-print_statement::print_statement(std::unique_ptr<expression> expr_)
-    : expr(std::move(expr_)) { }
-
 if_statement::if_statement(std::unique_ptr<expression> condition_, std::unique_ptr<statement> if_branch_, std::unique_ptr<statement> else_branch_)
     : condition(std::move(condition_))
     , if_branch(std::move(if_branch_))
@@ -62,7 +59,6 @@ expression_statement::expression_statement(std::unique_ptr<expression> expr_)
 
 void function_declaration_statement::accept_visitor(statement_visitor& v) { v.visit_function_declaration_statement(*this); }
 void variable_declaration_statement::accept_visitor(statement_visitor& v) { v.visit_variable_declaration_statement(*this); }
-void print_statement::accept_visitor(statement_visitor& v)                { v.visit_print_statement(*this); }
 void if_statement::accept_visitor(statement_visitor& v)                   { v.visit_if_statement(*this); }
 void while_statement::accept_visitor(statement_visitor& v)                { v.visit_while_statement(*this); }
 void for_statement::accept_visitor(statement_visitor& v)                  { v.visit_for_statement(*this); }

@@ -105,12 +105,6 @@ void interpreter::visit_variable_declaration_statement(variable_declaration_stat
     _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, literal);
 }
 
-void interpreter::visit_print_statement(print_statement& stmt)
-{
-    literal_value literal = evaluate(stmt.expr);
-    _io->out() << literal_tostr(literal) << '\n';
-}
-
 void interpreter::visit_if_statement(if_statement& stmt)
 {
     if (is_truthy(evaluate(stmt.condition)))

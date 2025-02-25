@@ -33,7 +33,6 @@ public:
 
     virtual void visit_function_declaration_statement(function_declaration_statement& stmt) override;
     virtual void visit_variable_declaration_statement(variable_declaration_statement& stmt) override;
-    virtual void visit_print_statement(print_statement& stmt) override;
     virtual void visit_if_statement(if_statement& stmt) override;
     virtual void visit_while_statement(while_statement& stmt) override;
     virtual void visit_for_statement(for_statement& stmt) override;
@@ -70,7 +69,7 @@ private:
     void declare(const token& t);
     void define(const token& t);
     void resolve_local(expression& expr, const token& t);
-    void resolve_function(function_declaration_statement& expr);
+    void resolve_function(function_declaration_statement& expr, function_type type);
 };
 
 NAMESPACE_END

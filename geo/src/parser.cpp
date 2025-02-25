@@ -165,16 +165,6 @@ std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
     return create_expression_statement();
 }
 
-std::unique_ptr<statement> recursive_descent_parser::create_print_statement()
-{
-    // print_statement -> "print" "(" expression ")" ";" ;
-    consume_if_matches(token_type::left_paren_, "Expected '(' after 'print'");
-    std::unique_ptr<expression> expr = expression_precedence();
-    consume_if_matches(token_type::right_paren_, "Expected ')' after 'expression'");
-    consume_if_matches(token_type::semicolon_, "Expected ';' after statement");
-    return std::make_unique<print_statement>(std::move(expr));
-}
-
 std::unique_ptr<statement> recursive_descent_parser::create_if_statement()
 {
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'if'");
