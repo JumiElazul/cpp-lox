@@ -16,6 +16,13 @@ class statement
 public:
     virtual ~statement() = default;
     virtual void accept_visitor(statement_visitor& v) = 0;
+
+protected:
+    statement() = default;
+    statement(const statement&) = default;
+    statement& operator=(const statement&) = default;
+    statement(statement&&) = default;
+    statement& operator=(statement&&) = default;
 };
 
 // --------------------------------------------------
@@ -24,7 +31,6 @@ class debug_statement final : public statement
 {
 public:
     debug_statement();
-    ~debug_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -39,7 +45,6 @@ public:
     std::vector<std::unique_ptr<statement>> body;
 
     function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_);
-    ~function_declaration_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -51,7 +56,6 @@ public:
     std::unique_ptr<expression> initializer_expr;
 
     variable_declaration_statement(const token& ident_name_, std::unique_ptr<expression> initializer_expr_);
-    ~variable_declaration_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -64,7 +68,6 @@ public:
     std::unique_ptr<statement> else_branch;
 
     if_statement(std::unique_ptr<expression> condition_, std::unique_ptr<statement> if_branch_, std::unique_ptr<statement> else_branch_);
-    ~if_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -76,7 +79,6 @@ public:
     std::unique_ptr<statement> stmt_body;
 
     while_statement(std::unique_ptr<expression> condition_, std::unique_ptr<statement> stmt_body_);
-    ~while_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -91,7 +93,6 @@ public:
 
     for_statement(std::unique_ptr<statement> initializer_, std::unique_ptr<expression> condition_,
             std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_);
-    ~for_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -102,7 +103,6 @@ public:
     token break_token;
 
     break_statement(const token& t);
-    ~break_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -113,7 +113,6 @@ public:
     token continue_token;
 
     continue_statement(const token& t);
-    ~continue_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -125,7 +124,6 @@ public:
     std::unique_ptr<expression> return_expr;
 
     return_statement(const token& keyword_, std::unique_ptr<expression> return_expr_);
-    ~return_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -136,7 +134,6 @@ public:
     std::vector<std::unique_ptr<statement>> statements;
 
     block_statement(std::vector<std::unique_ptr<statement>>&& statements_);
-    ~block_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };
@@ -147,7 +144,6 @@ public:
     std::unique_ptr<expression> expr;
 
     expression_statement(std::unique_ptr<expression> expr_);
-    ~expression_statement() = default;
 
     virtual void accept_visitor(statement_visitor& v) override;
 };

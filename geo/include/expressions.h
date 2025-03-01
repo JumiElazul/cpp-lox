@@ -19,6 +19,13 @@ public:
     virtual std::string accept_visitor(expression_visitor<std::string>& v) = 0;
     virtual void accept_visitor(expression_visitor<void>& v) = 0;
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) = 0;
+
+protected:
+    expression() = default;
+    expression(const expression&) = default;
+    expression& operator=(const expression&) = default;
+    expression(expression&&) = default;
+    expression& operator=(expression&&) = default;
 };
 
 class unary_expression : public expression
