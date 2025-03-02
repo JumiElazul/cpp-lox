@@ -19,8 +19,8 @@ public:
 
 protected:
     statement() = default;
-    statement(const statement&) = default;
-    statement& operator=(const statement&) = default;
+    statement(const statement&) = delete;
+    statement& operator=(const statement&) = delete;
     statement(statement&&) = default;
     statement& operator=(statement&&) = default;
 };
