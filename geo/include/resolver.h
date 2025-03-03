@@ -47,6 +47,7 @@ public:
     virtual void visit_continue_statement(continue_statement& stmt) override;
     virtual void visit_return_statement(return_statement& stmt) override;
     virtual void visit_block_statement(block_statement& stmt) override;
+    virtual void visit_class_statement(class_statement& stmt) override;
     virtual void visit_expression_statement(expression_statement& stmt) override;
 
     virtual void visit_unary(unary_expression& expr) override;

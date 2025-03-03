@@ -4,6 +4,7 @@
 #include "environment.h"
 #include "exceptions.h"
 #include "expressions.h"
+#include "geo_classes.h"
 #include "geo_types.h"
 #include "geo_functions.h"
 #include "tokens.h"
@@ -195,6 +196,14 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
     {
         evaluate(s);
     }
+}
+
+void interpreter::visit_class_statement(class_statement& stmt)
+{
+    auto* curr_env = _env_manager.get_current_environment();
+    curr_env->define(stmt.name.lexeme, std::monostate{});
+    geo_class* new_class = new geo_class(stmt.name.lexeme);
+    curr_env->assign(stmt.name.lexeme, new_class);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)

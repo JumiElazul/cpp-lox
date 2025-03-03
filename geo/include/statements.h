@@ -138,6 +138,17 @@ public:
     virtual void accept_visitor(statement_visitor& v) override;
 };
 
+class class_statement final : public statement
+{
+public:
+    token name;
+    std::vector<std::unique_ptr<statement>> methods;
+
+    class_statement(const token& name_, std::vector<std::unique_ptr<statement>>&& methods_);
+
+    virtual void accept_visitor(statement_visitor& v) override;
+};
+
 class expression_statement final : public statement
 {
 public:

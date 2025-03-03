@@ -19,7 +19,8 @@ geo_app::geo_app()
     : _io(std::make_unique<console_io>())
     , _interpreter(_io.get())
     , _resolver(_interpreter)
-    , _had_runtime_error(false) { }
+    , _statements()
+    , _had_runtime_error(false) { _statements.reserve(128); }
 
 geo_app::~geo_app() = default;
 
@@ -74,9 +75,6 @@ void geo_app::run(const std::string& source)
     // 2. Parsing Phase
     recursive_descent_parser parser(tokens, _io.get());
 
-    // NOTE(Greg): Currently, this vector owns the statements that are parsed. This will become a problem
-    // once we introduce multiple file projects, as well as some cases in REPL mode where these
-    // statements will go out of scope once the user executes a line.
     std::vector<std::unique_ptr<statement>> statements = parser.parse();
 
     if (parser.error_occurred())
@@ -97,6 +95,8 @@ void geo_app::run(const std::string& source)
     // 4. Interpreter
     _interpreter.interpret(statements);
 
+    store_statements(std::move(statements));
+
 #ifndef NDEBUG
     _io->out() << "-----------------------------------\n";
     _io->out() << "[ Execution Time ]\n";
@@ -105,6 +105,14 @@ void geo_app::run(const std::string& source)
         _io->out() << format_execution_time(time.first, time.second);
     }
 #endif
+}
+
+void geo_app::store_statements(std::vector<std::unique_ptr<statement>>&& statements)
+{
+    for (size_t i = 0; i < statements.size(); ++i)
+    {
+        _statements.push_back(std::move(statements[i]));
+    }
 }
 
 NAMESPACE_END

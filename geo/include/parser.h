@@ -42,6 +42,7 @@ private:
     std::unique_ptr<statement> declaration_precedence();
     std::unique_ptr<statement> create_function_declaration_statement(const std::string& kind);
     std::unique_ptr<statement> create_variable_declaration_statement();
+    std::unique_ptr<statement> create_class_declaration_statement();
     std::unique_ptr<statement> statement_precedence();
     std::unique_ptr<statement> create_if_statement();
     std::unique_ptr<statement> create_while_statement();

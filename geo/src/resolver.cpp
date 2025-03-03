@@ -139,6 +139,12 @@ void resolver::visit_block_statement(block_statement& stmt)
     end_scope();
 }
 
+void resolver::visit_class_statement(class_statement& stmt)
+{
+    declare(stmt.name);
+    define(stmt.name);
+}
+
 void resolver::visit_expression_statement(expression_statement& stmt)
 {
     resolve(stmt.expr);

@@ -1,6 +1,7 @@
 #include "environment.h"
 #include "geo_types.h"
 #include "typedefs.h"
+#include "geo_classes.h"
 #include "geo_functions.h"
 #include "exceptions.h"
 #include <vector>
@@ -76,8 +77,9 @@ environment_manager::~environment_manager()
 {
     // We need to keep track of the deleted callables so we don't delete them twice
     std::unordered_set<geo_callable*> deleted_callables;
+    std::unordered_set<geo_class*> deleted_classes;
 
-    auto cleanup_env = [&deleted_callables](environment* env) 
+    auto cleanup_env = [&deleted_callables, &deleted_classes](environment* env) 
     {
         for (const auto& [name, value] : env->_variables)
         {
@@ -88,6 +90,15 @@ environment_manager::~environment_manager()
                 {
                     delete ptr;
                     deleted_callables.insert(ptr);
+                }
+            }
+            else if (literal_to_geo_type(value) == geo_type::class_)
+            {
+                geo_class* ptr = std::get<geo_class*>(value);
+                if (ptr && deleted_classes.find(ptr) == deleted_classes.end())
+                {
+                    delete ptr;
+                    deleted_classes.insert(ptr);
                 }
             }
         }

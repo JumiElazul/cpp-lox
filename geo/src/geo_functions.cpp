@@ -4,6 +4,7 @@
 #include "interpreter.h"
 #include <cassert>
 #include <chrono>
+#include <memory>
 
 NAMESPACE_BEGIN(geo)
 
@@ -70,9 +71,6 @@ std::string input::to_string() const { return "<native fn>input"; }
 
 literal_value input::call(interpreter& i, const std::vector<literal_value>& args)
 {
-    for (const auto& arg : args)
-        _io->out() << literal_tostr(arg) << '\n';
-
     std::string value = _io->readline("");
     return value;
 }

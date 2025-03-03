@@ -21,10 +21,12 @@ private:
     std::unique_ptr<console_io> _io;
     interpreter _interpreter;
     resolver _resolver;
+    std::vector<std::unique_ptr<statement>> _statements;
 
     bool _had_runtime_error;
 
     void run(const std::string& source);
+    void store_statements(std::vector<std::unique_ptr<statement>>&& statements);
 };
 
 NAMESPACE_END

@@ -94,6 +94,11 @@ std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
         return create_variable_declaration_statement();
     }
 
+    if (matches_token({ token_type::class_ }))
+    {
+        return create_class_declaration_statement();
+    }
+
     return statement_precedence();
 }
 
@@ -132,6 +137,22 @@ std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration
     }
     consume_if_matches(token_type::semicolon_, "Expected ';' after variable declaration");
     return std::make_unique<variable_declaration_statement>(ident_name, std::move(initializer_expr));
+}
+
+std::unique_ptr<statement> recursive_descent_parser::create_class_declaration_statement()
+{
+    token ident = consume_if_matches(token_type::identifier_, "Expected class name after 'class'");
+    consume_if_matches(token_type::left_brace_, "Expected '{' after class name");
+
+    std::vector<std::unique_ptr<statement>> methods;
+
+    while (!check_type(token_type::right_brace_) && peek_next_token()->type != token_type::eof_)
+    {
+        methods.emplace_back(create_function_declaration_statement("method"));
+    }
+
+    consume_if_matches(token_type::right_brace_, "Expected '}' after class body");
+    return std::make_unique<class_statement>(ident, std::move(methods));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()

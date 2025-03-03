@@ -54,6 +54,9 @@ return_statement::return_statement(const token& keyword_, std::unique_ptr<expres
 block_statement::block_statement(std::vector<std::unique_ptr<statement>>&& statements_)
     : statements(std::move(statements_)) { }
 
+class_statement::class_statement(const token& name_, std::vector<std::unique_ptr<statement>>&& methods_)
+    : name(name_), methods(std::move(methods_)) { }
+
 expression_statement::expression_statement(std::unique_ptr<expression> expr_)
     : expr(std::move(expr_)) { }
 
@@ -66,6 +69,7 @@ void break_statement::accept_visitor(statement_visitor& v)                { v.vi
 void continue_statement::accept_visitor(statement_visitor& v)             { v.visit_continue_statement(*this); }
 void return_statement::accept_visitor(statement_visitor& v)               { v.visit_return_statement(*this); }
 void block_statement::accept_visitor(statement_visitor& v)                { v.visit_block_statement(*this); }
+void class_statement::accept_visitor(statement_visitor& v)                { v.visit_class_statement(*this); }
 void expression_statement::accept_visitor(statement_visitor& v)           { v.visit_expression_statement(*this); }
 
 NAMESPACE_END

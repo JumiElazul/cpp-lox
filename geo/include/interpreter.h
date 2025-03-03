@@ -53,6 +53,7 @@ private:
     virtual void visit_return_statement(return_statement& stmt) override;
     virtual void visit_block_statement(block_statement& stmt) override;
     void execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* new_environment);
+    virtual void visit_class_statement(class_statement& stmt) override;
     virtual void visit_expression_statement(expression_statement& stmt) override;
 
     virtual literal_value visit_unary(unary_expression& expr) override;
