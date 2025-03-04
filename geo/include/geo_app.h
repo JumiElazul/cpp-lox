@@ -13,6 +13,10 @@ class geo_app
 public:
     geo_app();
     ~geo_app();
+    geo_app(const geo_app& rhs) = delete;
+    geo_app& operator=(const geo_app& rhs) = delete;
+    geo_app(geo_app&& rhs) = delete;
+    geo_app& operator=(geo_app&& rhs) = delete;
 
     void run_file_mode(const char* filepath);
     void run_interpreter_mode();

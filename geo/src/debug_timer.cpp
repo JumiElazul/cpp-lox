@@ -9,7 +9,7 @@ std::unordered_map<std::string, long> execution_times_us = {};
 
 std::string format_execution_time(const std::string& name, long micro_duration)
 {
-    return name + " took [ " + std::to_string(micro_duration) + "us | " + std::to_string(micro_duration / 1000) + "ms ] us\n";
+    return name + " took [ " + std::to_string(micro_duration) + "us | " + std::to_string(micro_duration / 1000) + "ms ]";
 }
 
 debug_timer::debug_timer(const std::string& name)

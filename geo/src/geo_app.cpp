@@ -20,14 +20,24 @@ geo_app::geo_app()
     , _interpreter(_io.get())
     , _resolver(_interpreter)
     , _statements()
-    , _had_runtime_error(false) { _statements.reserve(128); }
+    , _had_runtime_error(false) 
+{
+    _statements.reserve(128); 
+    GEO_INFO("--------------------------------------------------");
+    GEO_INFO("Geo version " GEO_VERSION " started running");
+    GEO_INFO("--------------------------------------------------");
+}
 
-geo_app::~geo_app() = default;
+geo_app::~geo_app()
+{
+    GEO_INFO("--------------------------------------------------");
+    GEO_INFO("Geo version " GEO_VERSION " ended running");
+    GEO_INFO("--------------------------------------------------");
+}
 
 void geo_app::run_file_mode(const char* filepath)
 {
     GEO_PRINT_LOG_LEVELS;
-    GEO_INFO("geo_app::run_file_mode() started");
 
     std::ifstream file(filepath);
     if (!file)
@@ -97,14 +107,11 @@ void geo_app::run(const std::string& source)
 
     store_statements(std::move(statements));
 
-#ifndef NDEBUG
-    _io->out() << "-----------------------------------\n";
-    _io->out() << "[ Execution Time ]\n";
+    GEO_TRACE("--------------------------------------------------");
+    GEO_TRACE("[ Execution Time ]");
     for (const auto& time : execution_times_us)
-    {
-        _io->out() << format_execution_time(time.first, time.second);
-    }
-#endif
+        GEO_TRACE(format_execution_time(time.first, time.second));
+    GEO_TRACE("--------------------------------------------------");
 }
 
 void geo_app::store_statements(std::vector<std::unique_ptr<statement>>&& statements)
