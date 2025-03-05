@@ -17,7 +17,8 @@ class console_io;
 enum class function_type
 {
     none,
-    function
+    function,
+    method,
 };
 
 struct variable_info
@@ -59,6 +60,8 @@ public:
     virtual void visit_logical(logical_expression& expr) override;
     virtual void visit_postfix(postfix_expression& expr) override;
     virtual void visit_call(call_expression& expr) override;
+    virtual void visit_get(get_expression& expr) override;
+    virtual void visit_set(set_expression& expr) override;
 
 private:
     interpreter& _interpreter;

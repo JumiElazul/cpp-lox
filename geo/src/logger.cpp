@@ -34,7 +34,7 @@ logger::logger()
 
     _logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
     _logger->set_level(static_cast<spdlog::level::level_enum>(spdlog::level::trace));
-    _logger->set_pattern("%+ %v");
+    _logger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%s:%#] %v");
 
     spdlog::register_logger(_logger);
 }

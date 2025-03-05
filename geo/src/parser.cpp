@@ -302,7 +302,7 @@ std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 {
-    // assignment -> ( IDENTIFIER "=" assignment ) | logic_or ;
+    // assignment -> ( call "." )? IDENTIFIER "=" assignment ) | logic_or ;
     std::unique_ptr<expression> expr = logic_or_precedence();
 
     if (matches_token({ token_type::equal_ }))
@@ -318,6 +318,11 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
             // L-value, valid to assign
             token ident_name = var_expr->ident_name;
             return std::make_unique<assignment_expression>(ident_name, std::move(value));
+        }
+        else if (get_expression* get_expr = dynamic_cast<get_expression*>(expr.get()))
+        {
+            // L-value, valid to assign
+            return std::make_unique<set_expression>(std::move(get_expr->object), get_expr->name, std::move(value));
         }
 
         // R-value, invalid
@@ -467,6 +472,11 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
         if (matches_token({ token_type::left_paren_ }))
         {
             expr = finish_call(std::move(expr));
+        }
+        else if (matches_token({ token_type::dot_ }))
+        {
+            token name = consume_if_matches(token_type::identifier_, "Expected property name after '.'");
+            expr = std::make_unique<get_expression>(std::move(expr), name);
         }
         else
         {

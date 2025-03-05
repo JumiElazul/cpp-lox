@@ -4,8 +4,9 @@ class my_class
     {
         print(a);
     }
+
 }
 
 var i = my_class();
 print(i);
-i.do_thing();
+i.do_thing(5);

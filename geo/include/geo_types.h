@@ -15,6 +15,7 @@ class environment_manager;
 class geo_callable;
 class geo_class;
 class geo_instance;
+class token;
 class interpreter;
 
 enum class geo_type
@@ -119,8 +120,9 @@ class geo_class : public geo_callable
 {
 public:
     std::string name;
+    std::unordered_map<std::string, geo_callable*> methods;
 
-    geo_class(const std::string& name_);
+    geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_);
 
     virtual int arity() override;
     virtual std::string to_string() const override;
@@ -132,9 +134,12 @@ class geo_instance
 public:
     geo_instance(geo_class* class_);
     std::string to_string() const;
+    literal_value get(const token& name) const;
+    void set(const token& name, const literal_value& value);
 
 private:
     geo_class* _class;
+    std::unordered_map<std::string, literal_value> _fields;
 };
 
 NAMESPACE_END

@@ -133,8 +133,8 @@ literal_value input::call(interpreter& i, const std::vector<literal_value>& args
     return value;
 }
 
-geo_class::geo_class(const std::string& name_)
-    : name(name_) { }
+geo_class::geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_)
+    : name(name_), methods(std::move(methods_)) { }
 
 int geo_class::arity() { return 0; }
 std::string geo_class::to_string() const { return "<class>" + name; }
@@ -150,6 +150,20 @@ geo_instance::geo_instance(geo_class* class_)
 std::string geo_instance::to_string() const
 {
     return _class->name + " instance";
+}
+
+literal_value geo_instance::get(const token& name) const
+{
+    auto it = _class->methods.find(name.lexeme);
+    if (it != _class->methods.end())
+        return it->second;
+
+    throw geo_runtime_error("Undefined property '" + name.lexeme + "'", name);
+}
+
+void geo_instance::set(const token& name, const literal_value& value)
+{
+    _fields[name.lexeme] = value;
 }
 
 NAMESPACE_END

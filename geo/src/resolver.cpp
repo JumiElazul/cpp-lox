@@ -143,6 +143,12 @@ void resolver::visit_class_statement(class_statement& stmt)
 {
     declare(stmt.name);
     define(stmt.name);
+
+    for (const std::unique_ptr<statement>& method: stmt.methods)
+    {
+        function_type type = function_type::method;
+        resolve_function(static_cast<function_declaration_statement&>(*method), type);
+    }
 }
 
 void resolver::visit_expression_statement(expression_statement& stmt)
@@ -215,6 +221,17 @@ void resolver::visit_call(call_expression& expr)
     {
         resolve(arg);
     }
+}
+
+void resolver::visit_get(get_expression& expr)
+{
+    resolve(expr.object);
+}
+
+void resolver::visit_set(set_expression& expr)
+{
+    resolve(expr.object);
+    resolve(expr.value);
 }
 
 void resolver::begin_scope()

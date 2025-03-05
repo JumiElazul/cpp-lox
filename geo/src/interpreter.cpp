@@ -210,7 +210,20 @@ void interpreter::visit_class_statement(class_statement& stmt)
 {
     auto* curr_env = _env_manager.get_current_environment();
     curr_env->define(stmt.name.lexeme, std::monostate{});
-    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme);
+
+    std::unordered_map<std::string, geo_callable*> methods;
+
+    for (const std::unique_ptr<statement>& method : stmt.methods)
+    {
+        function_declaration_statement* casted_method = dynamic_cast<function_declaration_statement*>(method.get());
+        if (!casted_method)
+            throw geo_runtime_error("Class methods must be functions", stmt.name);
+
+        geo_callable* new_method = memory_manager::instance().allocate_user_function(*casted_method, curr_env, &_env_manager);
+        methods[casted_method->ident_name.lexeme] = new_method;
+    }
+
+    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods));
     curr_env->assign(stmt.name.lexeme, new_class);
 }
 
@@ -503,6 +516,32 @@ literal_value interpreter::visit_call(call_expression& expr)
         throw geo_runtime_error("Expected " + std::to_string(callable->arity()) + " arguments but got " + std::to_string(args.size()));
 
     return callable->call(*this, args);
+}
+
+literal_value interpreter::visit_get(get_expression& expr)
+{
+    literal_value object = evaluate(expr.object);
+    geo_type object_type = literal_to_geo_type(object);
+
+    if (object_type != geo_type::instance_)
+        throw type_error("Only instances have properties", expr.name);
+
+    geo_instance* instance = std::get<geo_instance*>(object);
+    return instance->get(expr.name);
+}
+
+literal_value interpreter::visit_set(set_expression& expr)
+{
+    literal_value object = evaluate(expr.object);
+    geo_type object_type = literal_to_geo_type(object);
+
+    if (object_type != geo_type::instance_)
+        throw type_error("Only instances have fields", expr.name);
+
+    geo_instance* instance = std::get<geo_instance*>(object);
+    literal_value value = evaluate(expr.value);
+    instance->set(expr.name, value);
+    return value;
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

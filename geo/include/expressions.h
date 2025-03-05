@@ -145,6 +145,34 @@ public:
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
 };
 
+
+class get_expression : public expression
+{
+public:
+    std::unique_ptr<expression> object;
+    token name;
+
+    get_expression(std::unique_ptr<expression> object_, token name_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+class set_expression : public expression
+{
+public:
+    std::unique_ptr<expression> object;
+    token name;
+    std::unique_ptr<expression> value;
+
+    set_expression(std::unique_ptr<expression> object_, token name_, std::unique_ptr<expression> value_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
 NAMESPACE_END
 
 #endif

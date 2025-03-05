@@ -6,7 +6,6 @@ set(SOURCES
     "src/environment.cpp"
     "src/exceptions.cpp"
     "src/expressions.cpp"
-    "src/expression_visitors.cpp"
     "src/geo_types.cpp"
     "src/interpreter.cpp"
     "src/lexer.cpp"
@@ -20,8 +19,6 @@ set(SOURCES
 
 set(HEADERS
     "include/geo_app.h"
-
-    "include/i_logger.h"
 
     "include/console_io.h"
     "include/debug_timer.h"
