@@ -36,6 +36,8 @@ private:
     console_io* _io;
     std::unordered_map<expression*, int> _locals;
 
+    void instantiate_standard_library();
+
     literal_value evaluate(const std::unique_ptr<expression>& expr);
     void evaluate(const std::unique_ptr<statement>& stmt);
     void resolve(expression& expr, int depth);

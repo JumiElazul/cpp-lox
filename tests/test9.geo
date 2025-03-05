@@ -7,4 +7,5 @@ class my_class
 }
 
 var i = my_class();
+print(i);
 i.do_thing();

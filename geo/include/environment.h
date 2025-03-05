@@ -27,11 +27,6 @@ class environment_manager
 {
 public:
     environment_manager();
-    ~environment_manager();
-    environment_manager(const environment_manager&) = delete;
-    environment_manager& operator=(const environment_manager&) = delete;
-    environment_manager(environment_manager&&) = delete;
-    environment_manager& operator=(environment_manager&&) = delete;
 
     [[nodiscard]] environment* get_global_environment() const noexcept;
     [[nodiscard]] environment* get_current_environment() const noexcept;

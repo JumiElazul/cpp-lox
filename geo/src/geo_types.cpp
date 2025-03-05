@@ -1,6 +1,7 @@
 #include "geo_types.h"
 #include "interpreter.h"
 #include "typedefs.h"
+#include "memory_manager.h"
 #include "statements.h"
 #include <chrono>
 #include <string>
@@ -18,6 +19,7 @@ std::string geo_type_to_string(geo_type type)
         case geo_type::bool_:       return "bool";
         case geo_type::callable_:   return "callable";
         case geo_type::class_:      return "class";
+        case geo_type::instance_:   return "instance";
         case geo_type::null_:       return "null";
         case geo_type::undefined_:  return "undefined";
     }
@@ -34,6 +36,7 @@ geo_type literal_to_geo_type(const literal_value& l)
             [](const std::string&)          { return geo_type::string_;    },
             [](const geo_callable*)         { return geo_type::callable_;  },
             [](const geo_class*)            { return geo_type::class_;     },
+            [](const geo_instance*)         { return geo_type::instance_;  },
             [](std::monostate)              { return geo_type::null_;      },
             [](const undefined&)            { return geo_type::undefined_; },
         }, l);
@@ -57,6 +60,7 @@ std::string literal_value_to_runtime_string(const literal_value& l)
             [&](const std::string& s)          { return s;                                              },
             [&](const geo_callable* c)         { return c->to_string();                                 },
             [&](const geo_class* c)            { return c->name;                                        },
+            [&](const geo_instance* i)         { return i->to_string();                                 },
             [&](std::monostate)                { return std::string("null");                            },
             [&](const undefined& u)            { return std::string("undefined");                       },
         }, l);
@@ -132,19 +136,20 @@ literal_value input::call(interpreter& i, const std::vector<literal_value>& args
 geo_class::geo_class(const std::string& name_)
     : name(name_) { }
 
-geo_class::~geo_class()
-{
-}
-
 int geo_class::arity() { return 0; }
-std::string geo_class::to_string() const { return name; }
+std::string geo_class::to_string() const { return "<class>" + name; }
 
 literal_value geo_class::call(interpreter& i, const std::vector<literal_value>& args)
 {
-    geo_instance* instance = new geo_instance(this);
+    return memory_manager::instance().allocate_instance(this);
 }
 
 geo_instance::geo_instance(geo_class* class_)
     : _class(class_) { }
+
+std::string geo_instance::to_string() const
+{
+    return _class->name + " instance";
+}
 
 NAMESPACE_END

@@ -6,6 +6,7 @@
 #include "expressions.h"
 #include "geo_types.h"
 #include "tokens.h"
+#include "memory_manager.h"
 #include "typedefs.h"
 #include "statements.h"
 #include <cassert>
@@ -20,9 +21,22 @@ interpreter::interpreter(console_io* io)
     , _io(io) 
     , _locals()
 { 
-    _env_manager.get_global_environment()->define("clock", new clock());
-    _env_manager.get_global_environment()->define("print", new print(_io));
-    _env_manager.get_global_environment()->define("input", new input(_io));
+    instantiate_standard_library();
+}
+
+void interpreter::instantiate_standard_library()
+{
+    memory_manager& instance = memory_manager::instance();
+
+    geo_callable* clock = new class clock();
+    geo_callable* print = new class print(_io);
+    geo_callable* input = new class input(_io);
+    _env_manager.get_global_environment()->define("clock", clock);
+    _env_manager.get_global_environment()->define("print", print);
+    _env_manager.get_global_environment()->define("input", input);
+    instance.register_callable(clock);
+    instance.register_callable(print);
+    instance.register_callable(input);
 }
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
@@ -87,11 +101,7 @@ void interpreter::visit_debug_statement(debug_statement& stmt)
 
 void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
 {
-    geo_callable* new_function = new user_function(
-            stmt,
-            _env_manager.get_current_environment(),
-            &_env_manager);
-
+    geo_callable* new_function = memory_manager::instance().allocate_user_function(stmt, _env_manager.get_current_environment(), &_env_manager);
     _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, new_function);
 }
 
@@ -200,7 +210,7 @@ void interpreter::visit_class_statement(class_statement& stmt)
 {
     auto* curr_env = _env_manager.get_current_environment();
     curr_env->define(stmt.name.lexeme, std::monostate{});
-    geo_class* new_class = new geo_class(stmt.name.lexeme, &_env_manager);
+    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme);
     curr_env->assign(stmt.name.lexeme, new_class);
 }
 

@@ -14,6 +14,7 @@ class environment;
 class environment_manager;
 class geo_callable;
 class geo_class;
+class geo_instance;
 class interpreter;
 
 enum class geo_type
@@ -23,6 +24,7 @@ enum class geo_type
     bool_,
     callable_,
     class_,
+    instance_,
     null_,
     undefined_
 };
@@ -33,7 +35,7 @@ struct undefined
     bool operator!=(const undefined&) const { return false; }
 };
 
-using literal_value = std::variant<double, bool, std::string, geo_callable*, geo_class*, std::monostate, undefined>;
+using literal_value = std::variant<double, bool, std::string, geo_callable*, geo_instance*, geo_class*, std::monostate, undefined>;
 
 template<typename... Ts>
 struct literal_value_overload : Ts... { using Ts::operator()...; };
@@ -119,11 +121,6 @@ public:
     std::string name;
 
     geo_class(const std::string& name_);
-    ~geo_class();
-    geo_class(const geo_class&) = delete;
-    geo_class& operator=(const geo_class&) = delete;
-    geo_class(geo_class&&) = delete;
-    geo_class& operator=(geo_class&&) = delete;
 
     virtual int arity() override;
     virtual std::string to_string() const override;
@@ -134,6 +131,7 @@ class geo_instance
 {
 public:
     geo_instance(geo_class* class_);
+    std::string to_string() const;
 
 private:
     geo_class* _class;

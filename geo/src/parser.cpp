@@ -468,10 +468,6 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
         {
             expr = finish_call(std::move(expr));
         }
-        else if (matches_token({ token_type:: }))
-        {
-
-        }
         else
         {
             break;
