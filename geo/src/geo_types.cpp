@@ -144,6 +144,15 @@ literal_value geo_class::call(interpreter& i, const std::vector<literal_value>& 
     return memory_manager::instance().allocate_instance(this);
 }
 
+geo_callable* geo_class::find_method(const token& name)
+{
+    auto method_it = methods.find(name.lexeme);
+    if (method_it != methods.end())
+        return method_it->second;
+
+    return nullptr;
+}
+
 geo_instance::geo_instance(geo_class* class_)
     : _class(class_) { }
 
@@ -154,11 +163,15 @@ std::string geo_instance::to_string() const
 
 literal_value geo_instance::get(const token& name) const
 {
-    auto it = _class->methods.find(name.lexeme);
-    if (it != _class->methods.end())
-        return it->second;
+    auto field_it = _fields.find(name.lexeme);
+    if (field_it != _fields.end())
+        return field_it->second;
 
-    throw geo_runtime_error("Undefined property '" + name.lexeme + "'", name);
+    geo_callable* method = _class->find_method(name);
+    if (method)
+        return method;
+
+    throw geo_runtime_error("Undefined property or method '" + name.lexeme + "'", name);
 }
 
 void geo_instance::set(const token& name, const literal_value& value)

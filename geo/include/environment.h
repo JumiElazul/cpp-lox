@@ -41,7 +41,6 @@ public:
 
 private:
     std::vector<environment*> _environments;
-    std::vector<environment*> _held_environments;
 
     environment* ancestor(int distance) const;
 };

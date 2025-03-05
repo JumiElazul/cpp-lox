@@ -127,6 +127,7 @@ public:
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
+    geo_callable* find_method(const token& name);
 };
 
 class geo_instance

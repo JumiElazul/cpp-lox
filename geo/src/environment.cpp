@@ -3,9 +3,7 @@
 #include "typedefs.h"
 #include "exceptions.h"
 #include "memory_manager.h"
-#include "logger.h"
 #include <vector>
-#include <unordered_set>
 
 NAMESPACE_BEGIN(geo)
 
@@ -68,7 +66,6 @@ literal_value environment::get(const token& name) const
 
 environment_manager::environment_manager()
     : _environments()
-    , _held_environments()
 {
     _environments.emplace_back(memory_manager::instance().allocate_environment());
 }
@@ -98,7 +95,6 @@ void environment_manager::pop_environment()
     if (_environments.size() == 1)
         throw geo_runtime_error("Cannot pop the global environment");
 
-    _held_environments.push_back(_environments.back());
     _environments.pop_back();
 }
 
