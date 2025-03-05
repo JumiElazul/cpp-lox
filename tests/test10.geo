@@ -7,11 +7,13 @@ class cake
     }
 }
 
+taste();
+
 var my_cake = cake();
 my_cake.flavor = "German chocolate";
 my_cake.taste();
 
-//print(this);
+print(this);
 
 func notAMethod()
 {

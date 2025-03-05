@@ -100,11 +100,7 @@ literal_value user_function::call(interpreter& i, const std::vector<literal_valu
 
 geo_callable* user_function::bind(geo_instance* instance)
 {
-    _env_manager->push_environment();
-    _env_manager->get_current_environment()->define("this", instance);
-    geo_callable* new_func = memory_manager::instance().allocate_user_function(declaration, _env_manager->get_current_environment(), _env_manager);
-    _env_manager->pop_environment();
-    return new_func;
+
 }
 
 clock::clock() {}
@@ -179,8 +175,7 @@ literal_value geo_instance::get(const token& name)
     geo_callable* method = _class->find_method(name);
     if (method)
     {
-        user_function* bound_method = dynamic_cast<user_function*>(method);
-        return bound_method->bind(this);
+
     }
 
     throw geo_runtime_error("Undefined property or method '" + name.lexeme + "'", name);
