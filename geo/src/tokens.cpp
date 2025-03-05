@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& os, const geo::token& t)
     os << "token [type: "
        << geo::token_type_tostr.at(t.type)
        << ", lexeme: " << t.lexeme
-       << ", literal: " << geo::literal_tostr(t.literal)
+       << ", literal: " << geo::literal_value_to_runtime_string(t.literal)
        << ", line/col: " << t.position.first << ":" << t.position.second
        << "]";
     return os;

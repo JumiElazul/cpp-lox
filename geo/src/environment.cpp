@@ -1,8 +1,6 @@
 #include "environment.h"
 #include "geo_types.h"
 #include "typedefs.h"
-#include "geo_classes.h"
-#include "geo_functions.h"
 #include "exceptions.h"
 #include <vector>
 #include <unordered_set>

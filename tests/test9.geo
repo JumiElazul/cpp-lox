@@ -1,14 +1,10 @@
 class my_class
 {
-    func1(a)
+    do_thing(a)
     {
         print(a);
     }
-
-    func2()
-    {
-        print("This is a method inside a class");
-    }
 }
 
-
+var i = my_class();
+i.do_thing();

@@ -4,9 +4,7 @@
 #include "environment.h"
 #include "exceptions.h"
 #include "expressions.h"
-#include "geo_classes.h"
 #include "geo_types.h"
-#include "geo_functions.h"
 #include "tokens.h"
 #include "typedefs.h"
 #include "statements.h"
@@ -202,7 +200,7 @@ void interpreter::visit_class_statement(class_statement& stmt)
 {
     auto* curr_env = _env_manager.get_current_environment();
     curr_env->define(stmt.name.lexeme, std::monostate{});
-    geo_class* new_class = new geo_class(stmt.name.lexeme);
+    geo_class* new_class = new geo_class(stmt.name.lexeme, &_env_manager);
     curr_env->assign(stmt.name.lexeme, new_class);
 }
 
@@ -275,7 +273,7 @@ literal_value interpreter::visit_binary(binary_expression& expr)
     if (lhs_type != rhs_type)
     {
         std::string msg = std::string("Cannot use binary operator '" + oper.lexeme + "' on types " +
-                geo_type_tostr(lhs_type) + " and " + geo_type_tostr(rhs_type));
+                geo_type_to_string(lhs_type) + " and " + geo_type_to_string(rhs_type));
 
         throw geo_type_error(msg, oper);
     }

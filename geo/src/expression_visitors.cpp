@@ -24,7 +24,7 @@ std::string string_visitor::visit_binary(binary_expression& expr)
 
 std::string string_visitor::visit_literal(literal_expression& expr)
 {
-    return literal_tostr(expr.literal_val);
+    return literal_value_to_runtime_string(expr.literal_val);
 }
 
 std::string string_visitor::visit_grouping(grouping_expression& expr)

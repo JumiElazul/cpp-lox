@@ -31,7 +31,7 @@ geo_app::geo_app()
 geo_app::~geo_app()
 {
     GEO_INFO("--------------------------------------------------");
-    GEO_INFO("Geo version " GEO_VERSION " ended running");
+    GEO_INFO("Geo version " GEO_VERSION " finished running");
     GEO_INFO("--------------------------------------------------");
 }
 
