@@ -21,6 +21,12 @@ enum class function_type
     method,
 };
 
+enum class class_type
+{
+    none_,
+    class_,
+};
+
 struct variable_info
 {
     bool defined = false;
@@ -62,6 +68,7 @@ public:
     virtual void visit_call(call_expression& expr) override;
     virtual void visit_get(get_expression& expr) override;
     virtual void visit_set(set_expression& expr) override;
+    virtual void visit_this(this_expression& expr) override;
 
 private:
     interpreter& _interpreter;
@@ -69,6 +76,7 @@ private:
     std::vector<std::unordered_map<std::string, variable_info>> _scopes;
 
     function_type _current_function_type;
+    class_type _current_class_type;
     bool _had_error;
 
     void resolve(const std::vector<std::unique_ptr<statement>>& statements);

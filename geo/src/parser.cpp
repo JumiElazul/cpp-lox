@@ -504,6 +504,11 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
         return std::make_unique<grouping_expression>(std::move(expr));
     }
 
+    if (matches_token({ token_type::this_ }))
+    {
+        return std::make_unique<this_expression>(*previous_token());
+    }
+
     if (matches_token({ token_type::identifier_ }))
     {
         return std::make_unique<variable_expression>(*previous_token());

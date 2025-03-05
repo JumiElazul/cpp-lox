@@ -17,6 +17,7 @@ resolver::resolver(interpreter& interpreter_)
     , _io(_interpreter._io)
     , _scopes()
     , _current_function_type(function_type::none)
+    , _current_class_type(class_type::none_)
     , _had_error(false) { }
 
 bool resolver::error_occurred() const noexcept { return _had_error; }
@@ -141,14 +142,23 @@ void resolver::visit_block_statement(block_statement& stmt)
 
 void resolver::visit_class_statement(class_statement& stmt)
 {
+    class_type enclosing_class = _current_class_type;
+    _current_class_type = class_type::class_;
+
     declare(stmt.name);
     define(stmt.name);
+
+    begin_scope();
+    auto& scope = _scopes.back();
+    scope["this"] = variable_info{ true, true, stmt.name };
 
     for (const std::unique_ptr<statement>& method: stmt.methods)
     {
         function_type type = function_type::method;
         resolve_function(static_cast<function_declaration_statement&>(*method), type);
     }
+    end_scope();
+    _current_class_type = enclosing_class;
 }
 
 void resolver::visit_expression_statement(expression_statement& stmt)
@@ -232,6 +242,16 @@ void resolver::visit_set(set_expression& expr)
 {
     resolve(expr.object);
     resolve(expr.value);
+}
+
+void resolver::visit_this(this_expression& expr)
+{
+    if (_current_class_type == class_type::none_)
+    {
+        throw geo_runtime_error("Can't use 'this' outside of a class", expr.keyword);
+    }
+
+    resolve_local(expr, expr.keyword);
 }
 
 void resolver::begin_scope()

@@ -78,6 +78,7 @@ public:
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
+    geo_callable* bind(geo_instance* instance);
 
 protected:
     environment_manager* _env_manager;
@@ -135,7 +136,7 @@ class geo_instance
 public:
     geo_instance(geo_class* class_);
     std::string to_string() const;
-    literal_value get(const token& name) const;
+    literal_value get(const token& name);
     void set(const token& name, const literal_value& value);
 
 private:

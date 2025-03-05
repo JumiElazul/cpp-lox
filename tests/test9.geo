@@ -7,6 +7,8 @@ class my_class
 }
 
 var i = my_class();
+var i2 = my_class();
+
 i.prop = "hello";
 print(i);
 i.do_thing(5);

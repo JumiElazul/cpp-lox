@@ -69,6 +69,7 @@ private:
     virtual literal_value visit_call(call_expression& expr) override;
     virtual literal_value visit_get(get_expression& expr) override;
     virtual literal_value visit_set(set_expression& expr) override;
+    virtual literal_value visit_this(this_expression& expr) override;
 
     bool is_truthy(const literal_value& literal) const;
     bool is_equal(const literal_value& lhs, const literal_value& rhs) const;

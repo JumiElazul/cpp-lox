@@ -1,17 +1,21 @@
-class my_class
+class cake
 {
-    do_thing(a)
+    taste()
     {
-        print(a);
-    }
-
-    do_thing2(b)
-    {
-        print(b);
+        var adjective = "delicious";
+        print("The " + this.flavor + " cake is " + adjective + "!");
     }
 }
 
-var i = my_class();
-i.do_thing("a");
-var i2 = i.do_thing2;
-i2("b");
+var my_cake = cake();
+my_cake.flavor = "German chocolate";
+my_cake.taste();
+
+//print(this);
+
+func notAMethod()
+{
+    print(this);
+}
+
+notAMethod();

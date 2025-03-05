@@ -1,7 +1,6 @@
 #ifndef JUMI_GEO_EXPRESSION_VISITORS_H
 #define JUMI_GEO_EXPRESSION_VISITORS_H
 #include "typedefs.h"
-#include <string>
 
 NAMESPACE_BEGIN(geo)
 
@@ -18,6 +17,7 @@ class postfix_expression;
 class call_expression;
 class get_expression;
 class set_expression;
+class this_expression;
 class console_io;
 
 template<typename T>
@@ -36,6 +36,7 @@ public:
     virtual T visit_call(call_expression& expr) = 0;
     virtual T visit_get(get_expression& expr) = 0;
     virtual T visit_set(set_expression& expr) = 0;
+    virtual T visit_this(this_expression& expr) = 0;
 };
 
 NAMESPACE_END

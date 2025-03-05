@@ -98,6 +98,15 @@ literal_value user_function::call(interpreter& i, const std::vector<literal_valu
     return std::monostate{};
 }
 
+geo_callable* user_function::bind(geo_instance* instance)
+{
+    _env_manager->push_environment();
+    _env_manager->get_current_environment()->define("this", instance);
+    geo_callable* new_func = memory_manager::instance().allocate_user_function(declaration, _env_manager->get_current_environment(), _env_manager);
+    _env_manager->pop_environment();
+    return new_func;
+}
+
 clock::clock() {}
 int clock::arity() { return 0; }
 std::string clock::to_string() const { return "<native fn>clock"; }
@@ -161,7 +170,7 @@ std::string geo_instance::to_string() const
     return _class->name + " instance";
 }
 
-literal_value geo_instance::get(const token& name) const
+literal_value geo_instance::get(const token& name)
 {
     auto field_it = _fields.find(name.lexeme);
     if (field_it != _fields.end())
@@ -169,7 +178,10 @@ literal_value geo_instance::get(const token& name) const
 
     geo_callable* method = _class->find_method(name);
     if (method)
-        return method;
+    {
+        user_function* bound_method = dynamic_cast<user_function*>(method);
+        return bound_method->bind(this);
+    }
 
     throw geo_runtime_error("Undefined property or method '" + name.lexeme + "'", name);
 }
