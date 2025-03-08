@@ -208,7 +208,17 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
 
 void interpreter::visit_class_statement(class_statement& stmt)
 {
+    std::unordered_map<std::string, geo_callable*> methods;
+    for (const std::unique_ptr<statement>& method : stmt.methods)
+    {
+        function_declaration_statement* method_stmt = dynamic_cast<function_declaration_statement*>(method.get());
+        assert(method_stmt);
+        geo_callable* new_method = memory_manager::instance().allocate_user_function(*method_stmt, _env_manager.get_current_environment(), &_env_manager);
+        methods[method_stmt->ident_name.lexeme] = new_method;
+    }
 
+    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods));
+    _env_manager.get_current_environment()->define(stmt.name.lexeme, new_class);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)
@@ -530,7 +540,7 @@ literal_value interpreter::visit_set(set_expression& expr)
 
 literal_value interpreter::visit_this(this_expression& expr)
 {
-
+    return lookup_variable(expr.keyword, expr);
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

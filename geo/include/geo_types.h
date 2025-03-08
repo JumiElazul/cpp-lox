@@ -15,8 +15,9 @@ class environment_manager;
 class geo_callable;
 class geo_class;
 class geo_instance;
-class token;
 class interpreter;
+
+struct token;
 
 enum class geo_type
 {

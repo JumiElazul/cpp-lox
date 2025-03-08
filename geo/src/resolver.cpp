@@ -6,6 +6,7 @@
 #include "statements.h"
 #include "tokens.h"
 #include "typedefs.h"
+#include <cassert>
 #include <memory>
 #include <vector>
 #include <unordered_map>
@@ -142,7 +143,26 @@ void resolver::visit_block_statement(block_statement& stmt)
 
 void resolver::visit_class_statement(class_statement& stmt)
 {
+    declare(stmt.name);
+    define(stmt.name);
 
+    class_type enclosing_class = _current_class_type;
+    _current_class_type = class_type::class_;
+
+    begin_scope();
+
+    token this_token = token{ token_type::this_, "this", "", { 0, 0 }, std::string("") };
+    _scopes.back()["this"] = variable_info{ true, true, this_token };
+
+    for (const std::unique_ptr<statement>& method : stmt.methods)
+    {
+        function_type declaration = function_type::method;
+        function_declaration_statement* curr_method = dynamic_cast<function_declaration_statement*>(method.get());
+        resolve_function(*curr_method, declaration);
+    }
+
+    end_scope();
+    _current_class_type = enclosing_class;
 }
 
 void resolver::visit_expression_statement(expression_statement& stmt)
@@ -230,7 +250,10 @@ void resolver::visit_set(set_expression& expr)
 
 void resolver::visit_this(this_expression& expr)
 {
+    if (_current_class_type == class_type::none_)
+        throw geo_runtime_error("Cannot use 'this' outside of a class", expr.keyword);
 
+    resolve_local(expr, expr.keyword);
 }
 
 void resolver::begin_scope()
@@ -273,8 +296,13 @@ void resolver::declare(const token& t)
 
 void resolver::define(const token& t)
 {
-    if (_scopes.empty()) return;
+    if (_scopes.empty())
+        return;
+
     auto& scope = _scopes.back();
+    auto it = scope.find(t.lexeme);
+    assert(it != scope.end());
+
     scope[t.lexeme].defined = true;
 }
 
