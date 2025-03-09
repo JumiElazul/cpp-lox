@@ -208,6 +208,8 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
 
 void interpreter::visit_class_statement(class_statement& stmt)
 {
+    _env_manager.get_current_environment()->define(stmt.name.lexeme, std::monostate{});
+
     std::unordered_map<std::string, geo_callable*> methods;
     for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
@@ -216,7 +218,8 @@ void interpreter::visit_class_statement(class_statement& stmt)
     }
 
     geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods));
-    _env_manager.get_current_environment()->define(stmt.name.lexeme, new_class);
+
+    _env_manager.get_current_environment()->assign(stmt.name.lexeme, new_class);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)

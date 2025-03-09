@@ -321,7 +321,6 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
         }
         else if (get_expression* get_expr = dynamic_cast<get_expression*>(expr.get()))
         {
-            // L-value, valid to assign
             return std::make_unique<set_expression>(std::move(get_expr->object), get_expr->name, std::move(value));
         }
 

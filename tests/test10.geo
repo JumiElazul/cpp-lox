@@ -7,17 +7,23 @@ class cake
     }
 }
 
-taste();
-
 var my_cake = cake();
+var my_cake2 = cake();
 my_cake.flavor = "German chocolate";
+my_cake2.flavor = "Ice cream";
+
+print("my_cake.taste():");
 my_cake.taste();
+print("my_cake2.taste():");
+my_cake2.taste();
 
-print(this);
+print("my_cake.taste = my_cake2.taste");
+var temp = my_cake.taste;
+my_cake.taste = my_cake2.taste;
+my_cake2.taste = temp;
+print("my_cake.taste()");
+my_cake.taste();
+print("my_cake2.taste()");
+my_cake2.taste();
 
-func notAMethod()
-{
-    print(this);
-}
-
-notAMethod();
+taste();
