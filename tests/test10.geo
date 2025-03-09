@@ -35,8 +35,15 @@ class test
         print("Calling initializer method on test_init class");
         return;
     }
+
+    static do_thing(arg)
+    {
+        print(arg);
+    }
 }
 
 var cls = test();
 
-taste();
+cls.prop = "hello static method";
+test.do_thing(cls.prop);
+do_thing();

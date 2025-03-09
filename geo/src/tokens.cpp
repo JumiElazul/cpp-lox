@@ -55,6 +55,7 @@ const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::while_,         "while"             },
     { token_type::break_,         "break"             },
     { token_type::continue_,      "continue"          },
+    { token_type::continue_,      "static"            },
     { token_type::bof_,           "bof"               },
     { token_type::eof_,           "eof"               },
     { token_type::ignore_,        "ignore"            },

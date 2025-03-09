@@ -16,10 +16,11 @@ void debug_statement::accept_visitor(statement_visitor& v) { v.visit_debug_state
 // DEBUG STATEMENT
 // --------------------------------------------------
 
-function_declaration_statement::function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_)
+function_declaration_statement::function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_, bool static_method_)
     : ident_name(ident_name_)
     , params(params_)
-    , body(std::move(body_)) { }
+    , body(std::move(body_))
+    , static_method(static_method_) { }
 
 variable_declaration_statement::variable_declaration_statement(const token& ident_name_, std::unique_ptr<expression> initializer_expr_)
     : ident_name(ident_name_)

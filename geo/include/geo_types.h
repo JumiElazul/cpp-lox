@@ -37,7 +37,15 @@ struct undefined
     bool operator!=(const undefined&) const { return false; }
 };
 
-using literal_value = std::variant<double, bool, std::string, geo_callable*, geo_instance*, geo_class*, std::monostate, undefined>;
+using literal_value = std::variant<
+      double,
+      bool,
+      std::string,
+      geo_callable*,
+      geo_instance*,
+      geo_class*,
+      std::monostate,
+      undefined>;
 
 template<typename... Ts>
 struct literal_value_overload : Ts... { using Ts::operator()...; };

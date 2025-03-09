@@ -519,11 +519,27 @@ literal_value interpreter::visit_get(get_expression& expr)
     literal_value object = evaluate(expr.object);
     geo_type object_type = literal_to_geo_type(object);
 
-    if (object_type != geo_type::instance_)
-        throw type_error("Only instances have properties", expr.name);
+    if (object_type == geo_type::instance_)
+    {
+        geo_instance* instance = std::get<geo_instance*>(object);
+        return instance->get(expr.name);
+    }
+    else if (object_type == geo_type::callable_)
+    {
+        geo_callable* callable = std::get<geo_callable*>(object);
+        geo_class* class_ = dynamic_cast<geo_class*>(callable);
 
-    geo_instance* instance = std::get<geo_instance*>(object);
-    return instance->get(expr.name);
+        if (class_)
+        {
+            geo_callable* static_method = class_->find_method(expr.name);
+            if (!static_method)
+                throw geo_runtime_error("Static method with name '" + expr.name.lexeme + "' doesn't exist; are you trying to access an instance method or property?");
+
+            return static_method;
+        }
+    }
+
+    throw type_error("Only instances have properties", expr.name);
 }
 
 literal_value interpreter::visit_set(set_expression& expr)

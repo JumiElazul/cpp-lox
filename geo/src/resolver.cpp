@@ -161,10 +161,15 @@ void resolver::visit_class_statement(class_statement& stmt)
 
     for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
-        function_type declaration = function_type::method;
+        function_type declaration = method->static_method ? function_type::static_method : function_type::method;
 
         if (method->ident_name.lexeme == "init")
+        {
+            if (declaration == function_type::static_method)
+                throw geo_runtime_error("Cannot use 'init' as a static method", method->ident_name);
+
             declaration = function_type::initializer;
+        }
 
         resolve_function(*method, declaration);
     }

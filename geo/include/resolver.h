@@ -20,6 +20,7 @@ enum class function_type
     function,
     initializer,
     method,
+    static_method,
 };
 
 enum class class_type

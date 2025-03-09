@@ -43,8 +43,9 @@ public:
     token ident_name;
     std::vector<token> params;
     std::vector<std::unique_ptr<statement>> body;
+    bool static_method;
 
-    function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_);
+    function_declaration_statement(const token& ident_name_, const std::vector<token>& params_, std::vector<std::unique_ptr<statement>>&& body_, bool static_method_ = false);
 
     virtual void accept_visitor(statement_visitor& v) override;
 };

@@ -85,7 +85,8 @@ std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 
     if (matches_token({ token_type::func_ }))
     {
-        return create_function_declaration_statement("function");
+        std::string name = "function";
+        return create_function_declaration_statement(name);
     }
 
     if (matches_token({ token_type::var_ }))
@@ -101,9 +102,21 @@ std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
     return statement_precedence();
 }
 
-std::unique_ptr<statement> recursive_descent_parser::create_function_declaration_statement(const std::string& kind)
+std::unique_ptr<statement> recursive_descent_parser::create_function_declaration_statement(std::string& kind)
 {
-    // func_declaration -> "func" function ;
+    // func_declaration -> "func" | "static" function ;
+    // function -> IDENTIFIER "(" parameters? ")" block ;
+
+    bool static_method = false;
+    if (kind == "method")
+    {
+        if (matches_token({ token_type::static_ }))
+        {
+            kind = "static method";
+            static_method = true;
+        }
+    }
+
     token ident = consume_if_matches(token_type::identifier_, "Expected a " + kind + " name.");
     consume_if_matches(token_type::left_paren_, "Expect '(' after " + kind + " name.");
     std::vector<token> parameters;
@@ -121,7 +134,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_function_declaration
     consume_if_matches(token_type::left_brace_, "Expect '{' before " + kind + " body.");
 
     std::vector<std::unique_ptr<statement>> body = create_block_statement();
-    return std::make_unique<function_declaration_statement>(ident, parameters, std::move(body));
+    return std::make_unique<function_declaration_statement>(ident, parameters, std::move(body), static_method);
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration_statement()
@@ -147,8 +160,9 @@ std::unique_ptr<statement> recursive_descent_parser::create_class_declaration_st
 
     while (!check_type(token_type::right_brace_) && peek_next_token()->type != token_type::eof_)
     {
+        std::string kind = "method";
         methods.emplace_back(std::unique_ptr<function_declaration_statement>(
-            dynamic_cast<function_declaration_statement*>(create_function_declaration_statement("method").release())));
+            dynamic_cast<function_declaration_statement*>(create_function_declaration_statement(kind).release())));
     }
 
     consume_if_matches(token_type::right_brace_, "Expected '}' after class body");

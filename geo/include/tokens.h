@@ -33,6 +33,7 @@ enum class token_type
     // keywords
     and_, or_, if_, else_, class_, false_, true_, func_, null_,
     return_, super_, this_, var_, for_, while_, break_, continue_,
+    static_,
 
     // end of file/other
     bof_,
