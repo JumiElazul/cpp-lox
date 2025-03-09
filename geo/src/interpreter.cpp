@@ -291,9 +291,23 @@ literal_value interpreter::visit_binary(binary_expression& expr)
 
     if (lhs_type != rhs_type)
     {
-        std::string msg = std::string("Cannot use binary operator '" + oper.lexeme + "' on types " +
-                geo_type_to_string(lhs_type) + " and " + geo_type_to_string(rhs_type));
-
+        if (oper.type == token_type::plus_)
+        {
+            if ((lhs_type == geo_type::string_ && rhs_type == geo_type::number_) ||
+                    (lhs_type == geo_type::number_ && rhs_type == geo_type::string_))
+            {
+                if (lhs_type == geo_type::string_)
+                {
+                    return std::get<std::string>(lhs) + literal_value_to_runtime_string(rhs);
+                }
+                else
+                {
+                    return literal_value_to_runtime_string(lhs) + std::get<std::string>(rhs);
+                }
+            }
+        }
+        std::string msg = std::string("Cannot use binary operator '" + oper.lexeme + "' on types '" +
+                geo_type_to_string(lhs_type) + "' and '" + geo_type_to_string(rhs_type)) + "'";
         throw geo_type_error(msg, oper);
     }
 

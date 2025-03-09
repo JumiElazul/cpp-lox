@@ -35,15 +35,32 @@ class test
         print("Calling initializer method on test_init class");
         return;
     }
-
-    static do_thing(arg)
-    {
-        print(arg);
-    }
 }
 
 var cls = test();
 
 cls.prop = "hello static method";
-test.do_thing(cls.prop);
-do_thing();
+
+class math
+{
+    static square(a)
+    {
+        return a * a;
+    }
+}
+
+var num = 5;
+var result = math.square(num);
+print("Result of " + num + " squared is " + result);
+
+class circle
+{
+    init(radius)
+    {
+        print("initializing class circle");
+        this.radius = radius;
+    }
+}
+
+var cir = circle(1.5);
+print(cir.radius);
