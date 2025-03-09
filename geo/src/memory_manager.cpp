@@ -42,9 +42,9 @@ geo_callable* memory_manager::allocate_class(const std::string& name, std::unord
     return new_class;
 }
 
-geo_callable* memory_manager::allocate_user_function(function_declaration_statement& stmt, environment* env, environment_manager* env_manager)
+geo_callable* memory_manager::allocate_user_function(function_declaration_statement& stmt, environment* env, environment_manager* env_manager, bool is_initializer)
 {
-    geo_callable* new_function = new user_function(stmt, env, env_manager);
+    geo_callable* new_function = new user_function(stmt, env, env_manager, is_initializer);
     _callables.insert(new_function);
     return new_function;
 }

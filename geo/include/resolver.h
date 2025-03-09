@@ -18,6 +18,7 @@ enum class function_type
 {
     none,
     function,
+    initializer,
     method,
 };
 

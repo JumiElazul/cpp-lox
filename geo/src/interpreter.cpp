@@ -213,7 +213,8 @@ void interpreter::visit_class_statement(class_statement& stmt)
     std::unordered_map<std::string, geo_callable*> methods;
     for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
-        geo_callable* new_method = memory_manager::instance().allocate_user_function(*method, _env_manager.get_current_environment(), &_env_manager);
+        bool is_init = method->ident_name.lexeme == "init";
+        geo_callable* new_method = memory_manager::instance().allocate_user_function(*method, _env_manager.get_current_environment(), &_env_manager, is_init);
         methods[method->ident_name.lexeme] = new_method;
     }
 

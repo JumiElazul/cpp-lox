@@ -68,10 +68,12 @@ std::string literal_value_to_runtime_string(const literal_value& l)
 
 user_function::user_function(function_declaration_statement& declaration_,
         environment* closure_,
-        environment_manager* env_manager)
+        environment_manager* env_manager,
+        bool is_initializer)
     : declaration(declaration_)
     , closure(closure_)
-    , _env_manager(env_manager) { }
+    , _env_manager(env_manager)
+    , _is_initializer(is_initializer) { }
 
 int user_function::arity() { return static_cast<int>(declaration.params.size()); }
 std::string user_function::to_string() const { return std::string("<user fn>" + declaration.ident_name.lexeme); }
@@ -91,6 +93,13 @@ literal_value user_function::call(interpreter& i, const std::vector<literal_valu
     catch (const interpreter::geo_function_return& ret)
     {
         _env_manager->pop_environment();
+
+        if (_is_initializer)
+        {
+            token this_token = token{ token_type::identifier_, "this", "", { 0, 0 }, "" };
+            return closure->get(this_token);
+        }
+
         return ret.return_val;
     }
 
@@ -102,7 +111,7 @@ geo_callable* user_function::bind(geo_instance* instance)
 {
     environment* new_env = memory_manager::instance().allocate_environment(closure);
     new_env->define("this", instance);
-    return memory_manager::instance().allocate_user_function(declaration, new_env, _env_manager);
+    return memory_manager::instance().allocate_user_function(declaration, new_env, _env_manager, _is_initializer);
 }
 
 clock::clock() {}
@@ -143,17 +152,41 @@ literal_value input::call(interpreter& i, const std::vector<literal_value>& args
 geo_class::geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_)
     : name(name_), methods(std::move(methods_)) { }
 
-int geo_class::arity() { return 0; }
+int geo_class::arity() 
+{ 
+    geo_callable* initializer = find_method("init");
+    if (initializer)
+        return initializer->arity();
+
+    return 0; 
+}
 std::string geo_class::to_string() const { return "<class>" + name; }
 
 literal_value geo_class::call(interpreter& i, const std::vector<literal_value>& args)
 {
-    return memory_manager::instance().allocate_instance(this);
+    geo_instance* instance = memory_manager::instance().allocate_instance(this);
+    geo_callable* initializer = find_method("init");
+
+    if (initializer)
+    {
+        dynamic_cast<user_function*>(initializer)->bind(instance)->call(i, args);
+    }
+
+    return instance;
 }
 
 geo_callable* geo_class::find_method(const token& name)
 {
     auto method_it = methods.find(name.lexeme);
+    if (method_it != methods.end())
+        return method_it->second;
+
+    return nullptr;
+}
+
+geo_callable* geo_class::find_method(const std::string& name)
+{
+    auto method_it = methods.find(name);
     if (method_it != methods.end())
         return method_it->second;
 

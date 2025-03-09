@@ -131,7 +131,12 @@ void resolver::visit_return_statement(return_statement& stmt)
         throw geo_runtime_error("Invalid return found; return statement must be nested inside a function", stmt.keyword);
 
     if (stmt.return_expr)
+    {
+        if (_current_function_type == function_type::initializer)
+            throw geo_runtime_error("Cannot return a value from an initializer", stmt.keyword);
+
         resolve(stmt.return_expr);
+    }
 }
 
 void resolver::visit_block_statement(block_statement& stmt)
@@ -157,6 +162,10 @@ void resolver::visit_class_statement(class_statement& stmt)
     for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
         function_type declaration = function_type::method;
+
+        if (method->ident_name.lexeme == "init")
+            declaration = function_type::initializer;
+
         resolve_function(*method, declaration);
     }
 

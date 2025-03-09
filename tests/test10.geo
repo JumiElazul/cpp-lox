@@ -26,4 +26,17 @@ my_cake.taste();
 print("my_cake2.taste()");
 my_cake2.taste();
 
+print("Constructing test_init classes");
+
+class test
+{
+    init()
+    {
+        print("Calling initializer method on test_init class");
+        return;
+    }
+}
+
+var cls = test();
+
 taste();

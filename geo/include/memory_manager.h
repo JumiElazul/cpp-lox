@@ -27,7 +27,7 @@ public:
 
     bool register_callable(geo_callable* callable);
     geo_callable* allocate_class(const std::string& name, std::unordered_map<std::string, geo_callable*>&& methods);
-    geo_callable* allocate_user_function(function_declaration_statement& stmt, environment* env, environment_manager* env_manager);
+    geo_callable* allocate_user_function(function_declaration_statement& stmt, environment* env, environment_manager* env_manager, bool is_intiializer = false);
     geo_instance* allocate_instance(geo_class* class_);
     environment* allocate_environment();
     environment* allocate_environment(environment* parent_scope);

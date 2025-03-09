@@ -75,7 +75,7 @@ public:
     function_declaration_statement& declaration;
     environment* closure;
 
-    user_function(function_declaration_statement& declaration_, environment* closure, environment_manager* env_manager);
+    user_function(function_declaration_statement& declaration_, environment* closure, environment_manager* env_manager, bool is_initializer = false);
     virtual int arity() override;
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
@@ -83,6 +83,9 @@ public:
 
 protected:
     environment_manager* _env_manager;
+
+private:
+    bool _is_initializer;
 };
 
 class clock : public native_function
@@ -130,6 +133,7 @@ public:
     virtual std::string to_string() const override;
     virtual literal_value call(interpreter& i, const std::vector<literal_value>& args) override;
     geo_callable* find_method(const token& name);
+    geo_callable* find_method(const std::string& name);
 };
 
 class geo_instance
