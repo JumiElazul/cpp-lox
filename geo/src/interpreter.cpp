@@ -209,12 +209,10 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
 void interpreter::visit_class_statement(class_statement& stmt)
 {
     std::unordered_map<std::string, geo_callable*> methods;
-    for (const std::unique_ptr<statement>& method : stmt.methods)
+    for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
-        function_declaration_statement* method_stmt = dynamic_cast<function_declaration_statement*>(method.get());
-        assert(method_stmt);
-        geo_callable* new_method = memory_manager::instance().allocate_user_function(*method_stmt, _env_manager.get_current_environment(), &_env_manager);
-        methods[method_stmt->ident_name.lexeme] = new_method;
+        geo_callable* new_method = memory_manager::instance().allocate_user_function(*method, _env_manager.get_current_environment(), &_env_manager);
+        methods[method->ident_name.lexeme] = new_method;
     }
 
     geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods));

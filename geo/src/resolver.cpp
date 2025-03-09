@@ -154,11 +154,10 @@ void resolver::visit_class_statement(class_statement& stmt)
     token this_token = token{ token_type::this_, "this", "", { 0, 0 }, std::string("") };
     _scopes.back()["this"] = variable_info{ true, true, this_token };
 
-    for (const std::unique_ptr<statement>& method : stmt.methods)
+    for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
         function_type declaration = function_type::method;
-        function_declaration_statement* curr_method = dynamic_cast<function_declaration_statement*>(method.get());
-        resolve_function(*curr_method, declaration);
+        resolve_function(*method, declaration);
     }
 
     end_scope();

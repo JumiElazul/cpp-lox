@@ -143,11 +143,12 @@ std::unique_ptr<statement> recursive_descent_parser::create_class_declaration_st
     token ident = consume_if_matches(token_type::identifier_, "Expected class name after 'class'");
     consume_if_matches(token_type::left_brace_, "Expected '{' after class name");
 
-    std::vector<std::unique_ptr<statement>> methods;
+    std::vector<std::unique_ptr<function_declaration_statement>> methods;
 
     while (!check_type(token_type::right_brace_) && peek_next_token()->type != token_type::eof_)
     {
-        methods.emplace_back(create_function_declaration_statement("method"));
+        methods.emplace_back(std::unique_ptr<function_declaration_statement>(
+            dynamic_cast<function_declaration_statement*>(create_function_declaration_statement("method").release())));
     }
 
     consume_if_matches(token_type::right_brace_, "Expected '}' after class body");
