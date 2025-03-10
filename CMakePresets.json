@@ -14,6 +14,10 @@
                 "VCPKG_TARGET_TRIPLET": {
                     "type": "STRING",
                     "value": "x64-windows-static"
+                },
+                "VCPKG_CRT_LINKAGE": {
+                    "type": "STRING",
+                    "value": "static"
                 }
             },
             "condition": {

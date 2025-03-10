@@ -4,6 +4,7 @@
 #include "tokens.h"
 #include "exceptions.h"
 #include "statements.h"
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -39,21 +40,21 @@ public:
 
 private:
     std::unique_ptr<statement> declaration_precedence();
-    std::unique_ptr<statement> statement_precedence();
+    std::unique_ptr<statement> create_function_declaration_statement(std::string& kind);
     std::unique_ptr<statement> create_variable_declaration_statement();
-    std::unique_ptr<statement> create_print_statement();
+    std::unique_ptr<statement> create_class_declaration_statement();
+    std::unique_ptr<statement> statement_precedence();
     std::unique_ptr<statement> create_if_statement();
     std::unique_ptr<statement> create_while_statement();
     std::unique_ptr<statement> create_for_statement();
     std::unique_ptr<statement> create_break_statement();
     std::unique_ptr<statement> create_continue_statement();
-    std::unique_ptr<statement> create_block_statement();
+    std::unique_ptr<statement> create_return_statement();
+    std::vector<std::unique_ptr<statement>> create_block_statement();
     std::unique_ptr<statement> create_expression_statement();
 
     std::unique_ptr<expression> expression_precedence();
     std::unique_ptr<expression> assignment_precedence();
-    std::unique_ptr<expression> comma_precedence();
-    std::unique_ptr<expression> ternary_precedence();
     std::unique_ptr<expression> logic_or_precedence();
     std::unique_ptr<expression> logic_and_precedence();
     std::unique_ptr<expression> equality_precedence();
@@ -72,8 +73,8 @@ private:
     std::optional<token> peek_next_token() const;
     token consume_if_matches(token_type type, const std::string& msg);
     bool check_type(token_type type);
-    bool matches_token(const std::vector<token_type>& token_types);
-    void validate_binary_has_lhs(const std::vector<token_type>& types);
+    bool matches_token(std::initializer_list<token_type> token_types);
+    void validate_binary_has_lhs(std::initializer_list<token_type> types);
     geo_runtime_error error(const std::string& msg, const token& t);
     void synchronize();
 };

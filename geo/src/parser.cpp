@@ -1,11 +1,13 @@
 #include "parser.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "exceptions.h"
 #include "expressions.h"
 #include "tokens.h"
 #include "typedefs.h"
 #include "statements.h"
-#include <limits>
+#include <cassert>
+#include <initializer_list>
 #include <optional>
 #include <vector>
 #include <memory>
@@ -29,6 +31,10 @@ recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lex
 
 std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 {
+#ifndef NDEBUG
+    debug_timer dt("recursive_descent_parser::parse()");
+#endif
+
     std::vector<std::unique_ptr<statement>> statements;
     // Estimate the number of statements to reserve
     statements.reserve(_lexer_tokens.size() / 4);
@@ -59,43 +65,76 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
         }
     }
 
+#ifndef NDEBUG
+    dt.stop();
+#endif
+
     return statements;
 }
 
 std::unique_ptr<statement> recursive_descent_parser::declaration_precedence()
 {
-    // declaration -> variable_declaration_statement | statement ;
+    // declaration -> func_declaration | variable_declaration_statement | statement ;
+
+    // handle our debug_ token
+    if (matches_token({ token_type::debug_ }))
+    {
+        consume_if_matches(token_type::semicolon_, "Expected ';' after debug statement");
+        return std::make_unique<debug_statement>();
+    }
+
+    if (matches_token({ token_type::func_ }))
+    {
+        std::string name = "function";
+        return create_function_declaration_statement(name);
+    }
+
     if (matches_token({ token_type::var_ }))
     {
         return create_variable_declaration_statement();
     }
 
+    if (matches_token({ token_type::class_ }))
+    {
+        return create_class_declaration_statement();
+    }
+
     return statement_precedence();
 }
 
-std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
+std::unique_ptr<statement> recursive_descent_parser::create_function_declaration_statement(std::string& kind)
 {
-    // statement -> if_statement | while_statement | for_statement | break | continue | block | expression_statement ;
+    // func_declaration -> "func" | "static" function ;
+    // function -> IDENTIFIER "(" parameters? ")" block ;
 
-    if (matches_token({ token_type::if_ }))
-        return create_if_statement();
+    bool static_method = false;
+    if (kind == "method")
+    {
+        if (matches_token({ token_type::static_ }))
+        {
+            kind = "static method";
+            static_method = true;
+        }
+    }
 
-    if (matches_token({ token_type::while_ }))
-        return create_while_statement();
+    token ident = consume_if_matches(token_type::identifier_, "Expected a " + kind + " name.");
+    consume_if_matches(token_type::left_paren_, "Expect '(' after " + kind + " name.");
+    std::vector<token> parameters;
+    if (!check_type(token_type::right_paren_))
+    {
+        do
+        {
+            if (parameters.size() > 255)
+                error("Cannot have 255 or more arguments in a function parameter declaration", *peek_next_token());
 
-    if (matches_token({ token_type::for_ }))
-        return create_for_statement();
+            parameters.emplace_back(consume_if_matches(token_type::identifier_, "Expected a parameter indentifier"));
+        } while (matches_token({ token_type::comma_ }));
+    }
+    consume_if_matches(token_type::right_paren_, "Expect ')' after " + kind + " declaration.");
+    consume_if_matches(token_type::left_brace_, "Expect '{' before " + kind + " body.");
 
-    if (matches_token({ token_type::break_ }))
-        return create_break_statement();
-
-    if (matches_token({ token_type::continue_ }))
-        return create_continue_statement();
-
-    if (matches_token({ token_type::left_brace_ }))
-        return create_block_statement();
-
-    return create_expression_statement();
+    std::vector<std::unique_ptr<statement>> body = create_block_statement();
+    return std::make_unique<function_declaration_statement>(ident, parameters, std::move(body), static_method);
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration_statement()
@@ -112,14 +151,62 @@ std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration
     return std::make_unique<variable_declaration_statement>(ident_name, std::move(initializer_expr));
 }
 
-std::unique_ptr<statement> recursive_descent_parser::create_print_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_class_declaration_statement()
 {
-    // print_statement -> "print" "(" expression ")" ";" ;
-    consume_if_matches(token_type::left_paren_, "Expected '(' after 'print'");
-    std::unique_ptr<expression> expr = expression_precedence();
-    consume_if_matches(token_type::right_paren_, "Expected ')' after 'expression'");
-    consume_if_matches(token_type::semicolon_, "Expected ';' after statement");
-    return std::make_unique<print_statement>(std::move(expr));
+    // class_declaration -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
+    token ident = consume_if_matches(token_type::identifier_, "Expected class name after 'class'");
+
+    std::unique_ptr<variable_expression> superclass = nullptr;
+    if (matches_token({ token_type::less_ }))
+    {
+        consume_if_matches(token_type::identifier_, "Expected superclass name after '<'");
+        superclass = std::make_unique<variable_expression>(*previous_token());
+    }
+
+    consume_if_matches(token_type::left_brace_, "Expected '{' after class name");
+
+    std::vector<std::unique_ptr<function_declaration_statement>> methods;
+
+    while (!check_type(token_type::right_brace_) && peek_next_token()->type != token_type::eof_)
+    {
+        std::string kind = "method";
+        methods.emplace_back(std::unique_ptr<function_declaration_statement>(
+            dynamic_cast<function_declaration_statement*>(create_function_declaration_statement(kind).release())));
+    }
+
+    consume_if_matches(token_type::right_brace_, "Expected '}' after class body");
+    return std::make_unique<class_statement>(ident, std::move(methods), std::move(superclass));
+}
+
+std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
+{
+    // statement -> if_statement | while_statement | for_statement | break | continue | return | block | expression_statement ;
+
+    if (matches_token({ token_type::if_ }))
+        return create_if_statement();
+
+    if (matches_token({ token_type::while_ }))
+        return create_while_statement();
+
+    if (matches_token({ token_type::for_ }))
+        return create_for_statement();
+
+    if (matches_token({ token_type::break_ }))
+        return create_break_statement();
+
+    if (matches_token({ token_type::continue_ }))
+        return create_continue_statement();
+
+    if (matches_token({ token_type::return_ }))
+        return create_return_statement();
+
+    if (matches_token({ token_type::left_brace_ }))
+    {
+        std::vector<std::unique_ptr<statement>> statements = create_block_statement();
+        return std::make_unique<block_statement>(std::move(statements));
+    }
+
+    return create_expression_statement();
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_if_statement()
@@ -149,6 +236,8 @@ std::unique_ptr<statement> recursive_descent_parser::create_while_statement()
 
 std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
 {
+    token for_token = *previous_token();
+
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'for'");
 
     std::unique_ptr<statement> initializer = nullptr;
@@ -176,7 +265,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
     std::unique_ptr<statement> stmt_body = statement_precedence();
 
     return std::make_unique<for_statement>(std::move(initializer), std::move(condition),
-            std::move(increment), std::move(stmt_body));
+            std::move(increment), std::move(stmt_body), for_token);
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_break_statement()
@@ -191,7 +280,21 @@ std::unique_ptr<statement> recursive_descent_parser::create_continue_statement()
     return std::make_unique<continue_statement>(continue_token);
 }
 
-std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
+std::unique_ptr<statement> recursive_descent_parser::create_return_statement()
+{
+    token keyword = *previous_token();
+
+    std::unique_ptr<expression> return_expr = nullptr;
+    if (!check_type(token_type::semicolon_))
+    {
+        return_expr = expression_precedence();
+    }
+
+    consume_if_matches(token_type::semicolon_, "Expected ';' after return statement");
+    return std::make_unique<return_statement>(keyword, std::move(return_expr));
+}
+
+std::vector<std::unique_ptr<statement>> recursive_descent_parser::create_block_statement()
 {
     // block -> "{" declaration* "}" ;
     std::vector<std::unique_ptr<statement>> statements;
@@ -205,7 +308,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_block_statement()
     }
 
     consume_if_matches(token_type::right_brace_, "Expected '}' after block statement");
-    return std::make_unique<block_statement>(std::move(statements));
+    return statements;
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_expression_statement()
@@ -224,8 +327,8 @@ std::unique_ptr<expression> recursive_descent_parser::expression_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
 {
-    // assignment -> ( IDENTIFIER "=" assignment ) | comma ;
-    std::unique_ptr<expression> expr = comma_precedence();
+    // assignment -> ( call "." )? IDENTIFIER "=" assignment ) | logic_or ;
+    std::unique_ptr<expression> expr = logic_or_precedence();
 
     if (matches_token({ token_type::equal_ }))
     {
@@ -241,45 +344,13 @@ std::unique_ptr<expression> recursive_descent_parser::assignment_precedence()
             token ident_name = var_expr->ident_name;
             return std::make_unique<assignment_expression>(ident_name, std::move(value));
         }
+        else if (get_expression* get_expr = dynamic_cast<get_expression*>(expr.get()))
+        {
+            return std::make_unique<set_expression>(std::move(get_expr->object), get_expr->name, std::move(value));
+        }
 
         // R-value, invalid
         throw error("Invalid assignment target", equals);
-    }
-
-    return expr;
-}
-
-std::unique_ptr<expression> recursive_descent_parser::comma_precedence()
-{
-    // comma -> ternary ( "," ternary )* ;
-    validate_binary_has_lhs({ token_type::comma_ });
-
-    std::unique_ptr<expression> expr = ternary_precedence();
-
-    while (matches_token({ token_type::comma_ }))
-    {
-        token oper = *previous_token();
-        std::unique_ptr<expression> rhs = ternary_precedence();
-        expr = std::make_unique<binary_expression>(std::move(expr), oper, std::move(rhs));
-    }
-
-    return expr;
-}
-
-std::unique_ptr<expression> recursive_descent_parser::ternary_precedence()
-{
-    // ternary -> logic_or ( "?" expression ":" ternary )? ;
-    validate_binary_has_lhs({ token_type::question_ });
-
-    std::unique_ptr<expression> expr = logic_or_precedence();
-
-    if (matches_token({ token_type::question_ }))
-    {
-        token oper = *previous_token();
-        std::unique_ptr<expression> then_expr = expression_precedence();
-        consume_if_matches(token_type::colon_, "Expected ':' after ternary expression.");
-        std::unique_ptr<expression> else_expr = expression_precedence();
-        expr = std::make_unique<ternary_expression>(std::move(expr), oper, std::move(then_expr), std::move(else_expr));
     }
 
     return expr;
@@ -426,6 +497,11 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
         {
             expr = finish_call(std::move(expr));
         }
+        else if (matches_token({ token_type::dot_ }))
+        {
+            token name = consume_if_matches(token_type::identifier_, "Expected property name after '.'");
+            expr = std::make_unique<get_expression>(std::move(expr), name);
+        }
         else
         {
             break;
@@ -437,7 +513,7 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
 {
-    // primary -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ") | IDENTIFIER";
+    // primary -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ") | IDENTIFIER | "super" "." IDENTIFIER;
     if (matches_token({ token_type::false_ })) return std::make_unique<literal_expression>(false);
     if (matches_token({ token_type::true_ }))  return std::make_unique<literal_expression>(true);
     if (matches_token({ token_type::null_ }))  return std::make_unique<literal_expression>(std::monostate{});
@@ -452,9 +528,22 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
         return std::make_unique<grouping_expression>(std::move(expr));
     }
 
+    if (matches_token({ token_type::this_ }))
+    {
+        return std::make_unique<this_expression>(*previous_token());
+    }
+
     if (matches_token({ token_type::identifier_ }))
     {
         return std::make_unique<variable_expression>(*previous_token());
+    }
+
+    if (matches_token({ token_type::super_ }))
+    {
+        token keyword = *previous_token();
+        consume_if_matches(token_type::dot_, "Expected '.' after 'super'");
+        token method = consume_if_matches(token_type::identifier_, "Expected superclass method name after '.'");
+        return std::make_unique<super_expression>(keyword, method);
     }
 
     throw error("Expected expression but none was given", *previous_token());
@@ -526,7 +615,7 @@ bool recursive_descent_parser::check_type(token_type type)
     return peek_next_token()->type == type;
 }
 
-bool recursive_descent_parser::matches_token(const std::vector<token_type>& token_types)
+bool recursive_descent_parser::matches_token(std::initializer_list<token_type> token_types)
 {
     for (token_type type : token_types)
     {
@@ -539,7 +628,7 @@ bool recursive_descent_parser::matches_token(const std::vector<token_type>& toke
     return false;
 }
 
-void recursive_descent_parser::validate_binary_has_lhs(const std::vector<token_type>& types)
+void recursive_descent_parser::validate_binary_has_lhs(std::initializer_list<token_type> types)
 {
     if (matches_token(types))
     {

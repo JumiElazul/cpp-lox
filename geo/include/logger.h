@@ -1,31 +1,30 @@
 #ifndef JUMI_GEO_LOGGER_H
 #define JUMI_GEO_LOGGER_H
 #include "typedefs.h"
-#include "i_logger.h"
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <string>
 
 NAMESPACE_BEGIN(geo)
 
-class logger : public i_logger
+class logger
 {
 public:
     logger();
 
-    virtual void log_trace(const std::string& message) const override;
-    virtual void log_debug(const std::string& message) const override;
-    virtual void log_info(const std::string& message) const override;
-    virtual void log_warn(const std::string& message) const override;
-    virtual void log_error(const std::string& message) const override;
-    virtual void log_critical(const std::string& message) const override;
-    virtual void print_log_levels() const override;
+    void log_trace(const std::string& message) const;
+    void log_debug(const std::string& message) const;
+    void log_info(const std::string& message) const;
+    void log_warn(const std::string& message) const;
+    void log_error(const std::string& message) const;
+    void log_critical(const std::string& message) const;
+    void print_log_levels() const;
 
 private:
     std::shared_ptr<spdlog::logger> _logger;
 };
 
-inline i_logger& get_global_logger()
+inline logger& get_global_logger()
 {
     static logger instance;
     return instance;

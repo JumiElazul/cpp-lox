@@ -1,5 +1,6 @@
 #include "geo_app.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "expression_visitors.h"
 #include "interpreter.h"
 #include "logger.h"
@@ -17,22 +18,31 @@ NAMESPACE_BEGIN(geo)
 geo_app::geo_app()
     : _io(std::make_unique<console_io>())
     , _interpreter(_io.get())
-    , _had_runtime_error(false)
+    , _resolver(_interpreter)
+    , _statements()
+    , _had_runtime_error(false) 
 {
-
+    _statements.reserve(128); 
+    GEO_INFO("--------------------------------------------------");
+    GEO_INFO("Geo version " GEO_VERSION " started running");
+    GEO_INFO("--------------------------------------------------");
 }
 
-geo_app::~geo_app() = default;
+geo_app::~geo_app()
+{
+    GEO_INFO("--------------------------------------------------");
+    GEO_INFO("Geo version " GEO_VERSION " finished running");
+    GEO_INFO("--------------------------------------------------");
+}
 
 void geo_app::run_file_mode(const char* filepath)
 {
     GEO_PRINT_LOG_LEVELS;
-    GEO_INFO("geo_app::run_file_mode() started");
 
     std::ifstream file(filepath);
     if (!file)
     {
-        _io->err() << "File with path [" << filepath << "could not be read\n";
+        _io->err() << "File with path [" << filepath << "] could not be read\n";
         return;
     }
 
@@ -64,6 +74,7 @@ void geo_app::run_interpreter_mode()
 
 void geo_app::run(const std::string& source)
 {
+    // 1. Lexing Phase
     lexer l(source, _io.get());
 
     if (l.error_occurred())
@@ -71,7 +82,9 @@ void geo_app::run(const std::string& source)
 
     const std::vector<token>& tokens = l.get_tokens();
 
+    // 2. Parsing Phase
     recursive_descent_parser parser(tokens, _io.get());
+
     std::vector<std::unique_ptr<statement>> statements = parser.parse();
 
     if (parser.error_occurred())
@@ -80,7 +93,33 @@ void geo_app::run(const std::string& source)
         return;
     }
 
+    // 3. Static Analysis
+    _resolver.resolve_all(statements);
+
+    if (_resolver.error_occurred())
+    {
+        _had_runtime_error = true;
+        return;
+    }
+
+    // 4. Interpreter
     _interpreter.interpret(statements);
+
+    store_statements(std::move(statements));
+
+    GEO_TRACE("--------------------------------------------------");
+    GEO_TRACE("[ Execution Time ]");
+    for (const auto& time : execution_times_us)
+        GEO_TRACE(format_execution_time(time.first, time.second));
+    GEO_TRACE("--------------------------------------------------");
+}
+
+void geo_app::store_statements(std::vector<std::unique_ptr<statement>>&& statements)
+{
+    for (size_t i = 0; i < statements.size(); ++i)
+    {
+        _statements.push_back(std::move(statements[i]));
+    }
 }
 
 NAMESPACE_END

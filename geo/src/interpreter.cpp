@@ -1,11 +1,12 @@
 #include "interpreter.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "environment.h"
 #include "exceptions.h"
 #include "expressions.h"
 #include "geo_types.h"
-#include "geo_native_funcs.h"
 #include "tokens.h"
+#include "memory_manager.h"
 #include "typedefs.h"
 #include "statements.h"
 #include <cassert>
@@ -16,26 +17,34 @@
 NAMESPACE_BEGIN(geo)
 
 interpreter::interpreter(console_io* io)
-    : _globals(std::make_unique<environment>())
-    , _env(_globals.get())
-    , _io(io)
-{
-    instantiate_native_funcs();
+    : _env_manager()
+    , _io(io) 
+    , _locals()
+{ 
+    instantiate_standard_library();
 }
 
-interpreter::~interpreter()
+void interpreter::instantiate_standard_library()
 {
-    for (const auto& [name, value] : _globals->_variables)
-    {
-        if (literal_to_geo_type(value) == geo_type::callable_)
-        {
-            delete std::get<geo_callable*>(value);
-        }
-    }
+    memory_manager& instance = memory_manager::instance();
+
+    geo_callable* clock = new class clock();
+    geo_callable* print = new class print(_io);
+    geo_callable* input = new class input(_io);
+    _env_manager.get_global_environment()->define("clock", clock);
+    _env_manager.get_global_environment()->define("print", print);
+    _env_manager.get_global_environment()->define("input", input);
+    instance.register_callable(clock);
+    instance.register_callable(print);
+    instance.register_callable(input);
 }
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
 {
+#ifndef NDEBUG
+    debug_timer dt("interpreter::interpret()");
+#endif
+
     try
     {
         for (const auto& stmt : statements)
@@ -47,13 +56,14 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
     {
         _io->err() << e.what() << '\n';
     }
-}
+    catch (...)
+    {
+        _io->err() << "Exception swallower hit\n";
+    }
 
-void interpreter::instantiate_native_funcs()
-{
-    _globals->define("clock", new clock());
-    _globals->define("print", new print(_io));
-    _globals->define("input", new input(_io));
+#ifndef NDEBUG
+    dt.stop();
+#endif
 }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
@@ -66,23 +76,42 @@ void interpreter::evaluate(const std::unique_ptr<statement>& stmt)
     stmt->accept_visitor(*this);
 }
 
-void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
+void interpreter::resolve(expression& expr, int depth)
 {
-    if (stmt.initializer_expr)
+    _locals[&expr] = depth;
+}
+
+literal_value interpreter::lookup_variable(const token& name, expression& expr)
+{
+    auto dist_it = _locals.find(&expr);
+    if (dist_it != _locals.end())
     {
-        literal_value literal = evaluate(stmt.initializer_expr);
-        _env->define(stmt.ident_name.lexeme, literal);
+        return _env_manager.get_at(dist_it->second, name);
     }
     else
     {
-        _env->define(stmt.ident_name.lexeme, undefined{});
+        return _env_manager.get_global_environment()->get(name);
     }
 }
 
-void interpreter::visit_print_statement(print_statement& stmt)
+void interpreter::visit_debug_statement(debug_statement& stmt)
 {
-    literal_value literal = evaluate(stmt.expr);
-    _io->out() << literal_tostr(literal) << '\n';
+
+}
+
+void interpreter::visit_function_declaration_statement(function_declaration_statement& stmt)
+{
+    geo_callable* new_function = memory_manager::instance().allocate_user_function(stmt, _env_manager.get_current_environment(), &_env_manager);
+    _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, new_function);
+}
+
+void interpreter::visit_variable_declaration_statement(variable_declaration_statement& stmt)
+{
+    literal_value literal = undefined{};
+    if (stmt.initializer_expr)
+        literal = evaluate(stmt.initializer_expr);
+
+    _env_manager.get_current_environment()->define(stmt.ident_name.lexeme, literal);
 }
 
 void interpreter::visit_if_statement(if_statement& stmt)
@@ -93,7 +122,6 @@ void interpreter::visit_if_statement(if_statement& stmt)
     }
     else
     {
-        // Can be null
         if (stmt.else_branch)
         {
             evaluate(stmt.else_branch);
@@ -105,26 +133,13 @@ void interpreter::visit_while_statement(while_statement& stmt)
 {
     while (is_truthy(evaluate(stmt.condition)))
     {
-        try
-        {
-            evaluate(stmt.stmt_body);
-        }
-        catch (const geo_loop_break&)
-        {
-            break;
-        }
-        catch (const geo_loop_continue&)
-        {
-            continue;
-        }
+        evaluate(stmt.stmt_body);
     }
 }
 
 void interpreter::visit_for_statement(for_statement& stmt)
 {
-    environment* previous_env = _env;
-    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
-    _env = block_env.get();
+    _env_manager.push_environment();
 
     if (stmt.initializer)
     {
@@ -153,7 +168,7 @@ void interpreter::visit_for_statement(for_statement& stmt)
             evaluate(stmt.increment);
     }
 
-    _env = previous_env;
+    _env_manager.pop_environment();
 }
 
 void interpreter::visit_break_statement(break_statement& stmt)
@@ -166,35 +181,84 @@ void interpreter::visit_continue_statement(continue_statement& stmt)
     throw geo_loop_continue();
 }
 
+void interpreter::visit_return_statement(return_statement& stmt)
+{
+    literal_value value = std::monostate{};
+
+    if (stmt.return_expr)
+        value = evaluate(stmt.return_expr);
+
+    throw geo_function_return(value);
+}
+
 void interpreter::visit_block_statement(block_statement& stmt)
 {
-    environment* previous_env = _env;
-    std::unique_ptr<environment> block_env = std::make_unique<environment>(previous_env);
-    _env = block_env.get();
-
+    _env_manager.push_environment();
     try
     {
-        for (const auto& s : stmt.statements)
+        execute_block(stmt.statements, _env_manager.get_current_environment());
+    }
+    catch (...)
+    {
+        // We need this here in the case of for_statements.  When continue/break statements are hit,
+        // we need to cleanup the environment stack and rethrow it so the for_statement can catch it.
+        _env_manager.pop_environment();
+        throw;
+    }
+    _env_manager.pop_environment();
+}
+
+void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& statements, environment* new_environment)
+{
+    for (const auto& s : statements)
+    {
+        evaluate(s);
+    }
+}
+
+void interpreter::visit_class_statement(class_statement& stmt)
+{
+    geo_class* superclass = nullptr;
+
+    if (stmt.superclass)
+    {
+        literal_value literal = evaluate(stmt.superclass);
+        geo_type superclass_type = literal_to_geo_type(literal);
+
+        if (superclass_type == geo_type::callable_)
         {
-            evaluate(s);
+            geo_callable* callable = std::get<geo_callable*>(literal);
+            geo_class* class_cast = dynamic_cast<geo_class*>(callable);
+
+            if (!class_cast)
+                throw geo_runtime_error("Could not superclass from attemped class, superclass specified was not a class", stmt.name);
+
+            superclass = class_cast;
         }
     }
-    catch (const geo_loop_break&)
+
+    _env_manager.get_current_environment()->define(stmt.name.lexeme, std::monostate{});
+
+    if (stmt.superclass)
     {
-        _env = std::move(previous_env);
-        throw;
-    }
-    catch (const geo_loop_continue&)
-    {
-        _env = std::move(previous_env);
-        throw;
-    }
-    catch (const geo_runtime_error& e)
-    {
-        _io->err() << e.what() << '\n';
+        _env_manager.push_environment();
+        _env_manager.get_current_environment()->define("super", superclass);
     }
 
-    _env = previous_env;
+    std::unordered_map<std::string, geo_callable*> methods;
+    for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
+    {
+        bool is_init = method->ident_name.lexeme == "init";
+        geo_callable* new_method = memory_manager::instance().allocate_user_function(*method, _env_manager.get_current_environment(), &_env_manager, is_init);
+        methods[method->ident_name.lexeme] = new_method;
+    }
+
+    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods), superclass);
+
+    if (superclass)
+        _env_manager.pop_environment();
+
+    _env_manager.get_current_environment()->assign(stmt.name.lexeme, new_class);
 }
 
 void interpreter::visit_expression_statement(expression_statement& stmt)
@@ -233,7 +297,7 @@ literal_value interpreter::visit_unary(unary_expression& expr)
         if (!var_expr)
             throw type_error("Unary prefix operator '" + oper + "' requires a variable operand", expr.oper);
 
-        literal_value literal = _env->get(var_expr->ident_name);
+        literal_value literal = _env_manager.get_current_environment()->get(var_expr->ident_name);
         geo_type type = literal_to_geo_type(literal);
 
         if (type != geo_type::number_)
@@ -246,7 +310,7 @@ literal_value interpreter::visit_unary(unary_expression& expr)
         else if (expr.oper.type == token_type::minus_minus_)
             --value;
 
-        _env->assign(var_expr->ident_name.lexeme, value);
+        _env_manager.get_current_environment()->assign(var_expr->ident_name.lexeme, value);
         return value;
     }
 
@@ -265,9 +329,23 @@ literal_value interpreter::visit_binary(binary_expression& expr)
 
     if (lhs_type != rhs_type)
     {
-        std::string msg = std::string("Cannot use binary operator '" + oper.lexeme + "' on types " +
-                geo_type_tostr(lhs_type) + " and " + geo_type_tostr(rhs_type));
-
+        if (oper.type == token_type::plus_)
+        {
+            if ((lhs_type == geo_type::string_ && rhs_type == geo_type::number_) ||
+                    (lhs_type == geo_type::number_ && rhs_type == geo_type::string_))
+            {
+                if (lhs_type == geo_type::string_)
+                {
+                    return std::get<std::string>(lhs) + literal_value_to_runtime_string(rhs);
+                }
+                else
+                {
+                    return literal_value_to_runtime_string(lhs) + std::get<std::string>(rhs);
+                }
+            }
+        }
+        std::string msg = std::string("Cannot use binary operator '" + oper.lexeme + "' on types '" +
+                geo_type_to_string(lhs_type) + "' and '" + geo_type_to_string(rhs_type)) + "'";
         throw geo_type_error(msg, oper);
     }
 
@@ -394,23 +472,6 @@ literal_value interpreter::visit_binary(binary_expression& expr)
     throw type_error("Unknown operator in handle_binary()", oper);
 }
 
-literal_value interpreter::visit_ternary(ternary_expression& expr)
-{
-    literal_value if_literal = evaluate(expr.expr_lhs);
-    literal_value then_literal = evaluate(expr.expr_then);
-    literal_value else_literal = evaluate(expr.expr_else);
-
-    geo_type if_type = literal_to_geo_type(if_literal);
-    const token& oper = expr.oper;
-
-    if (if_type != geo_type::bool_)
-    {
-        throw geo_runtime_error("Cannot convert lhs of ternary expression to bool", oper);
-    }
-
-    return std::get<bool>(if_literal) ? then_literal : else_literal;
-}
-
 literal_value interpreter::visit_literal(literal_expression& expr)
 {
     return expr.literal_val;
@@ -418,18 +479,28 @@ literal_value interpreter::visit_literal(literal_expression& expr)
 
 literal_value interpreter::visit_grouping(grouping_expression& expr)
 {
-    return evaluate(expr.expr_);
+    return evaluate(expr.expr_group);
 }
 
 literal_value interpreter::visit_variable(variable_expression& expr)
 {
-    return _env->get(expr.ident_name);
+    return lookup_variable(expr.ident_name, expr);
 }
 
 literal_value interpreter::visit_assignment(assignment_expression& expr)
 {
     literal_value literal = evaluate(expr.initializer_expr);
-    _env->assign(expr.ident_name.lexeme, literal);
+    auto distance_it = _locals.find(&expr);
+
+    if (distance_it != _locals.end())
+    {
+        _env_manager.assign_at(distance_it->second, expr.ident_name, literal);
+    }
+    else
+    {
+        _env_manager.get_global_environment()->assign(expr.ident_name.lexeme, literal);
+    }
+
     return literal;
 }
 
@@ -457,7 +528,7 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     if (!var_expr)
         throw type_error("Postfix operator '" + oper + "' requires a variable operand", expr.oper);
 
-    literal_value literal = _env->get(var_expr->ident_name);
+    literal_value literal = _env_manager.get_current_environment()->get(var_expr->ident_name);
     geo_type type = literal_to_geo_type(literal);
 
     if (type != geo_type::number_)
@@ -471,38 +542,99 @@ literal_value interpreter::visit_postfix(postfix_expression& expr)
     else if (expr.oper.type == token_type::minus_minus_)
         new_val--;
 
-    _env->assign(var_expr->ident_name.lexeme, new_val);
+    _env_manager.get_current_environment()->assign(var_expr->ident_name.lexeme, new_val);
     return value;
-}
-
-literal_value interpreter::visit_prefix(prefix_expression& expr)
-{
-    // Unused for now.  This is currently being handled in visit_unary.
-    assert(false);
 }
 
 literal_value interpreter::visit_call(call_expression& expr)
 {
-    literal_value literal = evaluate(expr.callee);
-    geo_type type = literal_to_geo_type(literal);
+    literal_value callee = expr.callee->accept_visitor(*this);
 
-    if (type != geo_type::callable_)
-        throw geo_runtime_error("Can only call functions and classes '()'", expr.paren);
+    std::vector<literal_value> args;
+    args.reserve(expr.arguments.size());
+    for (const auto& arg : expr.arguments)
+        args.push_back(evaluate(arg));
 
-    geo_callable* function = std::get<geo_callable*>(literal);
-    std::vector<literal_value> arguments;
-    arguments.reserve(expr.arguments.size());
+    geo_type call_type = literal_to_geo_type(callee);
+    if (call_type != geo_type::callable_)
+        throw type_error("Cannot call '()' non-callable type", expr.paren);
 
-    for (std::unique_ptr<expression>& arg_expr : expr.arguments)
-        arguments.emplace_back(evaluate(arg_expr));
+    geo_callable* callable = std::get<geo_callable*>(callee);
+    if (callable->arity() != static_cast<int>(args.size()))
+        throw geo_runtime_error("Expected " + std::to_string(callable->arity()) + " arguments but got " + std::to_string(args.size()));
 
-    if (function->arity() != static_cast<int>(arguments.size()))
+    return callable->call(*this, args);
+}
+
+literal_value interpreter::visit_get(get_expression& expr)
+{
+    literal_value object = evaluate(expr.object);
+    geo_type object_type = literal_to_geo_type(object);
+
+    if (object_type == geo_type::instance_)
     {
-        std::string msg = "Expected " + std::to_string(function->arity()) + " arguments but received " + std::to_string(arguments.size());
-        throw geo_runtime_error(msg);
+        geo_instance* instance = std::get<geo_instance*>(object);
+        return instance->get(expr.name);
+    }
+    else if (object_type == geo_type::callable_)
+    {
+        geo_callable* callable = std::get<geo_callable*>(object);
+        geo_class* class_ = dynamic_cast<geo_class*>(callable);
+
+        if (class_)
+        {
+            geo_callable* static_method = class_->find_method(expr.name);
+            if (!static_method)
+                throw geo_runtime_error("Static method with name '" + expr.name.lexeme + "' doesn't exist; are you trying to access an instance method or property?");
+
+            return static_method;
+        }
     }
 
-    return function->call(*this, arguments);
+    throw type_error("Only instances have properties", expr.name);
+}
+
+literal_value interpreter::visit_set(set_expression& expr)
+{
+    literal_value object = evaluate(expr.object);
+    geo_type object_type = literal_to_geo_type(object);
+
+    if (object_type != geo_type::instance_)
+        throw type_error("Only instances have fields", expr.name);
+
+    geo_instance* instance = std::get<geo_instance*>(object);
+    literal_value value = evaluate(expr.value);
+    instance->set(expr.name, value);
+    return value;
+}
+
+literal_value interpreter::visit_this(this_expression& expr)
+{
+    return lookup_variable(expr.keyword, expr);
+}
+
+literal_value interpreter::visit_super(super_expression& expr)
+{
+    auto distance_it = _locals.find(&expr);
+
+    if (distance_it == _locals.end())
+        throw geo_runtime_error("Iterator distance_it in visit_super could not be resolved", expr.keyword);
+
+    geo_class* superclass = std::get<geo_class*>(_env_manager.get_at(distance_it->second, create_dummy_token(token_type::super_)));
+
+    if (!superclass)
+        throw geo_runtime_error("Superclass could not be cast in visit_super", expr.keyword);
+
+    geo_instance* object = std::get<geo_instance*>(_env_manager.get_at(distance_it->second - 1, create_dummy_token(token_type::this_)));
+    if (!object)
+        throw geo_runtime_error("Object could not be cast to a geo_instance* in visit_super", expr.keyword);
+
+    geo_callable* method = superclass->find_method(expr.method.lexeme);
+    if (!method)
+        throw geo_runtime_error("Undefined property '" + expr.method.lexeme + "'.");
+
+    user_function* method_cast = dynamic_cast<user_function*>(method);
+    return method_cast->bind(object);
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

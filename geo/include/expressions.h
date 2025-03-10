@@ -19,6 +19,13 @@ public:
     virtual std::string accept_visitor(expression_visitor<std::string>& v) = 0;
     virtual void accept_visitor(expression_visitor<void>& v) = 0;
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) = 0;
+
+protected:
+    expression() = default;
+    expression(const expression&) = default;
+    expression& operator=(const expression&) = default;
+    expression(expression&&) = default;
+    expression& operator=(expression&&) = default;
 };
 
 class unary_expression : public expression
@@ -48,21 +55,6 @@ public:
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
 };
 
-class ternary_expression : public expression
-{
-public:
-    std::unique_ptr<expression> expr_lhs;
-    token oper;
-    std::unique_ptr<expression> expr_then;
-    std::unique_ptr<expression> expr_else;
-
-    ternary_expression(std::unique_ptr<expression> lhs, token oper, std::unique_ptr<expression> expr_then, std::unique_ptr<expression> expr_else);
-
-    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
-    virtual void accept_visitor(expression_visitor<void>& v) override;
-    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
-};
-
 class literal_expression : public expression
 {
 public:
@@ -78,7 +70,7 @@ public:
 class grouping_expression : public expression
 {
 public:
-    std::unique_ptr<expression> expr_;
+    std::unique_ptr<expression> expr_group;
 
     grouping_expression(std::unique_ptr<expression> expr);
 
@@ -139,19 +131,6 @@ public:
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
 };
 
-class prefix_expression : public expression
-{
-public:
-    token oper;
-    std::unique_ptr<expression> expr_rhs;
-
-    prefix_expression(token oper, std::unique_ptr<expression> expr);
-
-    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
-    virtual void accept_visitor(expression_visitor<void>& v) override;
-    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
-};
-
 class call_expression : public expression
 {
 public:
@@ -160,6 +139,59 @@ public:
     std::vector<std::unique_ptr<expression>> arguments;
 
     call_expression(std::unique_ptr<expression> callee, token paren, std::vector<std::unique_ptr<expression>> arguments);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+
+class get_expression : public expression
+{
+public:
+    std::unique_ptr<expression> object;
+    token name;
+
+    get_expression(std::unique_ptr<expression> object_, token name_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+class set_expression : public expression
+{
+public:
+    std::unique_ptr<expression> object;
+    token name;
+    std::unique_ptr<expression> value;
+
+    set_expression(std::unique_ptr<expression> object_, token name_, std::unique_ptr<expression> value_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+class this_expression : public expression
+{
+public:
+    token keyword;
+
+    this_expression(const token& keyword_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
+class super_expression : public expression
+{
+public:
+    token keyword;
+    token method;
+
+    super_expression(const token& keyword_, const token& method_);
 
     virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
     virtual void accept_visitor(expression_visitor<void>& v) override;

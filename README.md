@@ -1,6 +1,6 @@
 # Geo Programming Language
 
-Geo is a simple, dynamically-typed programming language written in C++—inspired by Robert Nystrom's Crafting Interpreters. It is basically the book's version of lox, but with some extra features.  Geo uses a recursive descent parser to proceshttps://github.com/jbt/markdown-editors code.
+Geo is a simple, dynamically-typed programming language written in C++—inspired by Robert Nystrom's Crafting Interpreters. It is basically the book's version of lox, but with some extra features.  Geo uses a recursive descent parser to process code.
 
 Please note that the language is being actively worked on, and many things, including syntax are subject to change.
 
@@ -29,7 +29,7 @@ var a = 5;
 a++;                // Postfix increment: increases a by 1
 print(a);           // prints 6
 var flag = true;
-print(!flag);        // prints false
+print(!flag);       // prints false
 ```
 #### Binary Operators & Comparisons
 Geo performs type-checking for binary operations and supports comparisons ( >, <, >=, <=, ==, and != ).
@@ -37,13 +37,6 @@ Geo performs type-checking for binary operations and supports comparisons ( >, <
 print(10 > 5);          // prints true
 print("foo" == "bar");  // prints false
 print(null == null);    // prints true
-```
-#### Ternary Operator
-A compact conditional operator is available to choose between two expressions.
-```
-var a = 10;
-var b = 20;
-print((a > b) ? a : b);  // prints 20
 ```
 #### Control Flow Statements
 Geo supports control flows with if/else, while, and for loops.
@@ -92,6 +85,53 @@ for (var i = 0; i < 5; ++i) {
     // prints 0 1 3
 }
 ```
+
+#### Built in functions
+Currently there are not many built in functions, but more will be added as the language is developed.
+```
+print("Hello, World!");  // prints "Hello, World!"
+var my_str = input();    // waits for user input and stores it in my_str
+clock();                 // prints the current system time since epoch in seconds
+
+```
+
+#### Classes
+Classes are supported in geo.
+```
+class math
+{
+    add(a, b)
+    {
+        return a + b;
+    }
+
+    sub(a, b)
+    {
+        return a - b;
+    }
+}
+
+var i = math();
+var result0 = i.add(5, 3);
+var result1 = i.sub(5, 3);
+print(result0);  // prints 8
+print(result1);  // prints 2
+```
+
+They can also have static methods, where an instance is not required.
+```
+class math
+{
+    static square(a)
+    {
+        return a * a;
+    }
+}
+
+var sqr = math.square(5);
+print(sqr);  // prints 25
+```
+
 
 ## Installation
 
@@ -148,7 +188,7 @@ Or, if you are developing, you can run the REPL:
 ## TODO
 
 - [ ] Implement user-defined functions.
-- [ ] Vastly improve testing.  Currently, on the lexer has proper tests written.
+- [ ] Vastly improve testing.
 - [ ] Add support for arrays, dictionaries, and other collection types.
 - [ ] Improve error messages across the lexer/parser/interpreter with more context and a stack trace.
 - [ ] Develop a module/import system to allow code organization across multiple files.

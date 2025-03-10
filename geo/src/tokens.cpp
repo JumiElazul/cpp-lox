@@ -55,10 +55,13 @@ const std::unordered_map<token_type, std::string> token_type_tostr =
     { token_type::while_,         "while"             },
     { token_type::break_,         "break"             },
     { token_type::continue_,      "continue"          },
+    { token_type::continue_,      "static"            },
     { token_type::bof_,           "bof"               },
     { token_type::eof_,           "eof"               },
     { token_type::ignore_,        "ignore"            },
     { token_type::invalid_,       "invalid"           },
+
+    { token_type::debug_,         "debug"             },
 };
 
 std::string debug_to_string(const token& t)
@@ -68,6 +71,12 @@ std::string debug_to_string(const token& t)
     return ss.str();
 }
 
+token create_dummy_token(token_type type)
+{
+    token t{ type, token_type_tostr.at(type), "", { 0, 0 }, "" };
+    return t;
+}
+
 NAMESPACE_END
 
 std::ostream& operator<<(std::ostream& os, const geo::token& t)
@@ -75,7 +84,7 @@ std::ostream& operator<<(std::ostream& os, const geo::token& t)
     os << "token [type: "
        << geo::token_type_tostr.at(t.type)
        << ", lexeme: " << t.lexeme
-       << ", literal: " << geo::literal_tostr(t.literal)
+       << ", literal: " << geo::literal_value_to_runtime_string(t.literal)
        << ", line/col: " << t.position.first << ":" << t.position.second
        << "]";
     return os;

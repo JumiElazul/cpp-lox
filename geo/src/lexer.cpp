@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "console_io.h"
+#include "debug_timer.h"
 #include "typedefs.h"
 #include "tokens.h"
 #include <cctype>
@@ -53,6 +54,9 @@ const std::unordered_map<std::string, token_type> lexer::reserved_keyword_lookup
     { "while",    token_type::while_    },
     { "break",    token_type::break_    },
     { "continue", token_type::continue_ },
+    { "static",   token_type::static_   },
+
+    { "debug",    token_type::debug_    },
 };
 
 lexer::lexer(const std::string& input, console_io* io)
@@ -61,8 +65,16 @@ lexer::lexer(const std::string& input, console_io* io)
     , _lexer_error(false)
     , _io(io)
 {
+#ifndef NDEBUG
+    debug_timer dt("lexer::lexer()");
+#endif
+
     _lexer_state.input = std::move(input);
     tokenize();
+
+#ifndef NDEBUG
+    dt.stop();
+#endif
 }
 
 const std::vector<token>& lexer::get_tokens() const noexcept

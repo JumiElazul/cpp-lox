@@ -33,12 +33,15 @@ enum class token_type
     // keywords
     and_, or_, if_, else_, class_, false_, true_, func_, null_,
     return_, super_, this_, var_, for_, while_, break_, continue_,
+    static_,
 
     // end of file/other
     bof_,
     eof_,
     ignore_,
     invalid_,
+
+    debug_
 };
 
 using coord = std::pair<uint32, uint32>;
@@ -54,6 +57,7 @@ struct token
 
 extern const std::unordered_map<token_type, std::string> token_type_tostr;
 extern std::string debug_to_string(const token& t);
+extern token create_dummy_token(token_type type);
 
 NAMESPACE_END
 

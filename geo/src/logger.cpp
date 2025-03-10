@@ -8,33 +8,22 @@
 
 NAMESPACE_BEGIN(geo)
 
-#if defined(GEO_LOG_LEVEL_TRACE)
-    #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::trace)
-#elif defined(GEO_LOG_LEVEL_DEBUG)
-    #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::debug)
-#elif defined(GEO_LOG_LEVEL_INFO)
-    #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::info)
-#elif defined(GEO_LOG_LEVEL_WARN)
-    #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::warn)
-#elif defined(GEO_LOG_LEVEL_ERROR)
-    #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::err)
-#elif defined(GEO_LOG_LEVEL_CRITICAL)
-    #define DETERMINE_LOG_LEVEL _logger->set_level(spdlog::level::critical)
-#elif defined(GEO_LOG_LEVEL_OFF)
-    #define DETERMINE_LOG_LEVEL
-#endif
-
 logger::logger()
 {
     std::vector<spdlog::sink_ptr> sinks;
 
+    // Only compile console loggers into debug builds
 #if defined(GEO_ENABLE_CONSOLE_LOGGING)
-    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    sinks.push_back(console_sink);
+    #if !defined(NDEBUG)
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_level(static_cast<spdlog::level::level_enum>(GEO_CONSOLE_LOG_LEVEL));
+        sinks.push_back(console_sink);
+    #endif
 #endif
 
 #if defined(GEO_ENABLE_FILE_LOGGING)
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("geo.log", false);
+    file_sink->set_level(static_cast<spdlog::level::level_enum>(GEO_FILE_LOG_LEVEL));
     sinks.push_back(file_sink);
 #endif
 
@@ -44,8 +33,8 @@ logger::logger()
     }
 
     _logger = std::make_shared<spdlog::logger>("multi_sink", sinks.begin(), sinks.end());
-    _logger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%@] %v");
-    DETERMINE_LOG_LEVEL;
+    _logger->set_level(static_cast<spdlog::level::level_enum>(spdlog::level::trace));
+    _logger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%s:%#] %v");
 
     spdlog::register_logger(_logger);
 }
