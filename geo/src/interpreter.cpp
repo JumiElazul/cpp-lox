@@ -604,6 +604,11 @@ literal_value interpreter::visit_this(this_expression& expr)
     return lookup_variable(expr.keyword, expr);
 }
 
+literal_value interpreter::visit_super(super_expression& expr)
+{
+
+}
+
 bool interpreter::is_truthy(const literal_value& literal) const
 {
     geo_type type = literal_to_geo_type(literal);

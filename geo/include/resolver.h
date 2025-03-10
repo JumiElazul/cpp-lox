@@ -71,6 +71,7 @@ public:
     virtual void visit_get(get_expression& expr) override;
     virtual void visit_set(set_expression& expr) override;
     virtual void visit_this(this_expression& expr) override;
+    virtual void visit_super(super_expression& expr) override;
 
 private:
     interpreter& _interpreter;

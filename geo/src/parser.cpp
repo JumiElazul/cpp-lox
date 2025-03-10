@@ -261,7 +261,6 @@ std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
         increment = expression_precedence();
 
     consume_if_matches(token_type::right_paren_, "Expected ')' after for clauses");
-    consume_if_matches(token_type::left_brace_, "Expected '{' to start for statement body");
 
     std::unique_ptr<statement> stmt_body = statement_precedence();
 
@@ -514,7 +513,7 @@ std::unique_ptr<expression> recursive_descent_parser::call_precedence()
 
 std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
 {
-    // primary -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ") | IDENTIFIER";
+    // primary -> NUMBER | STRING | "true" | "false" | "null" | "(" expression ") | IDENTIFIER | "super" "." IDENTIFIER;
     if (matches_token({ token_type::false_ })) return std::make_unique<literal_expression>(false);
     if (matches_token({ token_type::true_ }))  return std::make_unique<literal_expression>(true);
     if (matches_token({ token_type::null_ }))  return std::make_unique<literal_expression>(std::monostate{});
@@ -537,6 +536,14 @@ std::unique_ptr<expression> recursive_descent_parser::primary_precedence()
     if (matches_token({ token_type::identifier_ }))
     {
         return std::make_unique<variable_expression>(*previous_token());
+    }
+
+    if (matches_token({ token_type::super_ }))
+    {
+        token keyword = *previous_token();
+        consume_if_matches(token_type::dot_, "Expected '.' after 'super'");
+        token method = consume_if_matches(token_type::identifier_, "Expected superclass method name after '.'");
+        return std::make_unique<super_expression>(keyword, method);
     }
 
     throw error("Expected expression but none was given", *previous_token());

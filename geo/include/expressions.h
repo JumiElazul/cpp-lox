@@ -185,6 +185,19 @@ public:
     virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
 };
 
+class super_expression : public expression
+{
+public:
+    token keyword;
+    token method;
+
+    super_expression(const token& keyword_, const token& method_);
+
+    virtual std::string accept_visitor(expression_visitor<std::string>& v) override;
+    virtual void accept_visitor(expression_visitor<void>& v) override;
+    virtual literal_value accept_visitor(expression_visitor<literal_value>& v) override;
+};
+
 NAMESPACE_END
 
 #endif

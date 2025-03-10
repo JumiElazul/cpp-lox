@@ -280,6 +280,11 @@ void resolver::visit_this(this_expression& expr)
     resolve_local(expr, expr.keyword);
 }
 
+void resolver::visit_super(super_expression& expr)
+{
+
+}
+
 void resolver::begin_scope()
 {
     _scopes.push_back(std::unordered_map<std::string, variable_info>());

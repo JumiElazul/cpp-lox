@@ -18,6 +18,7 @@ class call_expression;
 class get_expression;
 class set_expression;
 class this_expression;
+class super_expression;
 class console_io;
 
 template<typename T>
@@ -37,6 +38,7 @@ public:
     virtual T visit_get(get_expression& expr) = 0;
     virtual T visit_set(set_expression& expr) = 0;
     virtual T visit_this(this_expression& expr) = 0;
+    virtual T visit_super(super_expression& expr) = 0;
 };
 
 NAMESPACE_END

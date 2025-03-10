@@ -54,6 +54,9 @@ set_expression::set_expression(std::unique_ptr<expression> object_, token name_,
 this_expression::this_expression(const token& t)
     : keyword(t) { }
 
+super_expression::super_expression(const token& keyword_, const token& method_)
+    : keyword(keyword_), method(method_) { }
+
 literal_value unary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_unary(*this); }
 literal_value binary_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_binary(*this); }
 literal_value literal_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_literal(*this); }
@@ -66,6 +69,7 @@ literal_value call_expression::accept_visitor(expression_visitor<literal_value>&
 literal_value get_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_get(*this); }
 literal_value set_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_set(*this); }
 literal_value this_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_this(*this); }
+literal_value super_expression::accept_visitor(expression_visitor<literal_value>& v) { return v.visit_super(*this); }
 
 void unary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_unary(*this); }
 void binary_expression::accept_visitor(expression_visitor<void>& v) { v.visit_binary(*this); }
@@ -79,6 +83,7 @@ void call_expression::accept_visitor(expression_visitor<void>& v) { v.visit_call
 void get_expression::accept_visitor(expression_visitor<void>& v) { v.visit_get(*this); }
 void set_expression::accept_visitor(expression_visitor<void>& v) { v.visit_set(*this); }
 void this_expression::accept_visitor(expression_visitor<void>& v) { v.visit_this(*this); }
+void super_expression::accept_visitor(expression_visitor<void>& v) { v.visit_super(*this); }
 
 std::string unary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_unary(*this); }
 std::string binary_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_binary(*this); }
@@ -92,5 +97,6 @@ std::string call_expression::accept_visitor(expression_visitor<std::string>& v) 
 std::string get_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_get(*this); }
 std::string set_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_set(*this); }
 std::string this_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_this(*this); }
+std::string super_expression::accept_visitor(expression_visitor<std::string>& v) { return v.visit_super(*this); }
 
 NAMESPACE_END
