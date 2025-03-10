@@ -236,6 +236,8 @@ std::unique_ptr<statement> recursive_descent_parser::create_while_statement()
 
 std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
 {
+    token for_token = *previous_token();
+
     consume_if_matches(token_type::left_paren_, "Expected '(' after 'for'");
 
     std::unique_ptr<statement> initializer = nullptr;
@@ -259,11 +261,12 @@ std::unique_ptr<statement> recursive_descent_parser::create_for_statement()
         increment = expression_precedence();
 
     consume_if_matches(token_type::right_paren_, "Expected ')' after for clauses");
+    consume_if_matches(token_type::left_brace_, "Expected '{' to start for statement body");
 
     std::unique_ptr<statement> stmt_body = statement_precedence();
 
     return std::make_unique<for_statement>(std::move(initializer), std::move(condition),
-            std::move(increment), std::move(stmt_body));
+            std::move(increment), std::move(stmt_body), for_token);
 }
 
 std::unique_ptr<statement> recursive_descent_parser::create_break_statement()

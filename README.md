@@ -95,6 +95,44 @@ clock();                 // prints the current system time since epoch in second
 
 ```
 
+#### Classes
+Classes are supported in geo.
+```
+class math
+{
+    add(a, b)
+    {
+        return a + b;
+    }
+
+    sub(a, b)
+    {
+        return a - b;
+    }
+}
+
+var i = math();
+var result0 = i.add(5, 3);
+var result1 = i.sub(5, 3);
+print(result0);  // prints 8
+print(result1);  // prints 2
+```
+
+They can also have static methods, where an instance is not required.
+```
+class math
+{
+    static square(a)
+    {
+        return a * a;
+    }
+}
+
+var sqr = math.square(5);
+print(sqr);  // prints 25
+```
+
+
 ## Installation
 
 #### Dependencies
@@ -150,7 +188,7 @@ Or, if you are developing, you can run the REPL:
 ## TODO
 
 - [ ] Implement user-defined functions.
-- [ ] Vastly improve testing.  Currently, on the lexer has proper tests written.
+- [ ] Vastly improve testing.
 - [ ] Add support for arrays, dictionaries, and other collection types.
 - [ ] Improve error messages across the lexer/parser/interpreter with more context and a stack trace.
 - [ ] Develop a module/import system to allow code organization across multiple files.

@@ -194,7 +194,17 @@ void interpreter::visit_return_statement(return_statement& stmt)
 void interpreter::visit_block_statement(block_statement& stmt)
 {
     _env_manager.push_environment();
-    execute_block(stmt.statements, _env_manager.get_current_environment());
+    try
+    {
+        execute_block(stmt.statements, _env_manager.get_current_environment());
+    }
+    catch (...)
+    {
+        // We need this here in the case of for_statements.  When continue/break statements are hit,
+        // we need to cleanup the environment stack and rethrow it so the for_statement can catch it.
+        _env_manager.pop_environment();
+        throw;
+    }
     _env_manager.pop_environment();
 }
 

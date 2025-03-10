@@ -103,6 +103,7 @@ void resolver::visit_while_statement(while_statement& stmt)
 void resolver::visit_for_statement(for_statement& stmt)
 {
     begin_scope();
+
     if (stmt.initializer)
         resolve(stmt.initializer);
 

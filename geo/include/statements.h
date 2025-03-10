@@ -91,9 +91,10 @@ public:
     std::unique_ptr<expression> condition;
     std::unique_ptr<expression> increment;
     std::unique_ptr<statement> stmt_body;
+    token for_token;
 
     for_statement(std::unique_ptr<statement> initializer_, std::unique_ptr<expression> condition_,
-            std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_);
+            std::unique_ptr<expression> increment_, std::unique_ptr<statement>&& stmt_body_, const token& for_token_);
 
     virtual void accept_visitor(statement_visitor& v) override;
 };

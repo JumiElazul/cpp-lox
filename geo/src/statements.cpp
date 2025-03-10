@@ -36,11 +36,13 @@ while_statement::while_statement(std::unique_ptr<expression> condition_, std::un
     , stmt_body(std::move(stmt_body_)) { }
 
 for_statement::for_statement(std::unique_ptr<statement> initializer_, std::unique_ptr<expression> condition_,
-        std::unique_ptr<expression> increment_, std::unique_ptr<statement> stmt_body_)
+        std::unique_ptr<expression> increment_, std::unique_ptr<statement>&& stmt_body_, const token& for_token_)
     : initializer(std::move(initializer_))
     , condition(std::move(condition_))
     , increment(std::move(increment_))
-    , stmt_body(std::move(stmt_body_)) { }
+    , stmt_body(std::move(stmt_body_))
+    , for_token(for_token_)
+{ }
 
 break_statement::break_statement(const token& t)
     : break_token(t) { }

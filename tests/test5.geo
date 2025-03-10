@@ -12,7 +12,3 @@ func func1()
 var a = func1();
 print(a);
 print(a());
-print(a());
-print(a());
-print(a());
-print(a());
