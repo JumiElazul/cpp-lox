@@ -132,6 +132,30 @@ var sqr = math.square(5);
 print(sqr);  // prints 25
 ```
 
+Single inheritance is supported as well!
+```
+class doughnut
+{
+    cook()
+    {
+        print("Fry until golden brown");
+    }
+}
+
+class boston_cream < doughnut
+{
+    cook()
+    {
+        super.cook();
+        print("Pipe full of custard and coat with chocolate");
+    }
+}
+
+doughnut().cook();     // prints "Fry until golden brown";
+boston_cream().cook(); // prints "Fry until golden brown"
+                                 "Pipe full of custard and coat with chocolate"
+``````
+
 
 ## Installation
 
