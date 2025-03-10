@@ -149,8 +149,9 @@ literal_value input::call(interpreter& i, const std::vector<literal_value>& args
     return value;
 }
 
-geo_class::geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_)
-    : name(name_), methods(std::move(methods_)) { }
+geo_class::geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_
+        , geo_class* superclass_)
+    : name(name_), methods(std::move(methods_)), superclass(superclass_) { }
 
 int geo_class::arity() 
 { 
@@ -180,6 +181,11 @@ geo_callable* geo_class::find_method(const token& name)
     auto method_it = methods.find(name.lexeme);
     if (method_it != methods.end())
         return method_it->second;
+
+    if (superclass != nullptr)
+    {
+        return superclass->find_method(name);
+    }
 
     return nullptr;
 }

@@ -208,6 +208,25 @@ void interpreter::execute_block(const std::vector<std::unique_ptr<statement>>& s
 
 void interpreter::visit_class_statement(class_statement& stmt)
 {
+    geo_class* superclass = nullptr;
+
+    if (stmt.superclass)
+    {
+        literal_value literal = evaluate(stmt.superclass);
+        geo_type superclass_type = literal_to_geo_type(literal);
+
+        if (superclass_type == geo_type::callable_)
+        {
+            geo_callable* callable = std::get<geo_callable*>(literal);
+            geo_class* class_cast = dynamic_cast<geo_class*>(callable);
+
+            if (!class_cast)
+                throw geo_runtime_error("Could not superclass from attemped class, superclass specified was not a class", stmt.name);
+
+            superclass = class_cast;
+        }
+    }
+
     _env_manager.get_current_environment()->define(stmt.name.lexeme, std::monostate{});
 
     std::unordered_map<std::string, geo_callable*> methods;
@@ -218,7 +237,7 @@ void interpreter::visit_class_statement(class_statement& stmt)
         methods[method->ident_name.lexeme] = new_method;
     }
 
-    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods));
+    geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods), superclass);
 
     _env_manager.get_current_environment()->assign(stmt.name.lexeme, new_class);
 }

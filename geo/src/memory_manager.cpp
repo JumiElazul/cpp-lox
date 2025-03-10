@@ -35,9 +35,10 @@ bool memory_manager::register_callable(geo_callable* callable)
     return _callables.insert(callable).second;
 }
 
-geo_callable* memory_manager::allocate_class(const std::string& name, std::unordered_map<std::string, geo_callable*>&& methods)
+geo_callable* memory_manager::allocate_class(const std::string& name,
+        std::unordered_map<std::string, geo_callable*>&& methods, geo_class* superclass)
 {
-    geo_callable* new_class = new geo_class(name, std::move(methods));
+    geo_callable* new_class = new geo_class(name, std::move(methods), superclass);
     _callables.insert(new_class);
     return new_class;
 }

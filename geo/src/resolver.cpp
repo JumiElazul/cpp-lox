@@ -2,6 +2,7 @@
 #include "console_io.h"
 #include "debug_timer.h"
 #include "exceptions.h"
+#include "expressions.h"
 #include "interpreter.h"
 #include "statements.h"
 #include "tokens.h"
@@ -150,6 +151,15 @@ void resolver::visit_class_statement(class_statement& stmt)
 {
     declare(stmt.name);
     define(stmt.name);
+
+    if (stmt.superclass)
+    {
+        variable_expression* var_expr = dynamic_cast<variable_expression*>(stmt.superclass.get());
+        if (var_expr && stmt.name.lexeme == var_expr->ident_name.lexeme)
+            throw geo_runtime_error("A class cannot inherit from itself", stmt.name);
+
+        resolve(stmt.superclass);
+    }
 
     class_type enclosing_class = _current_class_type;
     _current_class_type = class_type::class_;

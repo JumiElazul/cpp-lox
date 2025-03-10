@@ -134,8 +134,10 @@ class geo_class : public geo_callable
 public:
     std::string name;
     std::unordered_map<std::string, geo_callable*> methods;
+    geo_class* superclass;
 
-    geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_);
+    geo_class(const std::string& name_, std::unordered_map<std::string, geo_callable*>&& methods_
+            , geo_class* superclass_);
 
     virtual int arity() override;
     virtual std::string to_string() const override;

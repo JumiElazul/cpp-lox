@@ -55,8 +55,9 @@ return_statement::return_statement(const token& keyword_, std::unique_ptr<expres
 block_statement::block_statement(std::vector<std::unique_ptr<statement>>&& statements_)
     : statements(std::move(statements_)) { }
 
-class_statement::class_statement(const token& name_, std::vector<std::unique_ptr<function_declaration_statement>>&& methods_)
-    : name(name_), methods(std::move(methods_)) { }
+class_statement::class_statement(const token& name_, std::vector<std::unique_ptr<function_declaration_statement>>&& methods_,
+        std::unique_ptr<expression> superclass_)
+    : name(name_), methods(std::move(methods_)), superclass(std::move(superclass_)) { }
 
 expression_statement::expression_statement(std::unique_ptr<expression> expr_)
     : expr(std::move(expr_)) { }

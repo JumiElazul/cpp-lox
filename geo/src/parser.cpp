@@ -153,7 +153,16 @@ std::unique_ptr<statement> recursive_descent_parser::create_variable_declaration
 
 std::unique_ptr<statement> recursive_descent_parser::create_class_declaration_statement()
 {
+    // class_declaration -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
     token ident = consume_if_matches(token_type::identifier_, "Expected class name after 'class'");
+
+    std::unique_ptr<variable_expression> superclass = nullptr;
+    if (matches_token({ token_type::less_ }))
+    {
+        consume_if_matches(token_type::identifier_, "Expected superclass name after '<'");
+        superclass = std::make_unique<variable_expression>(*previous_token());
+    }
+
     consume_if_matches(token_type::left_brace_, "Expected '{' after class name");
 
     std::vector<std::unique_ptr<function_declaration_statement>> methods;
@@ -166,7 +175,7 @@ std::unique_ptr<statement> recursive_descent_parser::create_class_declaration_st
     }
 
     consume_if_matches(token_type::right_brace_, "Expected '}' after class body");
-    return std::make_unique<class_statement>(ident, std::move(methods));
+    return std::make_unique<class_statement>(ident, std::move(methods), std::move(superclass));
 }
 
 std::unique_ptr<statement> recursive_descent_parser::statement_precedence()
