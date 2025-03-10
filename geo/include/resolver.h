@@ -27,6 +27,7 @@ enum class class_type
 {
     none_,
     class_,
+    subclass_,
 };
 
 struct variable_info

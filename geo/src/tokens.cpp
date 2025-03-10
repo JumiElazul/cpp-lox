@@ -71,6 +71,12 @@ std::string debug_to_string(const token& t)
     return ss.str();
 }
 
+token create_dummy_token(token_type type)
+{
+    token t{ type, token_type_tostr.at(type), "", { 0, 0 }, "" };
+    return t;
+}
+
 NAMESPACE_END
 
 std::ostream& operator<<(std::ostream& os, const geo::token& t)

@@ -57,6 +57,7 @@ struct token
 
 extern const std::unordered_map<token_type, std::string> token_type_tostr;
 extern std::string debug_to_string(const token& t);
+extern token create_dummy_token(token_type type);
 
 NAMESPACE_END
 

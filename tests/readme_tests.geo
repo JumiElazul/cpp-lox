@@ -102,3 +102,26 @@ print("Math class result1: " + result1);
 var sqr = math_class.square(5);
 print("math.square(5) results in: " + sqr);
 
+class doughnut
+{
+    cook()
+    {
+        print("Fry until golden brown");
+    }
+}
+
+class boston_cream < doughnut
+{
+    cook()
+    {
+        super.cook();
+        print("Pipe full of custard and coat with chocolate");
+    }
+}
+
+var dough1 = doughnut();
+var dough2 = boston_cream();
+
+dough1.cook();
+dough2.cook();
+

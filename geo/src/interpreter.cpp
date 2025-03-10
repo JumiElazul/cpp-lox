@@ -239,6 +239,12 @@ void interpreter::visit_class_statement(class_statement& stmt)
 
     _env_manager.get_current_environment()->define(stmt.name.lexeme, std::monostate{});
 
+    if (stmt.superclass)
+    {
+        _env_manager.push_environment();
+        _env_manager.get_current_environment()->define("super", superclass);
+    }
+
     std::unordered_map<std::string, geo_callable*> methods;
     for (const std::unique_ptr<function_declaration_statement>& method : stmt.methods)
     {
@@ -248,6 +254,9 @@ void interpreter::visit_class_statement(class_statement& stmt)
     }
 
     geo_callable* new_class = memory_manager::instance().allocate_class(stmt.name.lexeme, std::move(methods), superclass);
+
+    if (superclass)
+        _env_manager.pop_environment();
 
     _env_manager.get_current_environment()->assign(stmt.name.lexeme, new_class);
 }
@@ -606,7 +615,26 @@ literal_value interpreter::visit_this(this_expression& expr)
 
 literal_value interpreter::visit_super(super_expression& expr)
 {
+    auto distance_it = _locals.find(&expr);
 
+    if (distance_it == _locals.end())
+        throw geo_runtime_error("Iterator distance_it in visit_super could not be resolved", expr.keyword);
+
+    geo_class* superclass = std::get<geo_class*>(_env_manager.get_at(distance_it->second, create_dummy_token(token_type::super_)));
+
+    if (!superclass)
+        throw geo_runtime_error("Superclass could not be cast in visit_super", expr.keyword);
+
+    geo_instance* object = std::get<geo_instance*>(_env_manager.get_at(distance_it->second - 1, create_dummy_token(token_type::this_)));
+    if (!object)
+        throw geo_runtime_error("Object could not be cast to a geo_instance* in visit_super", expr.keyword);
+
+    geo_callable* method = superclass->find_method(expr.method.lexeme);
+    if (!method)
+        throw geo_runtime_error("Undefined property '" + expr.method.lexeme + "'.");
+
+    user_function* method_cast = dynamic_cast<user_function*>(method);
+    return method_cast->bind(object);
 }
 
 bool interpreter::is_truthy(const literal_value& literal) const

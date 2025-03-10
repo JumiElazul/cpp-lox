@@ -155,6 +155,8 @@ void resolver::visit_class_statement(class_statement& stmt)
 
     if (stmt.superclass)
     {
+        _current_class_type = class_type::subclass_;
+
         variable_expression* var_expr = dynamic_cast<variable_expression*>(stmt.superclass.get());
         if (var_expr && stmt.name.lexeme == var_expr->ident_name.lexeme)
             throw geo_runtime_error("A class cannot inherit from itself", stmt.name);
@@ -162,8 +164,14 @@ void resolver::visit_class_statement(class_statement& stmt)
         resolve(stmt.superclass);
     }
 
+    if (stmt.superclass)
+    {
+        begin_scope();
+        _scopes.back()["super"] = variable_info{ true, true, create_dummy_token(token_type::super_) };
+    }
+
     class_type enclosing_class = _current_class_type;
-    _current_class_type = class_type::class_;
+    _current_class_type = (stmt.superclass ? class_type::subclass_ : class_type::class_);
 
     begin_scope();
 
@@ -185,7 +193,11 @@ void resolver::visit_class_statement(class_statement& stmt)
         resolve_function(*method, declaration);
     }
 
+    if (stmt.superclass)
+        end_scope();
+
     end_scope();
+
     _current_class_type = enclosing_class;
 }
 
@@ -282,7 +294,12 @@ void resolver::visit_this(this_expression& expr)
 
 void resolver::visit_super(super_expression& expr)
 {
+    if (_current_class_type == class_type::none_)
+        throw geo_runtime_error("Can't use 'super' outside of a class.");
+    else if (_current_class_type != class_type::subclass_)
+        throw geo_runtime_error("Can't use 'super' in a class with no superclass.");
 
+    resolve_local(expr, expr.keyword);
 }
 
 void resolver::begin_scope()

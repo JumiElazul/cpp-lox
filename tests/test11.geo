@@ -8,19 +8,15 @@ class doughnut
 
 class boston_cream < doughnut
 {
-    
-}
-
-class chocolate_doughnut
-{
     cook()
     {
-        print("Drizzle in delicious chocolate");
+        super.cook();
+        print("Pipe full of custard and coat with chocolate");
     }
 }
 
-var i = boston_cream();
-var i2 = chocolate_doughnut();
+var dough1 = doughnut();
+var dough2 = boston_cream();
 
-i.cook();
-i2.cook();
+dough1.cook();
+dough2.cook();
