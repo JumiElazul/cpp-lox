@@ -31,9 +31,7 @@ recursive_descent_parser::recursive_descent_parser(const std::vector<token>& lex
 
 std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
 {
-#ifndef NDEBUG
     debug_timer dt("recursive_descent_parser::parse()");
-#endif
 
     std::vector<std::unique_ptr<statement>> statements;
     // Estimate the number of statements to reserve
@@ -65,9 +63,7 @@ std::vector<std::unique_ptr<statement>> recursive_descent_parser::parse()
         }
     }
 
-#ifndef NDEBUG
     dt.stop();
-#endif
 
     return statements;
 }

@@ -27,9 +27,7 @@ void resolver::reset_error_flag() noexcept { _had_error = false; }
 
 void resolver::resolve_all(const std::vector<std::unique_ptr<statement>>& statements)
 {
-#ifndef NDEBUG
     debug_timer dt("resolver::resolve()");
-#endif
 
     try
     {
@@ -41,9 +39,7 @@ void resolver::resolve_all(const std::vector<std::unique_ptr<statement>>& statem
         _had_error = true;
     }
 
-#ifndef NDEBUG
     dt.stop();
-#endif
 }
 
 void resolver::resolve(const std::vector<std::unique_ptr<statement>>& statements)

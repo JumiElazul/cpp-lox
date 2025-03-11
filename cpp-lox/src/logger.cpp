@@ -12,7 +12,7 @@ logger::logger()
 {
     std::vector<spdlog::sink_ptr> sinks;
 
-    // Only compile console loggers into debug builds
+// Only compile console loggers into debug builds
 #if defined(CPPLOX_ENABLE_CONSOLE_LOGGING)
     #if !defined(NDEBUG)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();

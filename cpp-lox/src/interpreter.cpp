@@ -41,9 +41,7 @@ void interpreter::instantiate_standard_library()
 
 void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& statements)
 {
-#ifndef NDEBUG
     debug_timer dt("interpreter::interpret()");
-#endif
 
     try
     {
@@ -61,9 +59,7 @@ void interpreter::interpret(const std::vector<std::unique_ptr<statement>>& state
         _io->err() << "Exception swallower hit\n";
     }
 
-#ifndef NDEBUG
     dt.stop();
-#endif
 }
 
 literal_value interpreter::evaluate(const std::unique_ptr<expression>& expr)
