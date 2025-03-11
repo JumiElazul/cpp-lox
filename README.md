@@ -173,8 +173,9 @@ cpp-lox uses a CMakePresets.json file with the following targets:
 ```
 linux-debug
 linux-release
-windows-debug
-windows-release
+
+x64-debug   [windows]
+x64-release [windows]
 ```
 
 To build one of these targets, when in the cpp-lox root folder, run:
