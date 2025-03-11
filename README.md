@@ -1,20 +1,18 @@
-# Geo Programming Language
+# cpp-lox
 
-Geo is a simple, dynamically-typed programming language written in C++—inspired by Robert Nystrom's Crafting Interpreters. It is basically the book's version of lox, but with some extra features.  Geo uses a recursive descent parser to process code.
-
-Please note that the language is being actively worked on, and many things, including syntax are subject to change.
+cpp-lox is a dynamically-typed programming language written in C++, translated from java to cpp while following along with Robert Nystrom's Crafting Interpreters. 
 
 ## Features
 
 #### Dynamic Typing
-Variables in Geo can hold values of any type and may change type over their lifetime.
+Variables in cpp-lox can hold values of any type and may change type over their lifetime.
 ```
 var i = 1;
 i = "hello";
 ```
 
 #### Arithmetic Operations
-Geo supports basic arithmetic operators (+, -, *, /, %).
+cpp-lox supports basic arithmetic operators (+, -, *, /, %).
 ```
 var sum = 10 + 20;
 var product = 5 * 4;
@@ -23,7 +21,7 @@ print(product);
 ```
 
 #### Unary Operators
-Geo featues unary operators like negation (-), logical NOT (!), and increment/decrement (++, --).
+cpp-lox featues unary operators like negation (-), logical NOT (!), and increment/decrement (++, --).
 ```
 var a = 5;
 a++;                // Postfix increment: increases a by 1
@@ -32,14 +30,14 @@ var flag = true;
 print(!flag);       // prints false
 ```
 #### Binary Operators & Comparisons
-Geo performs type-checking for binary operations and supports comparisons ( >, <, >=, <=, ==, and != ).
+cpp-lox performs type-checking for binary operations and supports comparisons ( >, <, >=, <=, ==, and != ).
 ```
 print(10 > 5);          // prints true
 print("foo" == "bar");  // prints false
 print(null == null);    // prints true
 ```
 #### Control Flow Statements
-Geo supports control flows with if/else, while, and for loops.
+cpp-lox supports control flows with if/else, while, and for loops.
 ```
 // if/else example:
 if (x > 0) {
@@ -96,7 +94,7 @@ clock();                 // prints the current system time since epoch in second
 ```
 
 #### Classes
-Classes are supported in geo.
+cpp-lox supports classes.
 ```
 class math
 {
@@ -167,11 +165,11 @@ The cmake --preset command relies on the VCPKG_ROOT environment variable. You mu
 #### Steps
 Clone the repository and compile the interpreter using your favorite C++ compiler. For example:
 ```
-git clone https://github.com/JumiElazul/Geo.git
-cd Geo
+git clone https://github.com/JumiElazul/cpp-lox.git
+cd cpp-lox
 ```
 
-Geo uses a CMakePresets.json file with the following targets:
+cpp-lox uses a CMakePresets.json file with the following targets:
 ```
 linux-debug
 linux-release
@@ -179,7 +177,7 @@ windows-debug
 windows-release
 ```
 
-To build one of these targets, when in the Geo root folder, run:
+To build one of these targets, when in the cpp-lox root folder, run:
 ```
 cmake --preset <target>
 
@@ -187,7 +185,7 @@ cmake --preset <target>
 cmake --preset linux-debug
 ```
 
-This will configure CMake and gather dependencies for Geo.  Then, to build:
+This will configure CMake and gather dependencies for cpp-lox.  Then, to build:
 ```
 cmake --build out/build/<target>
 
@@ -197,16 +195,16 @@ cmake --build out/build/linux-debug
 
 ## Usage
 
-Run the interpreter from the command line and pass in a Geo source file:
+Run the interpreter from the command line and pass in a cpp-lox source file:
 
 ```
-./geo path/to/your/file.geo
+./cpp-lox path/to/your/file.cpplox
 ```
 
 Or, if you are developing, you can run the REPL:
 
 ```
-./geo
+./cpp-lox
 ```
 
 ## TODO
