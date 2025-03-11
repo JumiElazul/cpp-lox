@@ -207,9 +207,9 @@ Or, if you are developing, you can run the REPL:
 ./cpp-lox
 ```
 
-## TODO
+## Stretch goals:
 
-- [ ] Implement user-defined functions.
+- [x] Implement user-defined functions.
 - [ ] Vastly improve testing.
 - [ ] Add support for arrays, dictionaries, and other collection types.
 - [ ] Improve error messages across the lexer/parser/interpreter with more context and a stack trace.
