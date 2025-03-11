@@ -77,7 +77,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-                "CMAKE_CXX_FLAGS_INIT": "-O3 -Wall -Wextra -Wconversion --Wno-unused-parameter -Wno-switch -pedantic-errors"
+                "CMAKE_CXX_FLAGS_INIT": "-O3 -Wall -Wextra -Wconversion -Wno-unused-parameter -Wno-switch -pedantic-errors"
             },
             "condition": {
                 "type": "equals",
